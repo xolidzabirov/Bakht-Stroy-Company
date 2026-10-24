@@ -6,7 +6,7 @@ namespace App\Modules\Catalog\Actions;
 
 use App\Modules\Catalog\DTO\ProductData;
 use App\Modules\Catalog\Models\Product;
-use App\Modules\Catalog\Support\UniqueSlug;
+use App\Shared\Support\UniqueSlug;
 use Illuminate\Support\Facades\DB;
 
 /**

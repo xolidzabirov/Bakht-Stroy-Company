@@ -8,7 +8,7 @@ use App\Modules\Order\Models\Order;
 use Illuminate\Notifications\Notification;
 
 /**
- * To admins and managers: a new order to process (shown in the admin panel).
+ * To admins: a new order to process (shown in the admin panel).
  */
 final class NewOrderForStaffNotification extends Notification
 {

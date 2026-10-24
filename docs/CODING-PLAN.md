@@ -86,7 +86,7 @@ app/Shared/
 - Перенести `app/Models/User.php` → `Modules/User/Models/User.php` (`HasApiTokens`, `HasRoles`, `SoftDeletes`, `Notifiable`)
 - Миграция: изменить `users` — `email` (unique, логин), `phone` (nullable, unique), `locale`, `theme`, `blocked_at`, `deleted_at`
 - `config/auth.php` → новый путь модели
-- `UserFactory`, `Enums/Role.php` (`client`, `manager`, `admin`)
+- `UserFactory`, `Enums/Role.php` (`client`, `admin`)
 - Роли создаются миграцией; `AdminSeeder` — один админ из `.env`: `ADMIN_EMAIL`, `ADMIN_PASSWORD`
 
 **1.2 Регистрация и вход** — `Modules/Auth/`
@@ -212,8 +212,8 @@ routes.php
 - Админ-заказы: список с фильтрами и поиском (номер, телефон), детали, смена статуса
 - Админ-пользователи: список с поиском, профиль + заказы, блокировка (только `admin`)
 - `Modules/Content/`: `settings` (типизированный `SettingsService` с кэшем), `banners` (CRUD + фото), `contact_messages` (публичная форма с лимитом + админ-список)
-- Права: `manager` — товары, категории, заказы; `admin` — плюс пользователи, настройки
-- Тесты: manager не может в настройки → 403, статистика считает правильно на фабричных данных
+- Права: всё в админке — только `admin`
+- Тесты: клиент → 403, статистика считает правильно на фабричных данных
 
 ---
 
@@ -230,7 +230,7 @@ routes.php
 ### Этап 7 — Swagger: сдача backend
 - Для каждого эндпоинта: описание на русском, группы (Auth, Каталог, Корзина, Заказы, Кабинет, Админ), примеры
 - Схема Bearer — кнопка **Authorize**
-- `DatabaseSeeder` создаёт: админа, менеджера, 3 клиентов с заказами, весь каталог
+- `DatabaseSeeder` создаёт: админа, 10 клиентов с адресами и заказами, каталог 5×30 товаров с фото, новости, баннеры, контакты
 - `backend/README.md`: как запустить, тестовые логины, как получить токен и вставить в Swagger
 - Ты тестируешь → список замечаний → исправления → коммит `docs(api): swagger ready for testing`
 
@@ -255,7 +255,7 @@ routes.php
 - `shared/ui`: Button, Input, Select, Checkbox, Modal, Drawer, Table, Badge, Skeleton, Toast, Pagination
 - Провайдеры: QueryClient, тема
 - `app/api/auth/*` — route handlers login/logout/register → httpOnly cookie
-- `proxy.ts` — `/account/*` только вошедшим, `/admin/*` только admin/manager
+- `proxy.ts` — `/account/*` только вошедшим, `/admin/*` только admin
 - Страницы `(auth)`: login, register, forgot-password
 
 ### Этап 9 — Магазин `(shop)`

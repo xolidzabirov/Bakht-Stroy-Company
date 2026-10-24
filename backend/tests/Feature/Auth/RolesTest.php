@@ -8,22 +8,22 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 beforeEach(function () {
-    Route::middleware(['api', 'auth:sanctum', 'active', 'role:admin|manager'])
+    Route::middleware(['api', 'auth:sanctum', 'active', 'role:admin'])
         ->get('/api/v1/_test/staff', fn () => ['ok' => true]);
 });
 
 it('creates the default roles in a migration', function () {
     expect(Spatie\Permission\Models\Role::query()->pluck('name')->sort()->values()->all())
-        ->toBe(['admin', 'client', 'manager']);
+        ->toBe(['admin', 'client']);
 });
 
-it('lets admins and managers into staff routes', function (string $state) {
-    $user = User::factory()->{$state}()->create();
+it('lets admins into admin routes', function () {
+    $user = User::factory()->admin()->create();
 
     $this->withToken($user->createToken('Pest')->plainTextToken)
         ->getJson('/api/v1/_test/staff')
         ->assertOk();
-})->with(['admin', 'manager']);
+});
 
 it('forbids clients from staff routes', function () {
     $user = User::factory()->client()->create();

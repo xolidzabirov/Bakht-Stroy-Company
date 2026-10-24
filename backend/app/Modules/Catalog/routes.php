@@ -18,9 +18,9 @@ Route::get('products/{product:slug}', [ProductController::class, 'show'])->name(
 Route::get('products/{product:slug}/related', [ProductController::class, 'related'])->name('products.related');
 
 /*
-| Admin panel — admins and managers.
+| Admin panel — admins.
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin'])->group(function () {
     Route::patch('categories/reorder', [AdminCategoryController::class, 'reorder'])->name('categories.reorder');
     Route::post('categories/{category}/image', [AdminCategoryController::class, 'uploadImage'])->name('categories.image.store');
     Route::delete('categories/{category}/image', [AdminCategoryController::class, 'deleteImage'])->name('categories.image.destroy');

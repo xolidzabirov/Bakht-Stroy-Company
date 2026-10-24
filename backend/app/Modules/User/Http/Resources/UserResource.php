@@ -30,7 +30,7 @@ final class UserResource extends JsonResource
             /** @example system */
             'theme' => $this->theme,
             /**
-             * Роли пользователя: client, manager, admin.
+             * Роль пользователя: client (покупатель) или admin.
              *
              * @var list<string>
              */

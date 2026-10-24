@@ -7,7 +7,7 @@ namespace App\Modules\Catalog\Actions;
 use App\Modules\Catalog\DTO\CategoryData;
 use App\Modules\Catalog\Exceptions\InvalidCategoryParentException;
 use App\Modules\Catalog\Models\Category;
-use App\Modules\Catalog\Support\UniqueSlug;
+use App\Shared\Support\UniqueSlug;
 
 /**
  * Creates a category or updates an existing one, keeping the tree two-level.

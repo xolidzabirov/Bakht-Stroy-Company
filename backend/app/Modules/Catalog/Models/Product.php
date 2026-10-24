@@ -147,8 +147,8 @@ class Product extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumb')->fit(Fit::Contain, 300, 300)->format('webp');
-        $this->addMediaConversion('card')->fit(Fit::Contain, 600, 600)->format('webp');
-        $this->addMediaConversion('full')->fit(Fit::Max, 1600, 1600)->format('webp');
+        $this->addMediaConversion('thumb')->nonOptimized()->fit(Fit::Contain, 300, 300)->format('webp');
+        $this->addMediaConversion('card')->nonOptimized()->fit(Fit::Contain, 600, 600)->format('webp');
+        $this->addMediaConversion('full')->nonOptimized()->fit(Fit::Max, 1600, 1600)->format('webp');
     }
 }

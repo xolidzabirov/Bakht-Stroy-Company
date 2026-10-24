@@ -33,7 +33,7 @@ Backend ничего не знает о том, кто его вызывает. 
 | БД | PostgreSQL 17 |
 | Кэш / очереди | на старте драйвер `database`, на этапе «Pro» — Redis |
 | Авторизация | Laravel Sanctum — Bearer-токены (работают и для web, и для mobile) |
-| Роли и права | spatie/laravel-permission (`client`, `manager`, `admin`) |
+| Роли и права | spatie/laravel-permission (две роли: `client` — покупатель, `admin` — администратор) |
 | Фото | spatie/laravel-medialibrary (ресайз, превью, webp) |
 | Документация API | Scramble (OpenAPI генерируется из кода) + Swagger UI на `/api/documentation` |
 | Тесты | Pest |

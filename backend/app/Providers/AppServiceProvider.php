@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Shared\Contracts\FavoriteProducts;
+use App\Shared\Contracts\ShopSettings;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
@@ -27,6 +28,15 @@ class AppServiceProvider extends ServiceProvider
             }
 
             public function forget(int $userId): void {}
+        });
+
+        // Fallback when the Content module is not installed: delivery prices from .env.
+        $this->app->singletonIf(ShopSettings::class, fn () => new class implements ShopSettings
+        {
+            public function get(string $group): array
+            {
+                return $group === 'delivery' ? (array) config('shop.delivery') : [];
+            }
         });
     }
 

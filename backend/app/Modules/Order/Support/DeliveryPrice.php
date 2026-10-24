@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Order\Support;
 
 use App\Modules\Order\Enums\DeliveryType;
+use App\Shared\Contracts\ShopSettings;
 
 /**
  * Delivery cost in sums: pickup is free, delivery is free from a subtotal threshold.
+ * Prices come from the store settings (admin panel), with .env values as defaults.
  */
 final class DeliveryPrice
 {
@@ -17,12 +19,13 @@ final class DeliveryPrice
             return 0;
         }
 
-        $freeFrom = (int) config('shop.delivery.free_from');
+        $delivery = app(ShopSettings::class)->get('delivery');
+        $freeFrom = (int) ($delivery['free_from'] ?? 0);
 
         if ($freeFrom > 0 && $subtotal >= $freeFrom) {
             return 0;
         }
 
-        return (int) config('shop.delivery.price');
+        return (int) ($delivery['price'] ?? 0);
     }
 }

@@ -8,7 +8,7 @@ users                 id, name, email (unique — логин), phone (unique, nu
                       locale, theme, email_verified_at, phone_verified_at, blocked_at,
                       created_at, updated_at, deleted_at
 roles, permissions,
-model_has_roles ...   (spatie/laravel-permission) — client, manager, admin
+model_has_roles ...   (spatie/laravel-permission) — client, admin
 personal_access_tokens (sanctum) — токены, name = название устройства
 password_reset_tokens
 

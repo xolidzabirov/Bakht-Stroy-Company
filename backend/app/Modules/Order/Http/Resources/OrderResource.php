@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  *
  * @mixin Order
  */
-final class OrderResource extends OrderListResource
+class OrderResource extends OrderListResource
 {
     /**
      * @return array<string, mixed>

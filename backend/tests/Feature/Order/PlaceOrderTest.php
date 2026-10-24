@@ -152,13 +152,13 @@ it('requires a phone when the profile has none', function () {
 it('notifies the client and the staff', function () {
     Notification::fake();
     $admin = User::factory()->admin()->create();
-    $manager = User::factory()->manager()->create();
+    $secondAdmin = User::factory()->admin()->create();
     $blockedAdmin = User::factory()->admin()->blocked()->create();
     fillCart($this->user, [[$this->cement, 1]]);
 
     checkout($this)->assertCreated();
 
     Notification::assertSentTo($this->user, OrderPlacedNotification::class);
-    Notification::assertSentTo([$admin, $manager], NewOrderForStaffNotification::class);
+    Notification::assertSentTo([$admin, $secondAdmin], NewOrderForStaffNotification::class);
     Notification::assertNotSentTo($blockedAdmin, NewOrderForStaffNotification::class);
 });

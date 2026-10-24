@@ -26,13 +26,13 @@ function productPayload(array $overrides = []): array
     ], $overrides);
 }
 
-it('forbids clients and allows managers', function () {
+it('forbids clients and allows admins', function () {
     $client = User::factory()->client()->create()->createToken('Pest')->plainTextToken;
-    $manager = User::factory()->manager()->create()->createToken('Pest')->plainTextToken;
+    $admin = User::factory()->admin()->create()->createToken('Pest')->plainTextToken;
 
     $this->withToken($client)->getJson('/api/v1/admin/products')->assertForbidden();
     $this->app['auth']->forgetGuards();
-    $this->withToken($manager)->getJson('/api/v1/admin/products')->assertOk();
+    $this->withToken($admin)->getJson('/api/v1/admin/products')->assertOk();
 });
 
 it('creates a product with generated slug and sku', function () {

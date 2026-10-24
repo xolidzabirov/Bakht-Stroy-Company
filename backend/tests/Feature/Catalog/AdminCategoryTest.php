@@ -25,7 +25,7 @@ it('lists all categories including hidden ones', function () {
     Category::factory()->childOf($root)->inactive()->create(['name' => 'Шифер']);
     Product::factory()->for($root)->inactive()->create();
 
-    $response = $this->withToken(staffToken('manager'))->getJson('/api/v1/admin/categories')->assertOk();
+    $response = $this->withToken(staffToken('admin'))->getJson('/api/v1/admin/categories')->assertOk();
 
     expect($response->json('data.0.children.0.name'))->toBe('Шифер')
         ->and($response->json('data.0.children.0.is_active'))->toBeFalse()

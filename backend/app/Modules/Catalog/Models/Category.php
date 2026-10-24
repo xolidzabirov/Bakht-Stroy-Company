@@ -136,7 +136,7 @@ class Category extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumb')
+        $this->addMediaConversion('thumb')->nonOptimized()
             ->performOnCollections(self::IMAGE_COLLECTION)
             ->fit(Fit::Crop, 400, 400)
             ->format('webp');
