@@ -25,6 +25,13 @@ powershell -File ..\scripts\db-stop.ps1    # остановить БД
 ```
 
 Базы: `bakht_stroy` (разработка), `bakht_stroy_test` (тесты), пользователь `bakht`.
+Базы создаются с локалью `ru-RU` — иначе поиск по-русски и `lower()` не работают с заглавной кириллицей:
+
+```sql
+CREATE DATABASE bakht_stroy OWNER bakht ENCODING 'UTF8' LC_CTYPE 'ru-RU' LC_COLLATE 'ru-RU' TEMPLATE template0;
+```
+
+Демо-данные: `php artisan migrate:fresh --seed` — админ + каталог (25 категорий, 39 товаров).
 
 ## Запуск
 
@@ -75,3 +82,13 @@ app/
   Код страны для местных номеров — `PHONE_COUNTRY_CODE` в `.env`.
 - Код для сброса пароля приходит на email. Локально письма не отправляются, а пишутся в `storage/logs/laravel-<дата>.log` (SMS — в `storage/logs/sms.log`).
 - Токен живёт 30 дней (`SANCTUM_EXPIRATION`, в минутах).
+
+## Каталог
+
+- Гости видят только активные товары в активных категориях: `GET /categories`, `GET /products`, `GET /products/{slug}`.
+- Фильтры `/products`: `category` (slug; у корневой — вместе с подкатегориями), `search` (по-русски, с учётом словоформ, плюс артикул),
+  `price_min`, `price_max`, `in_stock`, `featured`, `sort` = `popular` | `new` | `price` | `-price` | `name`, `per_page` (до 60).
+- Админка (`/admin/...`, роли admin и manager): CRUD категорий и товаров, фото (`images[]`, multipart, до 10 штук, превью WebP),
+  остатки, заканчивающиеся товары (`LOW_STOCK_THRESHOLD`).
+- Каталог двухуровневый: корневая категория → подкатегории. Удалить можно только пустую категорию, иначе — скрыть (`is_active=false`).
+- Slug и артикул создаются автоматически, slug не меняется при переименовании.

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Database\Seeders\CatalogSeeder;
 use App\Modules\User\Database\Seeders\AdminSeeder;
 use Illuminate\Database\Seeder;
 
@@ -14,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
+            CatalogSeeder::class,
         ]);
     }
 }

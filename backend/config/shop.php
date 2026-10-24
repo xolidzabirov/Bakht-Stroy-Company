@@ -19,6 +19,11 @@ return [
         'password' => env('ADMIN_PASSWORD'),
     ],
 
+    /*
+    | Products with stock at or below this value are shown as "low stock" to admins.
+    */
+    'low_stock_threshold' => (int) env('LOW_STOCK_THRESHOLD', 10),
+
     'password_reset' => [
         'code_ttl_minutes' => (int) env('PASSWORD_RESET_CODE_TTL', 15),
         'max_attempts' => 5,
