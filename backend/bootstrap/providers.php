@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Account\Providers\AccountServiceProvider;
 use App\Modules\Auth\Providers\AuthServiceProvider;
 use App\Modules\Cart\Providers\CartServiceProvider;
 use App\Modules\Catalog\Providers\CatalogServiceProvider;
@@ -18,4 +19,5 @@ return [
     FavoriteServiceProvider::class,
     CartServiceProvider::class,
     OrderServiceProvider::class,
+    AccountServiceProvider::class,
 ];

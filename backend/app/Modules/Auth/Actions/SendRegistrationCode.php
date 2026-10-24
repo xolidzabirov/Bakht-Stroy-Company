@@ -16,7 +16,7 @@ final class SendRegistrationCode
 {
     public function handle(string $email): void
     {
-        $codes = VerificationCodes::registration();
+        $codes = VerificationCodes::emailOwnership();
 
         if (($wait = $codes->secondsUntilResend($email)) > 0) {
             throw new CodeRecentlySentException($wait);

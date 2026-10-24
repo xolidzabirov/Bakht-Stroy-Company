@@ -21,7 +21,7 @@ final class RegisterUser
 
     public function handle(RegisterData $data): AuthResult
     {
-        $codes = VerificationCodes::registration();
+        $codes = VerificationCodes::emailOwnership();
 
         if (! $codes->check($data->email, $data->code)) {
             throw new InvalidVerificationCodeException;

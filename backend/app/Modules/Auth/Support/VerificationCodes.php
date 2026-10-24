@@ -18,7 +18,10 @@ final class VerificationCodes
 {
     private function __construct(private readonly string $table) {}
 
-    public static function registration(): self
+    /**
+     * Proves the person owns an email: registration and email change.
+     */
+    public static function emailOwnership(): self
     {
         return new self('email_verification_codes');
     }
