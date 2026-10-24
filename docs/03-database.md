@@ -4,8 +4,8 @@
 
 ### Пользователи и доступ
 ```
-users                 id, name, phone (unique), email (unique, nullable), password,
-                      locale, theme, phone_verified_at, blocked_at,
+users                 id, name, email (unique — логин), phone (unique, nullable), password,
+                      locale, theme, email_verified_at, phone_verified_at, blocked_at,
                       created_at, updated_at, deleted_at
 roles, permissions,
 model_has_roles ...   (spatie/laravel-permission) — client, manager, admin

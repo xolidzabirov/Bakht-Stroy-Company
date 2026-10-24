@@ -15,12 +15,8 @@ final class ForgotPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            /**
-             * Телефон или email аккаунта.
-             *
-             * @example +998901234567
-             */
-            'login' => ['required', 'string', 'max:255'],
+            /** @example client@gmail.com */
+            'email' => ['required', 'string', 'email', 'max:255'],
         ];
     }
 }

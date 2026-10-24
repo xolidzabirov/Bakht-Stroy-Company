@@ -8,10 +8,10 @@ Swagger UI: `http://localhost:8000/api/documentation`
 
 | Метод | URL | Описание |
 |---|---|---|
-| POST | `/auth/register` | имя, телефон, пароль → пользователь + токен |
-| POST | `/auth/login` | телефон или email + пароль → токен |
-| POST | `/auth/forgot-password` | ссылка/код для сброса |
-| POST | `/auth/reset-password` | новый пароль |
+| POST | `/auth/register` | имя, email, пароль (телефон — необязательно) → пользователь + токен |
+| POST | `/auth/login` | email + пароль → токен |
+| POST | `/auth/forgot-password` | 6-значный код на email |
+| POST | `/auth/reset-password` | email + код + новый пароль |
 | GET | `/categories` | дерево активных категорий |
 | GET | `/categories/{slug}` | категория + подкатегории |
 | GET | `/products` | `?category=&search=&price_min=&price_max=&in_stock=&featured=&sort=price\|-price\|new\|popular&page=&per_page=` |

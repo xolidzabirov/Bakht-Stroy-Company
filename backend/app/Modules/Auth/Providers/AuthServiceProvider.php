@@ -14,13 +14,13 @@ final class AuthServiceProvider extends ModuleServiceProvider
 {
     protected function bootModule(): void
     {
-        // Brute-force protection: 5 login attempts per minute for one login from one IP.
+        // Brute-force protection: 5 login attempts per minute for one email from one IP.
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
-            ->by(Str::lower((string) $request->input('login')).'|'.$request->ip()));
+            ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
 
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
 
         RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(3)
-            ->by(Str::lower((string) $request->input('login')).'|'.$request->ip()));
+            ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
     }
 }

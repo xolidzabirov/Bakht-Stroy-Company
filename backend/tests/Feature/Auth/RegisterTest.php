@@ -7,10 +7,10 @@ function registerPayload(array $overrides = []): array
 {
     return array_merge([
         'name' => 'Халид',
-        'phone' => '+998 90 123-45-67',
-        'email' => 'Client@Example.com',
+        'email' => 'Client@Gmail.com',
         'password' => 'secret123',
         'password_confirmation' => 'secret123',
+        'phone' => '+998 90 123-45-67',
         'device_name' => 'Pest',
     ], $overrides);
 }
@@ -20,8 +20,8 @@ it('registers a client and returns a token', function () {
 
     $response->assertCreated()
         ->assertJsonPath('data.user.name', 'Халид')
+        ->assertJsonPath('data.user.email', 'client@gmail.com')
         ->assertJsonPath('data.user.phone', '+998901234567')
-        ->assertJsonPath('data.user.email', 'client@example.com')
         ->assertJsonPath('data.user.locale', 'ru')
         ->assertJsonPath('data.user.theme', 'system')
         ->assertJsonPath('data.user.roles', ['client'])
@@ -30,7 +30,7 @@ it('registers a client and returns a token', function () {
         ->assertJsonStructure(['data' => ['user' => ['id'], 'token', 'expires_at']])
         ->assertJsonMissingPath('data.user.password');
 
-    $user = User::query()->where('phone', '+998901234567')->firstOrFail();
+    $user = User::query()->where('email', 'client@gmail.com')->firstOrFail();
 
     expect($user->hasRole(Role::Client))->toBeTrue()
         ->and($user->tokens()->first()->name)->toBe('Pest');
@@ -41,19 +41,19 @@ it('registers a client and returns a token', function () {
         ->assertJsonPath('data.id', $user->id);
 });
 
-it('allows registration without email', function () {
-    $this->postJson('/api/v1/auth/register', registerPayload(['email' => null]))
+it('allows registration without phone', function () {
+    $this->postJson('/api/v1/auth/register', registerPayload(['phone' => null]))
         ->assertCreated()
-        ->assertJsonPath('data.user.email', null);
+        ->assertJsonPath('data.user.phone', null);
 });
 
-it('rejects an already registered phone in any format', function () {
-    User::factory()->create(['phone' => '+998901234567']);
+it('rejects an already registered email in any letter case', function () {
+    User::factory()->create(['email' => 'client@gmail.com']);
 
-    $this->postJson('/api/v1/auth/register', registerPayload(['phone' => '90 123 45 67']))
+    $this->postJson('/api/v1/auth/register', registerPayload(['email' => 'CLIENT@gmail.com']))
         ->assertUnprocessable()
         ->assertJsonPath('code', 'VALIDATION_ERROR')
-        ->assertJsonPath('errors.phone.0', 'Этот номер телефона уже зарегистрирован.');
+        ->assertJsonPath('errors.email.0', 'Этот email уже зарегистрирован.');
 });
 
 it('validates registration fields', function (array $payload, string $field) {
@@ -62,8 +62,9 @@ it('validates registration fields', function (array $payload, string $field) {
         ->assertJsonValidationErrors($field);
 })->with([
     'missing name' => [['name' => ''], 'name'],
-    'invalid phone' => [['phone' => '123'], 'phone'],
+    'missing email' => [['email' => ''], 'email'],
     'invalid email' => [['email' => 'not-an-email'], 'email'],
+    'invalid phone' => [['phone' => '123'], 'phone'],
     'short password' => [['password' => 'abc1', 'password_confirmation' => 'abc1'], 'password'],
     'password without digits' => [['password' => 'abcdefgh', 'password_confirmation' => 'abcdefgh'], 'password'],
     'password mismatch' => [['password_confirmation' => 'other1234'], 'password'],

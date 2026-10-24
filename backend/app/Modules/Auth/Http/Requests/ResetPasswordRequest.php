@@ -16,14 +16,10 @@ final class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
+            /** @example client@gmail.com */
+            'email' => ['required', 'string', 'email', 'max:255'],
             /**
-             * Телефон или email аккаунта.
-             *
-             * @example +998901234567
-             */
-            'login' => ['required', 'string', 'max:255'],
-            /**
-             * 6-значный код из SMS или письма.
+             * 6-значный код из письма.
              *
              * @example 123456
              */

@@ -15,18 +15,18 @@ use Illuminate\Support\Facades\Hash;
  */
 final class ResetPassword
 {
-    public function handle(string $login, string $code, string $password): void
+    public function handle(string $email, string $code, string $password): void
     {
-        $user = User::query()->byLogin($login)->first();
+        $user = User::query()->byEmail($email)->first();
 
         if ($user === null || $user->isBlocked()) {
             throw new InvalidResetCodeException;
         }
 
-        $table = DB::table('password_reset_tokens');
+        $tokens = DB::table('password_reset_tokens')->where('email', $user->email);
 
         /** @var object{token: string, attempts: int, created_at: string}|null $row */
-        $row = $table->where('login', $user->phone)->first();
+        $row = (clone $tokens)->first();
 
         $ttl = (int) config('shop.password_reset.code_ttl_minutes');
         $maxAttempts = (int) config('shop.password_reset.max_attempts');
@@ -38,16 +38,15 @@ final class ResetPassword
         }
 
         if (! Hash::check($code, $row->token)) {
-            $table->where('login', $user->phone)->increment('attempts');
+            (clone $tokens)->increment('attempts');
 
             throw new InvalidResetCodeException;
         }
 
-        DB::transaction(function () use ($user, $password): void {
+        DB::transaction(function () use ($user, $password, $tokens): void {
             $user->forceFill(['password' => $password])->save();
             $user->tokens()->delete();
-
-            DB::table('password_reset_tokens')->where('login', $user->phone)->delete();
+            $tokens->delete();
         });
     }
 }

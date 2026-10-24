@@ -33,25 +33,29 @@ it('forbids clients from staff routes', function () {
         ->assertExactJson(['message' => 'Недостаточно прав.', 'code' => 'FORBIDDEN']);
 });
 
-it('seeds the first admin from config', function () {
+it('seeds the single admin from config', function () {
     config(['shop.admin' => [
         'name' => 'Админ',
-        'phone' => '+998 90 000 00 01',
-        'email' => 'admin@example.com',
-        'password' => 'admin-secret1',
+        'email' => 'Admin@Gmail.com',
+        'password' => 'Admin12345',
     ]]);
 
     $this->seed(AdminSeeder::class);
     $this->seed(AdminSeeder::class); // idempotent
 
-    $admin = User::query()->where('phone', '+998900000001')->sole();
+    $admin = User::query()->sole();
 
-    expect($admin->hasRole(Role::Admin))->toBeTrue()
-        ->and(Hash::check('admin-secret1', $admin->password))->toBeTrue();
+    expect($admin->email)->toBe('admin@gmail.com')
+        ->and($admin->hasRole(Role::Admin))->toBeTrue()
+        ->and(Hash::check('Admin12345', $admin->password))->toBeTrue();
+
+    $this->postJson('/api/v1/auth/login', ['email' => 'admin@gmail.com', 'password' => 'Admin12345'])
+        ->assertOk()
+        ->assertJsonPath('data.user.roles', ['admin']);
 });
 
 it('skips the admin seeder without credentials', function () {
-    config(['shop.admin.phone' => null, 'shop.admin.password' => null]);
+    config(['shop.admin.email' => null, 'shop.admin.password' => null]);
 
     $this->seed(AdminSeeder::class);
 

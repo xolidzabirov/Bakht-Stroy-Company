@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Sends a 6-digit reset code by SMS (and email when the user has one).
+ * Sends a 6-digit reset code to the user's email (and by SMS when a phone is set).
  * Silently does nothing for unknown or blocked accounts, so the API
- * does not reveal which phones are registered.
+ * does not reveal which emails are registered.
  */
 final class SendPasswordResetCode
 {
-    public function handle(string $login): void
+    public function handle(string $email): void
     {
-        $user = User::query()->byLogin($login)->first();
+        $user = User::query()->byEmail($email)->first();
 
         if ($user === null || $user->isBlocked()) {
             return;
@@ -27,8 +27,8 @@ final class SendPasswordResetCode
         $code = (string) random_int(100000, 999999);
 
         DB::table('password_reset_tokens')->upsert(
-            ['login' => $user->phone, 'token' => Hash::make($code), 'attempts' => 0, 'created_at' => now()],
-            ['login'],
+            ['email' => $user->email, 'token' => Hash::make($code), 'attempts' => 0, 'created_at' => now()],
+            ['email'],
             ['token', 'attempts', 'created_at'],
         );
 

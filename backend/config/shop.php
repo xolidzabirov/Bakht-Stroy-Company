@@ -11,11 +11,10 @@ return [
     ],
 
     /*
-    | First administrator account, created by AdminSeeder.
+    | The administrator account, created by AdminSeeder (php artisan db:seed).
     */
     'admin' => [
         'name' => env('ADMIN_NAME', 'Администратор'),
-        'phone' => env('ADMIN_PHONE'),
         'email' => env('ADMIN_EMAIL'),
         'password' => env('ADMIN_PASSWORD'),
     ],

@@ -19,8 +19,8 @@ final class RegisterUser
         return DB::transaction(function () use ($data): AuthResult {
             $user = User::query()->create([
                 'name' => $data->name,
-                'phone' => $data->phone,
                 'email' => $data->email,
+                'phone' => $data->phone,
                 'password' => $data->password,
             ]);
 

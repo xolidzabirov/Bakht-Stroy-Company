@@ -19,12 +19,12 @@ final class PasswordResetController extends Controller
     /**
      * Забыли пароль — отправить код
      *
-     * Отправляет 6-значный код по SMS (и на email, если он указан). Ответ всегда одинаковый,
-     * даже если аккаунта нет. Локально SMS пишутся в storage/logs/sms.log.
+     * Отправляет 6-значный код на email (и по SMS, если указан телефон). Ответ всегда одинаковый,
+     * даже если аккаунта нет. Локально письма пишутся в storage/logs/laravel-*.log.
      */
     public function forgot(ForgotPasswordRequest $request, SendPasswordResetCode $sendCode): JsonResponse
     {
-        $sendCode->handle($request->string('login')->toString());
+        $sendCode->handle($request->string('email')->toString());
 
         return response()->json([
             'data' => [
@@ -45,7 +45,7 @@ final class PasswordResetController extends Controller
     public function reset(ResetPasswordRequest $request, ResetPassword $resetPassword): JsonResponse
     {
         $resetPassword->handle(
-            $request->string('login')->toString(),
+            $request->string('email')->toString(),
             $request->string('code')->toString(),
             $request->string('password')->toString(),
         );

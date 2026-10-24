@@ -17,7 +17,7 @@ final class LoginUser
 
     public function handle(LoginData $data): AuthResult
     {
-        $user = User::query()->byLogin($data->login)->first();
+        $user = User::query()->byEmail($data->email)->first();
 
         if ($user === null || ! Hash::check($data->password, $user->password)) {
             throw new InvalidCredentialsException;

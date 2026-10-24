@@ -31,17 +31,17 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'phone' => '+99890'.fake()->unique()->numerify('#######'),
             'email' => fake()->unique()->safeEmail(),
-            'phone_verified_at' => now(),
+            'phone' => '+99890'.fake()->unique()->numerify('#######'),
+            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
     }
 
-    public function withoutEmail(): static
+    public function withoutPhone(): static
     {
-        return $this->state(fn (array $attributes) => ['email' => null]);
+        return $this->state(fn (array $attributes) => ['phone' => null]);
     }
 
     public function blocked(): static

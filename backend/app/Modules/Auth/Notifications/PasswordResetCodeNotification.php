@@ -22,12 +22,7 @@ final class PasswordResetCodeNotification extends Notification implements SmsMes
      */
     public function via(User $notifiable): array
     {
-        return $notifiable->email ? [SmsChannel::class, 'mail'] : [SmsChannel::class];
-    }
-
-    public function toSms(object $notifiable): string
-    {
-        return "Bakht Stroy: код для сброса пароля {$this->code}. Действует {$this->ttlMinutes} мин.";
+        return $notifiable->phone ? ['mail', SmsChannel::class] : ['mail'];
     }
 
     public function toMail(User $notifiable): MailMessage
@@ -38,5 +33,10 @@ final class PasswordResetCodeNotification extends Notification implements SmsMes
             ->line("Ваш код для сброса пароля: **{$this->code}**")
             ->line("Код действует {$this->ttlMinutes} минут.")
             ->line('Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.');
+    }
+
+    public function toSms(object $notifiable): string
+    {
+        return "Bakht Stroy: код для сброса пароля {$this->code}. Действует {$this->ttlMinutes} мин.";
     }
 }

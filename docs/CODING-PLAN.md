@@ -84,18 +84,18 @@ app/Shared/
 
 **1.1 Пользователь**
 - Перенести `app/Models/User.php` → `Modules/User/Models/User.php` (`HasApiTokens`, `HasRoles`, `SoftDeletes`, `Notifiable`)
-- Миграция: изменить `users` — `phone` (unique), `email` nullable, `locale`, `theme`, `blocked_at`, `deleted_at`
+- Миграция: изменить `users` — `email` (unique, логин), `phone` (nullable, unique), `locale`, `theme`, `blocked_at`, `deleted_at`
 - `config/auth.php` → новый путь модели
 - `UserFactory`, `Enums/Role.php` (`client`, `manager`, `admin`)
-- Сидеры: `RoleSeeder`, `AdminSeeder` (данные админа из `.env`: `ADMIN_PHONE`, `ADMIN_PASSWORD`)
+- Роли создаются миграцией; `AdminSeeder` — один админ из `.env`: `ADMIN_EMAIL`, `ADMIN_PASSWORD`
 
 **1.2 Регистрация и вход** — `Modules/Auth/`
 ```
 Actions/RegisterUser.php        создать user, роль client, токен
-Actions/LoginUser.php           найти по phone или email, проверить пароль и blocked_at, токен
+Actions/LoginUser.php           найти по email, проверить пароль и blocked_at, токен
 Actions/LogoutUser.php          удалить текущий токен / все токены
 DTO/RegisterData.php, LoginData.php
-Http/Requests/RegisterRequest.php   name, phone (формат +998XXXXXXXXX, unique), password (min 8, confirmed)
+Http/Requests/RegisterRequest.php   name, email (unique), password (min 8, буквы+цифры, confirmed), phone (необязательно)
 Http/Requests/LoginRequest.php      login, password, device_name
 Http/Resources/AuthResource.php     { user, token }
 Http/Controllers/AuthController.php register, login, logout, logoutAll, me
@@ -109,11 +109,11 @@ routes.php
 **1.4 Защита**
 - Middleware `role` (spatie) — алиас в `bootstrap/app.php`
 - Middleware `EnsureNotBlocked` — заблокированный получает 403
-- `RateLimiter::for('login')` — 5 попыток в минуту на phone + IP
+- `RateLimiter::for('login')` — 5 попыток в минуту на email + IP
 
 **1.5 Тесты** — `tests/Feature/Auth/`
-- регистрация: успех, дубль телефона, слабый пароль
-- вход: по телефону, по email, неверный пароль, заблокирован, лимит попыток
+- регистрация: успех, дубль email, слабый пароль
+- вход: по email, неверный пароль, заблокирован, лимит попыток
 - `me` без токена → 401; logout — токен перестаёт работать; logout-all
 
 **Коммиты:** `feat(user): user model and roles`, `feat(auth): register login logout`, `feat(auth): password reset and rate limit`

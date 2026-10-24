@@ -38,7 +38,7 @@ final class AuthController extends Controller
     /**
      * Вход
      *
-     * Вход по телефону или email. Не больше 5 попыток в минуту.
+     * Вход по email и паролю. Не больше 5 попыток в минуту.
      *
      * @throws InvalidCredentialsException
      * @throws AccountBlockedException

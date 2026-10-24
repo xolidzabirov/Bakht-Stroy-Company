@@ -16,13 +16,9 @@ final class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            /**
-             * Телефон или email.
-             *
-             * @example +998901234567
-             */
-            'login' => ['required', 'string', 'max:255'],
-            /** @example secret123 */
+            /** @example admin@gmail.com */
+            'email' => ['required', 'string', 'email', 'max:255'],
+            /** @example password */
             'password' => ['required', 'string', 'max:255'],
             /**
              * Название устройства для списка сессий.
@@ -36,7 +32,7 @@ final class LoginRequest extends FormRequest
     public function toData(): LoginData
     {
         return new LoginData(
-            login: $this->string('login')->trim()->toString(),
+            email: $this->string('email')->toString(),
             password: $this->string('password')->toString(),
             deviceName: DeviceName::from($this),
         );
