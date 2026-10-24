@@ -1,10 +1,13 @@
 <?php
 
+use App\Modules\User\Http\Middleware\EnsureUserIsActive;
 use App\Shared\Exceptions\ApiExceptionRenderer;
 use App\Shared\Http\Middleware\JsonApi;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(JsonApi::class);
+
+        $middleware->alias([
+            'active' => EnsureUserIsActive::class,
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         ApiExceptionRenderer::register($exceptions);

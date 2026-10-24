@@ -1,5 +1,8 @@
 <?php
 
+use App\Modules\User\Exceptions\AccountBlockedException;
+use App\Shared\OpenApi\ApiErrorResponseExtension;
+use App\Shared\OpenApi\MiddlewareErrorsExtension;
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 use Dedoc\Scramble\OpenApiVersion;
 use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
@@ -165,7 +168,17 @@ return [
         RestrictedDocsAccess::class,
     ],
 
-    'extensions' => [],
+    'extensions' => [
+        ApiErrorResponseExtension::class,
+        MiddlewareErrorsExtension::class,
+    ],
+
+    /*
+     * Route middleware aliases and the domain exception they may throw (documented as error responses).
+     */
+    'middleware_errors' => [
+        'active' => AccountBlockedException::class,
+    ],
 
     /*
      * Automatically document API security (OpenAPI `security` / `securitySchemes`) based on route

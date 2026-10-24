@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
+use App\Shared\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -8,21 +8,4 @@ use Illuminate\Support\Facades\Route;
 | Feature routes live in app/Modules/<Module>/routes.php.
 */
 
-/**
- * Health check.
- *
- * Returns API status and checks the database connection.
- *
- * @unauthenticated
- */
-Route::get('/health', function () {
-    DB::select('select 1');
-
-    return response()->json([
-        'data' => [
-            'status' => 'ok',
-            'version' => config('scramble.info.version'),
-            'time' => now()->toIso8601String(),
-        ],
-    ]);
-})->name('health');
+Route::get('/health', HealthController::class)->name('health');

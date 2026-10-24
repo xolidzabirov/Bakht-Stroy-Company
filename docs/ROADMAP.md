@@ -15,9 +15,9 @@
 - [x] Каркас модулей, единый формат ошибок, Swagger UI `/api/documentation`
 
 ### Этап 1 — Авторизация и пользователи
-- [ ] Users, роли, Sanctum, register / login / logout / logout-all / me
-- [ ] Восстановление пароля, блокировка, rate limit, сидер админа
-- [ ] Тесты
+- [x] Users, роли, Sanctum, register / login / logout / logout-all / me
+- [x] Восстановление пароля (код по SMS/email), блокировка, rate limit, сидер админа
+- [x] Тесты (61 тест)
 
 ### Этап 2 — Каталог
 - [ ] Категории (дерево), товары, фото, характеристики

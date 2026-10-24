@@ -59,6 +59,18 @@ final class ApiExceptionRenderer
                 429,
                 headers: $e->getHeaders(),
             ),
+            // e.g. spatie "role:admin" middleware throws a 403 HttpException.
+            $e instanceof HttpExceptionInterface && $e->getStatusCode() === 403 => self::json(
+                __('Недостаточно прав.'),
+                'FORBIDDEN',
+                403,
+            ),
+            $e instanceof HttpExceptionInterface && $e->getStatusCode() === 405 => self::json(
+                __('Метод не поддерживается.'),
+                'METHOD_NOT_ALLOWED',
+                405,
+                headers: $e->getHeaders(),
+            ),
             $e instanceof HttpExceptionInterface => self::json(
                 $e->getMessage() !== '' ? $e->getMessage() : __('Ошибка запроса.'),
                 'HTTP_ERROR',
