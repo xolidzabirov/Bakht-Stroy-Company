@@ -1,0 +1,57 @@
+name: backend
+
+on:
+  push:
+    branches: [main, kholid]
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: bakht
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: bakht_stroy_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U bakht"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: bakht
+      DB_PASSWORD: secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, intl, gd, exif, zip, mbstring
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+      - run: php artisan test --compact
