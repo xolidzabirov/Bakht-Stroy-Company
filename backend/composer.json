@@ -12,9 +12,11 @@
     "require": {
         "php": "^8.3",
         "dedoc/scramble": "^0.13.49",
+        "giggsey/libphonenumber-for-php-lite": "^9.0",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "predis/predis": "^3.7",
         "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^8.3",
         "symfony/html-sanitizer": "^8.1"

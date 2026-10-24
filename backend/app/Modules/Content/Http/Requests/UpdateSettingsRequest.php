@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Http\Requests;
 
+use App\Shared\Rules\ValidPhone;
 use App\Shared\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -41,7 +42,7 @@ final class UpdateSettingsRequest extends FormRequest
              * @example ["+998901234567", "+998712000000"]
              */
             'store.phones' => ['sometimes', 'array', 'max:5'],
-            'store.phones.*' => ['string', 'regex:'.Phone::REGEX],
+            'store.phones.*' => ['string', new ValidPhone],
             /** @example info@bakhtstroy.uz */
             'store.email' => ['sometimes', 'nullable', 'email', 'max:255'],
             /** @example Ташкент, Сергелийский р-н, ул. Янги Сергели, 15 */
@@ -83,6 +84,6 @@ final class UpdateSettingsRequest extends FormRequest
      */
     public function messages(): array
     {
-        return ['store.phones.*.regex' => 'Телефон в международном формате, например +998901234567.'];
+        return [];
     }
 }

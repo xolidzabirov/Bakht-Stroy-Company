@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Http\Requests;
 
+use App\Shared\Rules\NotCommonPassword;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
@@ -25,7 +26,7 @@ final class ResetPasswordRequest extends FormRequest
              */
             'code' => ['required', 'string', 'digits:6'],
             /** @example newSecret123 */
-            'password' => ['required', 'string', 'confirmed', Password::defaults()],
+            'password' => ['required', 'string', 'max:100', 'confirmed', Password::defaults(), new NotCommonPassword($this->input('email'))],
             /** @example newSecret123 */
             'password_confirmation' => ['required', 'string'],
         ];

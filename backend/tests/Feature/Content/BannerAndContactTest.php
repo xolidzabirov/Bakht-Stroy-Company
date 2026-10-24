@@ -50,7 +50,7 @@ it('accepts contact messages from guests and notifies staff', function () {
     Notification::fake();
 
     $this->postJson('/api/v1/contact', [
-        'name' => 'Сардор', 'phone' => '90 123 45 67', 'message' => 'Сколько стоит доставка щебня в Чирчик?',
+        'name' => 'Сардор', 'phone' => '+998 90 123 45 67', 'message' => 'Сколько стоит доставка щебня в Чирчик?',
     ])->assertCreated();
 
     $message = ContactMessage::query()->sole();

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Http\Requests;
 
 use App\Modules\Auth\DTO\RegisterData;
+use App\Shared\Rules\NotCommonPassword;
+use App\Shared\Rules\ValidPhone;
 use App\Shared\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +16,9 @@ final class RegisterRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        // The raw input is kept to check that the country code was typed.
+        $this->attributes->set('raw_phone', $this->input('phone'));
+
         $this->merge([
             'email' => EmailRules::normalize($this->input('email')),
             'phone' => is_string($this->input('phone')) && trim($this->input('phone')) !== ''
@@ -46,17 +51,21 @@ final class RegisterRequest extends FormRequest
              * @example 123456
              */
             'code' => ['required', 'string', 'digits:6'],
-            /** @example secret123 */
-            'password' => ['required', 'string', 'confirmed', Password::defaults()],
+            /**
+             * Не короче 8 символов, буквы и цифры; символы (!, #, ?) — ещё надёжнее.
+             *
+             * @example Stroy2026!
+             */
+            'password' => ['required', 'string', 'max:100', 'confirmed', Password::defaults(), new NotCommonPassword($this->input('email'))],
             /** @example secret123 */
             'password_confirmation' => ['required', 'string'],
             /**
-             * Телефон для связи по заказам (необязательно), в любом формате.
+             * Телефон для связи по заказам (необязательно), с кодом страны: +998 90 123 45 67.
              * Один номер можно привязать только к одному аккаунту.
              *
              * @example +998901234567
              */
-            'phone' => ['nullable', 'string', 'regex:'.Phone::REGEX, 'unique:users,phone'],
+            'phone' => ['nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')), 'unique:users,phone'],
             /**
              * Название устройства для списка сессий.
              *
@@ -73,7 +82,6 @@ final class RegisterRequest extends FormRequest
     {
         return [
             ...EmailRules::messages(),
-            'phone.regex' => 'Введите номер телефона в международном формате, например +998901234567.',
             'phone.unique' => 'Этот номер телефона уже привязан к другому аккаунту.',
         ];
     }

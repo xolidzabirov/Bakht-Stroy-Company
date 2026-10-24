@@ -143,7 +143,7 @@ it('requires a phone when the profile has none', function () {
     fillCart($this->user, [[$this->cement, 1]]);
 
     checkout($this)->assertUnprocessable()->assertJsonValidationErrors('customer_phone');
-    checkout($this, ['customer_phone' => '90 765 43 21', 'customer_name' => 'Получатель'])
+    checkout($this, ['customer_phone' => '+998 90 765 43 21', 'customer_name' => 'Получатель'])
         ->assertCreated()
         ->assertJsonPath('data.customer.phone', '+998907654321')
         ->assertJsonPath('data.customer.name', 'Получатель');

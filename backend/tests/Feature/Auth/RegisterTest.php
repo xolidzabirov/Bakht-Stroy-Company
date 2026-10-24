@@ -145,7 +145,7 @@ it('allows one phone number for only one account', function () {
     User::factory()->create(['phone' => '+998901234567']);
     $code = sendRegistrationCode($this);
 
-    $this->postJson('/api/v1/auth/register', registerPayload($code, ['phone' => '90 123 45 67']))
+    $this->postJson('/api/v1/auth/register', registerPayload($code, ['phone' => '+998 90 123 45 67']))
         ->assertUnprocessable()
         ->assertJsonPath('errors.phone.0', 'Этот номер телефона уже привязан к другому аккаунту.');
 });

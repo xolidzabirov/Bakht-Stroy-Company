@@ -54,15 +54,15 @@ it('updates only the sent profile fields', function () {
 });
 
 it('changes and removes the phone, one phone per account', function () {
-    User::factory()->create(['phone' => '+998907777777']);
+    User::factory()->create(['phone' => '+998907771122']);
 
-    $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '90 777 77 77'])
+    $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '+998 90 777 11 22'])
         ->assertUnprocessable()
         ->assertJsonPath('errors.phone.0', 'Этот номер телефона уже привязан к другому аккаунту.');
 
     $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '+998 90 123-45-67'])->assertOk(); // own number
-    $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '90 555 55 55'])
-        ->assertOk()->assertJsonPath('data.phone', '+998905555555');
+    $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '+998 90 555 12 34'])
+        ->assertOk()->assertJsonPath('data.phone', '+998905551234');
     $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => null])
         ->assertOk()->assertJsonPath('data.phone', null);
 });

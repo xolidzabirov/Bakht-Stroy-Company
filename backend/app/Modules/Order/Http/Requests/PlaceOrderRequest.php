@@ -9,6 +9,7 @@ use App\Modules\Order\Enums\DeliveryType;
 use App\Modules\Order\Enums\PaymentMethod;
 use App\Modules\User\Models\Address;
 use App\Modules\User\Models\User;
+use App\Shared\Rules\ValidPhone;
 use App\Shared\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,6 +19,8 @@ final class PlaceOrderRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
+        $this->attributes->set('raw_phone', $this->input('customer_phone'));
+
         if (is_string($this->input('customer_phone')) && trim($this->input('customer_phone')) !== '') {
             $this->merge(['customer_phone' => Phone::normalize($this->input('customer_phone'))]);
         }
@@ -49,7 +52,7 @@ final class PlaceOrderRequest extends FormRequest
              *
              * @example +998901234567
              */
-            'customer_phone' => [$hasPhone ? 'nullable' : 'required', 'string', 'regex:'.Phone::REGEX],
+            'customer_phone' => [$hasPhone ? 'nullable' : 'required', 'string', new ValidPhone($this->attributes->get('raw_phone'))],
             /**
              * Сохранённый адрес из /me/addresses — вместо address.
              *
@@ -81,7 +84,6 @@ final class PlaceOrderRequest extends FormRequest
     {
         return [
             'customer_phone.required' => 'Укажите телефон для связи по заказу.',
-            'customer_phone.regex' => 'Введите номер телефона в международном формате, например +998901234567.',
             'address.required' => 'Укажите адрес доставки или выберите сохранённый (address_id).',
             'address.*.required' => 'Заполните адрес доставки: город, улицу и дом.',
             'address_id.exists' => 'Адрес не найден.',

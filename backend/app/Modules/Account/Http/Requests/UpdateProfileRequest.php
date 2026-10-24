@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Account\Http\Requests;
 
+use App\Shared\Rules\ValidPhone;
 use App\Shared\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,6 +20,7 @@ final class UpdateProfileRequest extends FormRequest
     {
         if ($this->has('phone')) {
             $phone = $this->input('phone');
+            $this->attributes->set('raw_phone', $phone);
             $this->merge(['phone' => is_string($phone) && trim($phone) !== '' ? Phone::normalize($phone) : null]);
         }
     }
@@ -32,11 +34,11 @@ final class UpdateProfileRequest extends FormRequest
             /** @example Халид */
             'name' => ['sometimes', 'string', 'min:2', 'max:100'],
             /**
-             * Телефон в любом формате; null — убрать. Один номер — один аккаунт.
+             * Телефон с кодом страны (+998 90 123 45 67); null — убрать. Один номер — один аккаунт.
              *
              * @example +998901234567
              */
-            'phone' => ['sometimes', 'nullable', 'string', 'regex:'.Phone::REGEX,
+            'phone' => ['sometimes', 'nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')),
                 Rule::unique('users', 'phone')->ignore($this->user()?->getAuthIdentifier())],
             /** Язык интерфейса: ru, uz. */
             'locale' => ['sometimes', 'string', Rule::in(self::LOCALES)],
@@ -51,7 +53,6 @@ final class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex' => 'Введите номер телефона в международном формате, например +998901234567.',
             'phone.unique' => 'Этот номер телефона уже привязан к другому аккаунту.',
         ];
     }
