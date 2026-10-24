@@ -20,6 +20,9 @@ final class AuthServiceProvider extends ModuleServiceProvider
 
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
 
+        // Emails with codes: at most 20 per hour from one IP (plus 1 per minute per email in the action).
+        RateLimiter::for('register-code', fn (Request $request) => Limit::perHour(20)->by($request->ip()));
+
         RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(3)
             ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
     }

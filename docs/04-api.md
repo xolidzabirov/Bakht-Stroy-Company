@@ -8,7 +8,8 @@ Swagger UI: `http://localhost:8000/api/documentation`
 
 | Метод | URL | Описание |
 |---|---|---|
-| POST | `/auth/register` | имя, email, пароль (телефон — необязательно) → пользователь + токен |
+| POST | `/auth/register/send-code` | шаг 1: email (свободный и существующий) → 6-значный код на почту |
+| POST | `/auth/register` | шаг 2: имя, email, код из письма, пароль (телефон — необязательно, один номер = один аккаунт) → пользователь + токен |
 | POST | `/auth/login` | email + пароль → токен |
 | POST | `/auth/forgot-password` | 6-значный код на email |
 | POST | `/auth/reset-password` | email + код + новый пароль |

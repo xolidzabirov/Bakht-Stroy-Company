@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\User\Database\Seeders\AdminSeeder;
+use App\Modules\User\Database\Seeders\DemoUsersSeeder;
 use App\Modules\User\Enums\Role;
 use App\Modules\User\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -60,4 +61,19 @@ it('skips the admin seeder without credentials', function () {
     $this->seed(AdminSeeder::class);
 
     expect(User::query()->count())->toBe(0);
+});
+
+it('seeds 10 demo clients with unique phones', function () {
+    $this->seed(DemoUsersSeeder::class);
+    $this->seed(DemoUsersSeeder::class); // idempotent
+
+    $clients = User::query()->role('client')->get();
+
+    expect($clients)->toHaveCount(10)
+        ->and($clients->pluck('phone')->unique())->toHaveCount(10)
+        ->and($clients->every(fn (User $user) => $user->email_verified_at !== null))->toBeTrue();
+
+    $this->postJson('/api/v1/auth/login', ['email' => 'client10@example.com', 'password' => DemoUsersSeeder::PASSWORD])
+        ->assertOk()
+        ->assertJsonPath('data.user.name', 'Шахноза Абдуллаева');
 });

@@ -35,6 +35,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="API_DOCS_PUBLIC" value="true"/>
+        <env name="EMAIL_DNS_CHECK" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>

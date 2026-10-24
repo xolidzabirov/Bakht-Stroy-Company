@@ -7,10 +7,15 @@ namespace App\Modules\Auth\Http\Controllers;
 use App\Modules\Auth\Actions\LoginUser;
 use App\Modules\Auth\Actions\LogoutUser;
 use App\Modules\Auth\Actions\RegisterUser;
+use App\Modules\Auth\Actions\SendRegistrationCode;
+use App\Modules\Auth\Exceptions\CodeRecentlySentException;
 use App\Modules\Auth\Exceptions\InvalidCredentialsException;
+use App\Modules\Auth\Exceptions\InvalidVerificationCodeException;
 use App\Modules\Auth\Http\Requests\LoginRequest;
 use App\Modules\Auth\Http\Requests\RegisterRequest;
+use App\Modules\Auth\Http\Requests\SendRegistrationCodeRequest;
 use App\Modules\Auth\Http\Resources\AuthTokenResource;
+use App\Modules\Auth\Support\VerificationCodes;
 use App\Modules\User\Exceptions\AccountBlockedException;
 use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\User\Models\User;
@@ -24,9 +29,35 @@ use Illuminate\Http\Response;
 final class AuthController extends Controller
 {
     /**
-     * Регистрация
+     * Регистрация, шаг 1 — код на email
      *
-     * Создаёт аккаунт покупателя (роль client) и сразу возвращает токен.
+     * Проверяет, что email свободен и существует (у домена есть почтовый сервер), и отправляет
+     * на него 6-значный код. Повторно — не чаще раза в минуту. Локально письма пишутся
+     * в storage/logs/laravel-<дата>.log.
+     *
+     * @throws CodeRecentlySentException
+     */
+    public function sendRegistrationCode(SendRegistrationCodeRequest $request, SendRegistrationCode $sendCode): JsonResponse
+    {
+        $sendCode->handle($request->string('email')->toString());
+
+        return response()->json([
+            'data' => [
+                /** @example Код отправлен на email. */
+                'message' => 'Код отправлен на email.',
+                /** @example 15 */
+                'expires_in_minutes' => VerificationCodes::ttlMinutes(),
+            ],
+        ], 202);
+    }
+
+    /**
+     * Регистрация, шаг 2 — создать аккаунт
+     *
+     * Создаёт аккаунт покупателя (роль client) с кодом из письма, email считается подтверждённым.
+     * Сразу возвращает токен.
+     *
+     * @throws InvalidVerificationCodeException
      */
     public function register(RegisterRequest $request, RegisterUser $registerUser): JsonResponse
     {

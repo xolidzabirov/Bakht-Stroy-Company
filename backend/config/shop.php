@@ -24,9 +24,19 @@ return [
     */
     'low_stock_threshold' => (int) env('LOW_STOCK_THRESHOLD', 10),
 
-    'password_reset' => [
-        'code_ttl_minutes' => (int) env('PASSWORD_RESET_CODE_TTL', 15),
+    /*
+    | 6-digit email codes (registration and password reset).
+    */
+    'verification_codes' => [
+        'ttl_minutes' => (int) env('VERIFICATION_CODE_TTL', 15),
         'max_attempts' => 5,
+        // A new registration code can be requested once per this many seconds.
+        'resend_after_seconds' => 60,
     ],
+
+    /*
+    | Reject emails whose domain has no mail server (DNS MX check) at registration.
+    */
+    'email_dns_check' => (bool) env('EMAIL_DNS_CHECK', true),
 
 ];

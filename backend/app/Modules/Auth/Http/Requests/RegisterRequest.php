@@ -15,7 +15,7 @@ final class RegisterRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'email' => is_string($this->input('email')) ? mb_strtolower(trim($this->input('email'))) : $this->input('email'),
+            'email' => EmailRules::normalize($this->input('email')),
             'phone' => is_string($this->input('phone')) && trim($this->input('phone')) !== ''
                 ? Phone::normalize($this->input('phone'))
                 : null,
@@ -35,17 +35,24 @@ final class RegisterRequest extends FormRequest
              */
             'name' => ['required', 'string', 'min:2', 'max:100'],
             /**
-             * Email — используется для входа.
+             * Email — используется для входа. Тот же, на который отправлен код.
              *
              * @example client@gmail.com
              */
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => EmailRules::newAccount(),
+            /**
+             * 6-значный код из письма (POST /auth/register/send-code).
+             *
+             * @example 123456
+             */
+            'code' => ['required', 'string', 'digits:6'],
             /** @example secret123 */
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
             /** @example secret123 */
             'password_confirmation' => ['required', 'string'],
             /**
              * Телефон для связи по заказам (необязательно), в любом формате.
+             * Один номер можно привязать только к одному аккаунту.
              *
              * @example +998901234567
              */
@@ -65,10 +72,18 @@ final class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'Этот email уже зарегистрирован.',
+            ...EmailRules::messages(),
             'phone.regex' => 'Введите номер телефона в международном формате, например +998901234567.',
-            'phone.unique' => 'Этот номер телефона уже зарегистрирован.',
+            'phone.unique' => 'Этот номер телефона уже привязан к другому аккаунту.',
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return ['code' => 'код'];
     }
 
     public function toData(): RegisterData
@@ -76,6 +91,7 @@ final class RegisterRequest extends FormRequest
         return new RegisterData(
             name: trim($this->string('name')->toString()),
             email: $this->string('email')->toString(),
+            code: $this->string('code')->toString(),
             phone: $this->input('phone'),
             password: $this->string('password')->toString(),
             deviceName: DeviceName::from($this),
