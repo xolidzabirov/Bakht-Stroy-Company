@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Catalog\Http\Resources;
 
 use App\Modules\Catalog\Models\Product;
+use App\Shared\Contracts\FavoriteProducts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -50,6 +51,8 @@ class ProductListResource extends JsonResource
             'min_order_qty' => $this->min_order_qty,
             'in_stock' => $this->inStock(),
             'is_featured' => $this->is_featured,
+            /** В избранном у текущего пользователя (false для гостей). */
+            'is_favorite' => app(FavoriteProducts::class)->isFavorite($this->id),
             /** Главное фото или null. */
             'image' => $image ? ImageResource::make($image) : null,
             'category' => $this->whenLoaded('category', fn () => [

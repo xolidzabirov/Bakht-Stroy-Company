@@ -41,7 +41,7 @@ final class ApiExceptionRenderer
     private static function render(Throwable $e): ?JsonResponse
     {
         return match (true) {
-            $e instanceof DomainException => self::json($e->getMessage(), $e->errorCode, $e->status),
+            $e instanceof DomainException => self::json($e->getMessage(), $e->errorCode, $e->status, details: $e->details),
             $e instanceof ValidationException => self::json(
                 __('Переданные данные некорректны.'),
                 'VALIDATION_ERROR',
@@ -86,13 +86,18 @@ final class ApiExceptionRenderer
     /**
      * @param  array<string, array<int, string>>|null  $errors
      * @param  array<string, string>  $headers
+     * @param  array<int|string, mixed>  $details
      */
-    private static function json(string $message, string $code, int $status, ?array $errors = null, array $headers = []): JsonResponse
+    private static function json(string $message, string $code, int $status, ?array $errors = null, array $headers = [], array $details = []): JsonResponse
     {
         $body = ['message' => $message, 'code' => $code];
 
         if ($errors !== null) {
             $body['errors'] = $errors;
+        }
+
+        if ($details !== []) {
+            $body['details'] = $details;
         }
 
         return new JsonResponse($body, $status, $headers);

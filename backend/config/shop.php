@@ -25,6 +25,16 @@ return [
     'low_stock_threshold' => (int) env('LOW_STOCK_THRESHOLD', 10),
 
     /*
+    | Delivery cost in sums. Pickup from the warehouse is free.
+    | Will be editable in the admin panel (stage 5).
+    */
+    'delivery' => [
+        'price' => (int) env('DELIVERY_PRICE', 50000),
+        // Free delivery for orders from this subtotal; 0 — never free.
+        'free_from' => (int) env('DELIVERY_FREE_FROM', 3000000),
+    ],
+
+    /*
     | 6-digit email codes (registration and password reset).
     */
     'verification_codes' => [

@@ -14,10 +14,14 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class DomainException extends RuntimeException
 {
+    /**
+     * @param  array<int|string, mixed>  $details  extra data for the client, rendered as "details"
+     */
     public function __construct(
         string $message,
         public readonly string $errorCode = 'DOMAIN_ERROR',
         public readonly int $status = Response::HTTP_UNPROCESSABLE_ENTITY,
+        public readonly array $details = [],
     ) {
         parent::__construct($message);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Shared\Contracts\FavoriteProducts;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
@@ -17,7 +18,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Fallback when the Favorite module is not installed.
+        $this->app->singletonIf(FavoriteProducts::class, fn () => new class implements FavoriteProducts
+        {
+            public function isFavorite(int $productId): bool
+            {
+                return false;
+            }
+
+            public function forget(int $userId): void {}
+        });
     }
 
     /**
