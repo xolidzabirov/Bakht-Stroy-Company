@@ -12,6 +12,7 @@ use App\Modules\Admin\Http\Resources\AdminUserResource;
 use App\Modules\Order\Enums\OrderStatus;
 use App\Modules\Order\Http\Resources\OrderListResource;
 use App\Modules\Order\Models\Order;
+use App\Modules\User\Enums\Role;
 use App\Modules\User\Models\Address;
 use App\Modules\User\Models\User;
 use App\Shared\Http\Controllers\Controller;
@@ -19,7 +20,9 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 
 #[Group('Админ: пользователи', weight: 14)]
 final class UserController extends Controller
@@ -78,7 +81,8 @@ final class UserController extends Controller
     /**
      * Заблокировать
      *
-     * Пользователь сразу выходит со всех устройств и не может войти. Администратора заблокировать нельзя.
+     * Только администратор. Пользователь сразу выходит со всех устройств и не может войти.
+     * Администратора заблокировать нельзя.
      *
      * @throws CannotManageUserException
      */
@@ -95,6 +99,21 @@ final class UserController extends Controller
     public function unblock(#[CurrentUser] User $admin, int $user): AdminUserResource
     {
         return AdminUserResource::make($this->users->unblock($this->find($user), $admin)->load('roles'));
+    }
+
+    /**
+     * Изменить роль
+     *
+     * Только администратор: client — покупатель, manager — менеджер (заказы, товары, новости, баннеры).
+     * Пользователь выходит из аккаунта, новые права действуют после входа.
+     *
+     * @throws CannotManageUserException
+     */
+    public function changeRole(Request $request, #[CurrentUser] User $admin, int $user): AdminUserResource
+    {
+        $request->validate(['role' => ['required', Rule::in([Role::Client->value, Role::Manager->value])]]);
+
+        return AdminUserResource::make($this->users->changeRole($this->find($user), Role::from($request->string('role')->toString()), $admin));
     }
 
     private function find(int $id): User

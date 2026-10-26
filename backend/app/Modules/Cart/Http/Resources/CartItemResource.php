@@ -25,7 +25,7 @@ final class CartItemResource extends JsonResource
             'product' => ProductListResource::make($this->product),
             /** @example 10 */
             'quantity' => $this->quantity,
-            /** Цена за единицу сейчас, в сумах. */
+            /** Цена за единицу сейчас, в дирамах. */
             'price' => $this->product->price ?? 0,
             /** price × quantity. */
             'total' => $this->total(),

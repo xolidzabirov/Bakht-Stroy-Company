@@ -17,7 +17,7 @@ final class SettingsController extends Controller
     /**
      * Контакты и условия доставки
      *
-     * Для шапки, подвала, страниц «Контакты» и «Доставка». Доступно гостям.
+     * Для шапки, подвала, страниц «Контакты», «Доставка» и «Оплата», плюс валюта. Доступно гостям.
      */
     #[Group('Магазин', weight: 8)]
     public function public(): JsonResponse
@@ -55,10 +55,14 @@ final class SettingsController extends Controller
     }
 
     /**
-     * @return array<string, array<string, mixed>>
+     * @return array<string, mixed>
      */
     private function all(): array
     {
-        return collect(DatabaseShopSettings::GROUPS)->mapWithKeys(fn (string $group) => [$group => $this->settings->get($group)])->all();
+        return [
+            ...collect(DatabaseShopSettings::GROUPS)->mapWithKeys(fn (string $group) => [$group => $this->settings->get($group)])->all(),
+            /** Валюта: все суммы в API — в дирамах (minor_units = 100). */
+            'currency' => config('shop.currency'),
+        ];
     }
 }

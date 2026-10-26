@@ -33,7 +33,7 @@ class OrderListResource extends JsonResource
             'payment_method' => ['value' => $this->payment_method->value, 'label' => $this->payment_method->label()],
             'payment_status' => ['value' => $this->payment_status->value, 'label' => $this->payment_status->label()],
             'delivery_type' => ['value' => $this->delivery_type->value, 'label' => $this->delivery_type->label()],
-            /** Итого к оплате, в сумах. */
+            /** Итого к оплате, в дирамах (1 сомони = 100 дирам). */
             'total' => $this->total,
             'items_count' => $this->whenCounted('items', fn () => (int) $this->items_count),
             /** Покупатель ещё может отменить заказ. */

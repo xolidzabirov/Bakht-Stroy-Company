@@ -34,7 +34,7 @@ class OrderFactory extends Factory
             'delivery_type' => DeliveryType::Pickup,
             'address' => null,
             'customer_name' => fake()->name(),
-            'customer_phone' => '+99890'.fake()->numerify('#######'),
+            'customer_phone' => '+99293'.fake()->numerify('#######'),
             'customer_email' => fake()->safeEmail(),
             'subtotal' => $subtotal,
             'delivery_price' => 0,

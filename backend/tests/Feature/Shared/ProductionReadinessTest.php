@@ -4,6 +4,7 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\User\Models\User;
 use App\Shared\Contracts\FavoriteProducts;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 it('adds a request id and security headers to every response', function () {
@@ -66,7 +67,11 @@ it('does not run more queries for longer product lists (no N+1)', function () {
     expect($queriesFor(20))->toBe($queriesFor(3));
 });
 
-it('caches the category tree and drops the cache on changes', function () {
+it('caches the category tree in a real (serializing) cache store and drops it on changes', function () {
+    // The array store keeps PHP objects as is; the file store serializes like database/redis do.
+    config(['cache.default' => 'file']);
+    Cache::flush();
+
     $category = Category::factory()->create(['name' => 'Старое имя']);
 
     $this->getJson('/api/v1/categories')->assertJsonPath('data.0.name', 'Старое имя');

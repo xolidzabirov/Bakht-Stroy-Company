@@ -12,7 +12,7 @@ beforeEach(function () {
 it('shows public settings with defaults to guests', function () {
     $this->getJson('/api/v1/settings/public')
         ->assertOk()
-        ->assertJsonPath('data.store.name', 'Bakht Stroy')
+        ->assertJsonPath('data.store.name', 'Bakht Stroy Company')
         ->assertJsonPath('data.delivery.price', 50000)
         ->assertJsonPath('data.delivery.free_from', 3000000);
 });
@@ -27,7 +27,7 @@ it('lets the admin change any part of the settings', function () {
         'delivery' => ['price' => 70000],
     ])
         ->assertOk()
-        ->assertJsonPath('data.store.phones', ['+998901234567', '+998712000000'])
+        ->assertJsonPath('data.store.phones', ['+992901234567', '+998712000000'])
         ->assertJsonPath('data.store.socials.instagram', 'https://instagram.com/bakhtstroycompany')
         ->assertJsonPath('data.store.socials.telegram', null)
         ->assertJsonPath('data.delivery.price', 70000)

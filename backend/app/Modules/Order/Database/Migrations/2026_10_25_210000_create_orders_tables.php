@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('customer_name', 100);
             $table->string('customer_phone', 16);
             $table->string('customer_email');
-            // Money in sums.
+            // Money in dirams (1/100 somoni).
             $table->unsignedBigInteger('subtotal');
             $table->unsignedBigInteger('delivery_price')->default(0);
             $table->unsignedBigInteger('discount')->default(0);

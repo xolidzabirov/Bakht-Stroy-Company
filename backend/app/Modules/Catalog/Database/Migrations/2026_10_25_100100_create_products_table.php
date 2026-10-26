@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('slug', 220)->unique();
             $table->string('sku', 50)->nullable()->unique();
             $table->text('description')->nullable();
-            // Prices in sums (whole numbers), never float.
+            // Prices in dirams (1/100 somoni, whole numbers), never float.
             $table->unsignedBigInteger('price');
             $table->unsignedBigInteger('old_price')->nullable();
             $table->string('unit', 10);

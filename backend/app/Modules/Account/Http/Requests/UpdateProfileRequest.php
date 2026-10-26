@@ -34,9 +34,9 @@ final class UpdateProfileRequest extends FormRequest
             /** @example Халид */
             'name' => ['sometimes', 'string', 'min:2', 'max:100'],
             /**
-             * Телефон с кодом страны (+998 90 123 45 67); null — убрать. Один номер — один аккаунт.
+             * Телефон с кодом страны (+992 93 123 45 67); null — убрать. Один номер — один аккаунт.
              *
-             * @example +998901234567
+             * @example +992931234567
              */
             'phone' => ['sometimes', 'nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')),
                 Rule::unique('users', 'phone')->ignore($this->user()?->getAuthIdentifier())],

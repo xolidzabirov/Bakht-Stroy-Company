@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class DemoOrdersSeeder extends Seeder
 {
-    private const STREETS = ['ул. Амира Темура', 'ул. Навои', 'ул. Бунёдкор', 'ул. Шота Руставели', 'ул. Мукими', 'ул. Беруни'];
+    private const STREETS = ['пр. Рудаки', 'ул. Айни', 'пр. Исмоили Сомони', 'ул. Бохтар', 'ул. Шотемур', 'ул. Мирзо Турсунзаде'];
 
     public function run(): void
     {
@@ -47,7 +47,7 @@ class DemoOrdersSeeder extends Seeder
             foreach ($clients as $index => $client) {
                 $address = Address::query()->firstOrCreate(
                     ['user_id' => $client->id, 'title' => 'Дом'],
-                    ['city' => 'Ташкент', 'street' => self::STREETS[$index % count(self::STREETS)], 'house' => (string) (10 + $index * 7), 'apartment' => (string) (3 + $index), 'is_default' => true],
+                    ['city' => 'Душанбе', 'street' => self::STREETS[$index % count(self::STREETS)], 'house' => (string) (10 + $index * 7), 'apartment' => (string) (3 + $index), 'is_default' => true],
                 );
 
                 // Registration dates spread over the last 30 days for the chart.

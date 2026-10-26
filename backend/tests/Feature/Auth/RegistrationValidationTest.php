@@ -32,7 +32,7 @@ it('rejects phones without a country code, wrong or fake numbers with a friendly
         ->assertUnprocessable()
         ->assertJsonPath('errors.phone.0', $message);
 })->with([
-    'no country code' => ['90 123 45 67', 'Укажите номер с кодом страны, например +998 90 123 45 67.'],
+    'no country code' => ['90 123 45 67', 'Укажите номер с кодом страны, например +992 93 123 45 67.'],
     'too short' => ['+998 90 123', 'Такого номера не существует. Проверьте, пожалуйста, код страны и цифры.'],
     'not existing operator code' => ['+998 00 123 45 67', 'Такого номера не существует. Проверьте, пожалуйста, код страны и цифры.'],
     'letters' => ['+998 ab cd', 'Проверьте, пожалуйста, номер — кажется, в нём ошибка.'],

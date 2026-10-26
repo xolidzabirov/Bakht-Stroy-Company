@@ -26,7 +26,7 @@ final class SaveAddressRequest extends FormRequest
              * @example Объект на Чиланзаре
              */
             'title' => ['sometimes', 'nullable', 'string', 'max:50'],
-            /** @example Ташкент */
+            /** @example Душанбе */
             'city' => [$required, 'string', 'max:100'],
             /** @example ул. Бунёдкор */
             'street' => [$required, 'string', 'max:200'],

@@ -94,11 +94,11 @@ final class GetStats
         $amount = (int) (clone $notCancelled)->sum('total');
 
         return [
-            /** Выполненные заказы за всё время, сум. */
+            /** Выполненные заказы за всё время, в дирамах. */
             'completed_all_time' => (int) Order::query()->where('status', OrderStatus::Completed)->sum('total'),
-            /** Выполненные заказы за период, сум. */
+            /** Выполненные заказы за период, в дирамах. */
             'completed_in_period' => (int) Order::query()->where('status', OrderStatus::Completed)->where('created_at', '>=', $from)->sum('total'),
-            /** Все неотменённые заказы за период, сум. */
+            /** Все неотменённые заказы за период, в дирамах. */
             'orders_amount_in_period' => $amount,
             'average_check' => $count > 0 ? intdiv($amount, $count) : 0,
         ];

@@ -10,7 +10,7 @@ use Database\Seeders\Support\DemoImage;
 use Illuminate\Database\Seeder;
 
 /**
- * Demo store contacts and home page banners (not in production).
+ * Store contacts of Bakht Stroy Company (Dushanbe) and home page banners (not in production).
  */
 class ContentSeeder extends Seeder
 {
@@ -21,24 +21,37 @@ class ContentSeeder extends Seeder
         }
 
         $settings->update('store', [
-            'name' => 'Bakht Stroy',
-            'phones' => ['+998901234567', '+998712000000'],
-            'email' => 'info@bakhtstroy.uz',
-            'address' => 'Ташкент, Сергелийский район, ул. Янги Сергели, 15',
-            'work_hours' => 'Пн–Сб 08:00–19:00, Вс 09:00–15:00',
-            'map' => ['lat' => 41.2280, 'lng' => 69.2190],
-            'socials' => ['instagram' => 'https://www.instagram.com/bakhtstroycompany', 'telegram' => 'https://t.me/bakhtstroy'],
+            'name' => 'Bakht Stroy Company',
+            'description' => 'Таъмини ҳама намудҳои масолеҳи сохтмонӣ ва таъмири роҳҳои маҳаллӣ — все виды строительных материалов и ремонт местных дорог.',
+            'phones' => ['+992907666609', '+992929666609', '+992306666609'],
+            'email' => 'bahktstroy90@gmail.com',
+            'address' => 'Душанбе, ул. Джабор Расулов',
+            'work_hours' => 'Пн–Сб 08:00–17:30, Вс — выходной',
+            'map' => ['lat' => 38.5737, 'lng' => 68.7738],
+            'socials' => [
+                'instagram' => 'https://www.instagram.com/bakht_stroy_company',
+                'telegram' => 'https://t.me/bakht_stroy_dushanbe',
+                'whatsapp' => 'https://wa.me/992907666609',
+            ],
         ]);
 
         $settings->update('delivery', [
-            'pickup_address' => 'Склад: Ташкент, ул. Янги Сергели, 15',
-            'note' => 'Доставка по Ташкенту — в течение дня после подтверждения, по области — на следующий день. Разгрузка манипулятором.',
+            'price' => 5000,
+            'free_from' => 300000,
+            'pickup_address' => 'Склад: Душанбе, ул. Джабор Расулов',
+            'note' => 'Доставка по Душанбе — в день подтверждения заказа, по районам (Вахдат, Гиссар, Рудаки, Турсунзаде) — на следующий день. '
+                .'Бетон привозим своими миксерами (10 м³), тяжёлые грузы — КамАЗом или манипулятором с разгрузкой.',
+        ]);
+
+        $settings->update('payment', [
+            'note' => 'Оплата наличными или картой при получении, переводом на карту или безналичным расчётом для юрлиц. '
+                .'После перевода отправьте чек менеджеру в WhatsApp или Telegram.',
         ]);
 
         $banners = [
-            ['Скидка до 10% на цемент М500', 'Кызылкумцемент и Ахангаранцемент со склада в Ташкенте', 'Купить цемент', '/catalog/tsement', 'bag', ['#F26B1D', '#B4440E']],
-            ['Газоблоки с доставкой на следующий день', 'Новый склад в Чирчике — D500 и D600 всегда в наличии', 'Смотреть блоки', '/catalog/gazobloki-i-penobloki', 'blocks', ['#475569', '#1E293B']],
-            ['Сезон кровли: −15% на профнастил', 'Бесплатный расчёт материалов по размерам крыши', 'Подробнее', '/news', 'roof', ['#15803D', '#14532D']],
+            ['Цемент «Хуаксин Гаюр» М500 со скидкой', 'Оптом и в розницу со склада в Душанбе', 'Купить цемент', '/catalog/tsement-i-suhie-smesi', 'bag', ['#18181B', '#3F3F46']],
+            ['Бетон с доставкой своими миксерами', 'М150–М400, миксеры 10 м³ — привезём на объект в день заказа', 'Заказать бетон', '/catalog/tovarnyi-beton-i-rastvor', 'blocks', ['#FFB800', '#B37F00']],
+            ['Пластиковые трубы с гарантией', 'ПНД и ППР для воды и канализации — всё в наличии', 'Смотреть трубы', '/catalog/plastikovye-truby', 'pipe', ['#0E7490', '#083344']],
         ];
 
         foreach ($banners as $sort => [$title, $subtitle, $button, $link, $icon, $palette]) {
@@ -54,6 +67,6 @@ class ContentSeeder extends Seeder
             }
         }
 
-        $this->command?->info('ContentSeeder: store settings and '.count($banners).' banners.');
+        $this->command?->info('ContentSeeder: store contacts and '.count($banners).' banners.');
     }
 }

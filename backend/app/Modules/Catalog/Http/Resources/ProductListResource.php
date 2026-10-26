@@ -32,7 +32,7 @@ class ProductListResource extends JsonResource
             /** @example BS-000002 */
             'sku' => $this->sku,
             /**
-             * Цена за единицу, в сумах.
+             * Цена за единицу в дирамах (1 сомони = 100 дирам): 6550 = 65,50 сом.
              *
              * @example 69000
              */

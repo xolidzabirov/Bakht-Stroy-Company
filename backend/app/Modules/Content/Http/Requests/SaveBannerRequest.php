@@ -19,7 +19,7 @@ final class SaveBannerRequest extends FormRequest
         return [
             /** @example Сезонная скидка на кровлю до −15% */
             'title' => [$required, 'string', 'max:150'],
-            /** @example Профнастил и металлочерепица со склада в Ташкенте */
+            /** @example Профнастил и металлочерепица со склада в Душанбе */
             'subtitle' => ['sometimes', 'nullable', 'string', 'max:300'],
             /** @example Смотреть товары */
             'button_text' => ['sometimes', 'nullable', 'string', 'max:50'],

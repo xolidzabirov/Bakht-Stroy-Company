@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace App\Modules\User\Enums;
 
 /**
- * User roles (spatie/laravel-permission role names). The shop has exactly two.
+ * User roles (spatie/laravel-permission role names).
  */
 enum Role: string
 {
     /** Покупатель — назначается при регистрации. */
     case Client = 'client';
 
-    /** Администратор — управляет магазином. */
+    /** Менеджер — заказы, товары, категории, новости, баннеры, сообщения. */
+    case Manager = 'manager';
+
+    /** Администратор — всё, плюс пользователи, роли и настройки магазина. */
     case Admin = 'admin';
 
     public function label(): string
     {
         return match ($this) {
             self::Client => 'Покупатель',
+            self::Manager => 'Менеджер',
             self::Admin => 'Администратор',
         };
     }
@@ -30,6 +34,6 @@ enum Role: string
      */
     public static function staff(): array
     {
-        return [self::Admin];
+        return [self::Admin, self::Manager];
     }
 }

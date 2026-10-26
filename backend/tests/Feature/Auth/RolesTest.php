@@ -14,7 +14,7 @@ beforeEach(function () {
 
 it('creates the default roles in a migration', function () {
     expect(Spatie\Permission\Models\Role::query()->pluck('name')->sort()->values()->all())
-        ->toBe(['admin', 'client']);
+        ->toBe(['admin', 'client', 'manager']);
 });
 
 it('lets admins into admin routes', function () {
@@ -75,5 +75,5 @@ it('seeds 10 demo clients with unique phones', function () {
 
     $this->postJson('/api/v1/auth/login', ['email' => 'client10@example.com', 'password' => DemoUsersSeeder::PASSWORD])
         ->assertOk()
-        ->assertJsonPath('data.user.name', 'Шахноза Абдуллаева');
+        ->assertJsonPath('data.user.name', 'Манижа Абдуллоева');
 });

@@ -39,7 +39,7 @@ final class PlaceOrderRequest extends FormRequest
         return [
             /** delivery — доставка, pickup — самовывоз со склада (бесплатно). */
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],
-            /** cash — наличными, card_on_delivery — картой при получении, transfer — перечислением. */
+            /** cash — наличными, card_on_delivery — картой при получении, card_transfer — переводом на карту, transfer — безнал для юрлиц. */
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             /**
              * Имя получателя. По умолчанию — имя из профиля.
@@ -50,7 +50,7 @@ final class PlaceOrderRequest extends FormRequest
             /**
              * Телефон для связи. Обязателен, если в профиле нет телефона.
              *
-             * @example +998901234567
+             * @example +992931234567
              */
             'customer_phone' => [$hasPhone ? 'nullable' : 'required', 'string', new ValidPhone($this->attributes->get('raw_phone'))],
             /**
@@ -62,7 +62,7 @@ final class PlaceOrderRequest extends FormRequest
                 Rule::exists('addresses', 'id')->where('user_id', $user instanceof User ? $user->id : 0)],
             /** Адрес доставки — обязателен при delivery_type=delivery, если не передан address_id. */
             'address' => [$addressRequired, 'nullable', 'array'],
-            /** @example Ташкент */
+            /** @example Душанбе */
             'address.city' => [$addressRequired, 'nullable', 'string', 'max:100'],
             /** @example ул. Амира Темура */
             'address.street' => [$addressRequired, 'nullable', 'string', 'max:200'],

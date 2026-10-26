@@ -21,7 +21,7 @@ final class NotCommonPassword implements ValidationRule
         '1q2w3e4r', '1q2w3e4r5t', 'q1w2e3r4', 'q1w2e3r4t5', '1qaz2wsx', 'zaq12wsx', 'abc12345', 'abcd1234', 'a1234567',
         '12345678a', '123456789a', 'a12345678', 'admin123', 'admin1234', 'administrator1', 'iloveyou1', 'welcome1',
         'letmein1', 'test1234', 'test12345', 'user1234', 'asdf1234', 'asd123456', 'qazwsx123', 'parol123', 'parol1234',
-        'bakht123', 'bakhtstroy1', 'stroy1234', 'tashkent1', 'uzbekistan1',
+        'bakht123', 'bakhtstroy1', 'stroy1234', 'dushanbe1', 'tajikistan1', 'somoni123',
     ];
 
     public function __construct(private readonly ?string $email = null) {}

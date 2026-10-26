@@ -10,7 +10,7 @@ use App\Modules\User\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Blocking clients. Admins cannot be blocked, nobody can block themselves.
+ * Blocking and roles. Admins cannot be blocked or demoted, nobody can change themselves.
  */
 final class ManageUsers
 {
@@ -35,14 +35,27 @@ final class ManageUsers
         return $user;
     }
 
+    /**
+     * Client ↔ manager. New rights apply after the next login.
+     */
+    public function changeRole(User $user, Role $role, User $by): User
+    {
+        $this->ensureCanManage($user, $by);
+
+        $user->syncRoles([$role]);
+        $user->tokens()->delete();
+
+        return $user->load('roles');
+    }
+
     private function ensureCanManage(User $user, User $by): void
     {
         if ($user->is($by)) {
-            throw new CannotManageUserException('Нельзя заблокировать собственный аккаунт.');
+            throw new CannotManageUserException('Нельзя изменить собственный аккаунт таким способом.');
         }
 
         if ($user->hasRole(Role::Admin)) {
-            throw new CannotManageUserException('Нельзя заблокировать администратора.');
+            throw new CannotManageUserException('Нельзя блокировать администратора или менять его роль.');
         }
     }
 }

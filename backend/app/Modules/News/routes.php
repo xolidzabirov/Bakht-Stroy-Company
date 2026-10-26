@@ -12,9 +12,9 @@ Route::get('news/types', [NewsController::class, 'types'])->name('news.types');
 Route::get('news/{slug}', [NewsController::class, 'show'])->name('news.show');
 
 /*
-| Admin — admins.
+| Admin panel — admins and managers.
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
     Route::post('news/{news}/cover', [AdminNewsController::class, 'uploadCover'])->name('news.cover.store');
     Route::delete('news/{news}/cover', [AdminNewsController::class, 'deleteCover'])->name('news.cover.destroy');
     Route::post('news/{news}/gallery', [AdminNewsController::class, 'uploadGallery'])->name('news.gallery.store');

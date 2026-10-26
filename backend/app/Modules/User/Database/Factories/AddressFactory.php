@@ -23,7 +23,7 @@ class AddressFactory extends Factory
         return [
             'user_id' => User::factory(),
             'title' => fake()->randomElement(['Дом', 'Объект', 'Дача', null]),
-            'city' => 'Ташкент',
+            'city' => 'Душанбе',
             'street' => 'ул. '.fake()->lastName(),
             'house' => (string) fake()->numberBetween(1, 200),
             'apartment' => (string) fake()->numberBetween(1, 120),

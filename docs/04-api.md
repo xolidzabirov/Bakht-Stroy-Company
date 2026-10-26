@@ -49,7 +49,7 @@ Swagger UI: `http://localhost:8000/api/documentation`
 | POST | `/orders/{number}/cancel` | отменить (только статус `new`) |
 | POST | `/orders/{number}/repeat` | товары заказа → в корзину |
 
-## Админ (`auth:sanctum` + `role:admin`)
+## Админ (`auth:sanctum` + `role:admin|manager`; блокировка, роли и настройки — только `admin`)
 
 | Метод | URL | Описание |
 |---|---|---|

@@ -12,10 +12,10 @@ use libphonenumber\PhoneNumberUtil;
 
 /**
  * A real phone number with a country code:
- * - the person typed the country code (+998…, 00998… or 998…),
+ * - the person typed the country code (+992…, 00992… or 992…),
  * - the number exists in the country's numbering plan (Google libphonenumber),
  * - it is a mobile or landline number (not premium / shared cost services),
- * - it is not an obvious fake like +998 99 999 99 99 or +998 90 000 00 00.
+ * - it is not an obvious fake like +992 99 999 99 99 or +992 93 000 00 00.
  *
  * Validates the normalized E.164 value; the raw input is passed to check the country code.
  */
@@ -38,7 +38,7 @@ final class ValidPhone implements ValidationRule
         }
 
         if (! self::hasCountryCode(is_string($this->rawInput) ? $this->rawInput : $value)) {
-            $fail('Укажите номер с кодом страны, например +998 90 123 45 67.');
+            $fail('Укажите номер с кодом страны, например +992 93 123 45 67.');
 
             return;
         }
@@ -65,7 +65,7 @@ final class ValidPhone implements ValidationRule
     }
 
     /**
-     * "+998…", "00998…" or a full international number without "+" (11+ digits).
+     * "+992…", "00992…" or a full international number without "+" (11+ digits).
      */
     public static function hasCountryCode(string $raw): bool
     {

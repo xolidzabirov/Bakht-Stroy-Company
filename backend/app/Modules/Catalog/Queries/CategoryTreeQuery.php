@@ -24,14 +24,23 @@ final class CategoryTreeQuery
      */
     public function shop(): Collection
     {
-        /** @var Collection<int, Category> */
-        return Cache::remember(self::CACHE_KEY, (int) config('shop.catalog_cache_ttl'), function (): Collection {
-            $roots = Category::query()->active()->roots()->ordered()
-                ->with(['media', 'children' => fn ($q) => $q->active()->with('media')])
-                ->get();
+        $roots = Category::query()->active()->roots()->ordered()
+            ->with(['media', 'children' => fn ($q) => $q->active()->with('media')])
+            ->get();
 
-            return $this->withCounts($roots, Product::query()->visible());
-        });
+        return $this->withCounts($roots, Product::query()->visible());
+    }
+
+    /**
+     * The shop tree as ready JSON data, cached. Plain arrays are cached on purpose:
+     * Laravel does not unserialize objects from the cache (cache.serializable_classes).
+     *
+     * @param  callable(Collection<int, Category>): array<int, mixed>  $toArray
+     * @return array<int, mixed>
+     */
+    public function shopCached(callable $toArray): array
+    {
+        return Cache::remember(self::CACHE_KEY, (int) config('shop.catalog_cache_ttl'), fn (): array => $toArray($this->shop()));
     }
 
     /**

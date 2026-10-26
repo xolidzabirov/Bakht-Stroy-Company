@@ -13,9 +13,9 @@ Route::middleware(['auth:sanctum', 'active'])->prefix('orders')->name('orders.')
 });
 
 /*
-| Admin — admins.
+| Admin panel — admins and managers.
 */
-Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth:sanctum', 'active', 'role:admin'])->group(function () {
+Route::prefix('admin/orders')->name('admin.orders.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
     Route::get('/', [AdminOrderController::class, 'index'])->name('index');
     Route::get('{order}', [AdminOrderController::class, 'show'])->whereNumber('order')->name('show');
     Route::patch('{order}/status', [AdminOrderController::class, 'changeStatus'])->whereNumber('order')->name('status');

@@ -30,7 +30,7 @@ final class AdminUserResource extends JsonResource
             'blocked_at' => $this->blocked_at?->toIso8601String(),
             /** Всего заказов. */
             'orders_count' => (int) ($attributes['orders_count'] ?? 0),
-            /** Сумма неотменённых заказов, сум. */
+            /** Сумма неотменённых заказов, в дирамах. */
             'orders_total' => (int) ($attributes['orders_total'] ?? 0),
             'last_order_at' => isset($attributes['last_order_at']) ? Carbon::parse($attributes['last_order_at'])->toIso8601String() : null,
         ];

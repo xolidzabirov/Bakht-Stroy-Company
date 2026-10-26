@@ -13,11 +13,11 @@ Route::get('banners', [BannerController::class, 'public'])->name('banners.index'
 Route::post('contact', [ContactController::class, 'store'])->middleware('throttle:contact')->name('contact.store');
 
 /*
-| Admin — admins.
+| Admin panel — admins and managers.
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
     Route::get('settings', [SettingsController::class, 'show'])->name('settings.show');
-    Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::put('settings', [SettingsController::class, 'update'])->middleware('role:admin')->name('settings.update');
 
     Route::get('banners', [BannerController::class, 'index'])->name('banners.index');
     Route::post('banners', [BannerController::class, 'store'])->name('banners.store');

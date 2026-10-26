@@ -9,7 +9,9 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Queries\CategoryTreeQuery;
 use App\Shared\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Dedoc\Scramble\Attributes\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[Group('Каталог', weight: 2)]
@@ -19,10 +21,14 @@ final class CategoryController extends Controller
      * Дерево категорий
      *
      * Активные корневые категории с подкатегориями и количеством товаров. Доступно гостям.
+     * Ответ кэшируется и обновляется при любом изменении каталога.
      */
-    public function index(CategoryTreeQuery $tree): AnonymousResourceCollection
+    #[Response(200, 'Дерево категорий', type: 'array{data: list<CategoryResource>}')]
+    public function index(Request $request, CategoryTreeQuery $tree): JsonResponse
     {
-        return CategoryResource::collection($tree->shop());
+        $data = $tree->shopCached(fn ($categories) => CategoryResource::collection($categories)->resolve($request));
+
+        return response()->json(['data' => $data]);
     }
 
     /**

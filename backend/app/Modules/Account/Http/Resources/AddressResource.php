@@ -30,7 +30,7 @@ final class AddressResource extends JsonResource
             /**
              * Готовая строка для показа.
              *
-             * @example Ташкент, ул. Бунёдкор, д. 12А, кв. 45
+             * @example Душанбе, ул. Айни, д. 12А, кв. 45
              */
             'full' => implode(', ', array_filter([
                 $this->city,

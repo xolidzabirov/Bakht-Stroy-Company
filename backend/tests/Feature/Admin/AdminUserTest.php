@@ -32,7 +32,7 @@ it('lists registered users with order totals', function () {
         ->and($get('search=alisher@'))->toBe(1)
         ->and($get('role=admin'))->toBe(1);
 
-    $this->withToken($this->token)->getJson('/api/v1/admin/users?role=manager')->assertUnprocessable();
+    $this->withToken($this->token)->getJson('/api/v1/admin/users?role=boss')->assertUnprocessable();
 });
 
 it('is closed for clients', function () {
@@ -85,10 +85,4 @@ it('does not block admins or yourself', function () {
         ->assertConflict()->assertJsonPath('code', 'CANNOT_MANAGE_USER');
     $this->withToken($this->token)->patchJson("/api/v1/admin/users/{$this->admin->id}/block")
         ->assertConflict();
-});
-
-it('has no role change endpoint: the shop has only clients and admins', function () {
-    $client = User::factory()->client()->create();
-
-    $this->withToken($this->token)->patchJson("/api/v1/admin/users/{$client->id}/role", ['role' => 'admin'])->assertNotFound();
 });

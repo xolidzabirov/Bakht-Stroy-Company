@@ -31,7 +31,7 @@ final class GetDashboard
                 'total' => (clone $orders)->count(),
                 'active' => (clone $orders)->whereNotIn('status', $final)->count(),
                 'completed' => (clone $orders)->where('status', OrderStatus::Completed)->count(),
-                /** Сумма выполненных заказов, в сумах. */
+                /** Сумма выполненных заказов, в дирамах (1 сомони = 100 дирам). */
                 'spent' => (int) (clone $orders)->where('status', OrderStatus::Completed)->sum('total'),
             ],
             'last_order' => $lastOrder ? OrderListResource::make($lastOrder) : null,

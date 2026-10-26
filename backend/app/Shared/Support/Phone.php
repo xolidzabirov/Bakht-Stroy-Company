@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Shared\Support;
 
 /**
- * Phone numbers in E.164 format: "+" and 11–15 digits (+998901234567).
+ * Phone numbers in E.164 format: "+" and 11–15 digits (+992931234567).
  */
 final class Phone
 {
     public const REGEX = '/^\+\d{11,15}$/';
 
     /**
-     * Normalize user input ("90 123-45-67", "8 (90) 123 45 67", "00998...") to E.164.
+     * Normalize user input ("90 123-45-67", "8 (90) 123 45 67", "00992...") to E.164.
      * Returns the input unchanged (trimmed) when it does not look like a phone at all,
      * so validation can reject it with a proper message.
      */

@@ -14,7 +14,7 @@ use RuntimeException;
  */
 final class DemoImage
 {
-    public const ICONS = ['bag', 'bricks', 'blocks', 'rebar', 'pipe', 'roof', 'roll', 'sheet', 'tool', 'drill', 'bucket', 'sand'];
+    public const ICONS = ['bag', 'bricks', 'blocks', 'rebar', 'pipe', 'roof', 'roll', 'sheet', 'tool', 'drill', 'bucket', 'sand', 'window', 'door', 'appliance', 'furniture'];
 
     private const FONT = __DIR__.'/../assets/fonts/Inter.ttf';
 
@@ -138,7 +138,7 @@ final class DemoImage
     {
         // White mark on orange backgrounds, orange on the others.
         [$r, $g] = self::rgb(sprintf('#%06X', imagecolorat($img, $x, $y) & 0xFFFFFF));
-        $accent = $r > 200 && $g < 140 ? self::color($img, '#FFFFFF') : self::color($img, '#F26B1D');
+        $accent = $r > 200 && $g < 140 ? self::color($img, '#FFFFFF') : self::color($img, '#FFB800');
         imagefilledrectangle($img, $x, $y - $size, $x + (int) ($size * 0.35), $y, $accent);
         self::text($img, 'BAKHT STROY', $size, $x + (int) ($size * 0.6), $y, '#FFFFFF', bold: true);
     }
@@ -158,7 +158,7 @@ final class DemoImage
             case 'bag': // cement bag
                 self::roundedRect($img, $cx - $h, $cy - $h, $cx + $h, $cy + $h, (int) ($s * 0.12), $white);
                 imagefilledrectangle($img, $cx - $h + 20, $cy - $h + 25, $cx + $h - 20, $cy - $h + 55, $soft);
-                imagefilledrectangle($img, $cx - (int) ($h * 0.6), $cy - 10, $cx + (int) ($h * 0.6), $cy + (int) ($h * 0.45), self::color($img, '#F26B1D'));
+                imagefilledrectangle($img, $cx - (int) ($h * 0.6), $cy - 10, $cx + (int) ($h * 0.6), $cy + (int) ($h * 0.45), self::color($img, '#FFB800'));
                 break;
 
             case 'bricks':
@@ -232,12 +232,45 @@ final class DemoImage
                 self::roundedRect($img, $cx - $h, $cy - $h + 20, $cx + (int) ($h * 0.4), $cy - (int) ($h * 0.15), 30, $white);
                 imagefilledrectangle($img, $cx + (int) ($h * 0.4), $cy - (int) ($h * 0.55), $cx + $h, $cy - (int) ($h * 0.45), $white);
                 self::roundedRect($img, $cx - (int) ($h * 0.6), $cy - (int) ($h * 0.15), $cx - (int) ($h * 0.2), $cy + $h, 20, $white);
-                imagefilledrectangle($img, $cx - (int) ($h * 0.75), $cy + (int) ($h * 0.7), $cx - (int) ($h * 0.05), $cy + $h, self::color($img, '#F26B1D'));
+                imagefilledrectangle($img, $cx - (int) ($h * 0.75), $cy + (int) ($h * 0.7), $cx - (int) ($h * 0.05), $cy + $h, self::color($img, '#FFB800'));
                 break;
 
             case 'bucket':
                 imagefilledpolygon($img, [$cx - $h, $cy - $h + 40, $cx + $h, $cy - $h + 40, $cx + $h - 50, $cy + $h, $cx - $h + 50, $cy + $h], $white);
                 imagefilledrectangle($img, $cx - $h - 10, $cy - $h + 20, $cx + $h + 10, $cy - $h + 60, $soft);
+                break;
+
+            case 'window':
+                imagefilledrectangle($img, $cx - $h, $cy - $h, $cx + $h, $cy + $h, $white);
+                $gap = 18;
+                foreach ([[-1, -1], [1, -1], [-1, 1], [1, 1]] as [$dx, $dy]) {
+                    $x1 = $dx < 0 ? $cx - $h + $gap : $cx + $gap / 2;
+                    $y1 = $dy < 0 ? $cy - $h + $gap : $cy + $gap / 2;
+                    imagefilledrectangle($img, (int) $x1, (int) $y1, (int) ($x1 + $h - $gap * 1.5), (int) ($y1 + $h - $gap * 1.5), $soft);
+                }
+                break;
+
+            case 'door':
+                imagefilledrectangle($img, $cx - (int) ($h * 0.6), $cy - $h, $cx + (int) ($h * 0.6), $cy + $h, $white);
+                imagefilledrectangle($img, $cx - (int) ($h * 0.45), $cy - $h + 25, $cx + (int) ($h * 0.45), $cy - 15, $soft);
+                imagefilledrectangle($img, $cx - (int) ($h * 0.45), $cy + 15, $cx + (int) ($h * 0.45), $cy + $h - 25, $soft);
+                imagefilledellipse($img, $cx + (int) ($h * 0.35), $cy, 26, 26, self::color($img, '#FFB800'));
+                break;
+
+            case 'appliance': // fridge / washer
+                self::roundedRect($img, $cx - (int) ($h * 0.7), $cy - $h, $cx + (int) ($h * 0.7), $cy + $h, 20, $white);
+                imagefilledrectangle($img, $cx - (int) ($h * 0.7), $cy - (int) ($h * 0.25), $cx + (int) ($h * 0.7), $cy - (int) ($h * 0.2), $soft);
+                imagefilledellipse($img, $cx, $cy + (int) ($h * 0.4), (int) ($h * 0.8), (int) ($h * 0.8), $soft);
+                imagefilledellipse($img, $cx, $cy + (int) ($h * 0.4), (int) ($h * 0.45), (int) ($h * 0.45), $white);
+                break;
+
+            case 'furniture': // cabinet with drawers
+                self::roundedRect($img, $cx - $h, $cy - (int) ($h * 0.8), $cx + $h, $cy + (int) ($h * 0.8), 14, $white);
+                for ($i = 0; $i < 3; $i++) {
+                    $y1 = $cy - (int) ($h * 0.65) + $i * (int) ($h * 0.5);
+                    imagefilledrectangle($img, $cx - $h + 25, $y1, $cx + $h - 25, $y1 + (int) ($h * 0.38), $soft);
+                    imagefilledrectangle($img, $cx - 30, $y1 + 15, $cx + 30, $y1 + 30, self::color($img, '#FFB800'));
+                }
                 break;
 
             case 'sand':

@@ -17,8 +17,8 @@ class DemoUsersSeeder extends Seeder
     public const PASSWORD = 'Client12345';
 
     private const NAMES = [
-        'Алишер Каримов', 'Дильноза Юсупова', 'Сардор Рахимов', 'Мадина Ахмедова', 'Бахтиёр Насимов',
-        'Нилуфар Исмоилова', 'Жасур Турсунов', 'Гулнора Хасанова', 'Фаррух Мирзаев', 'Шахноза Абдуллаева',
+        'Фирдавс Рахимов', 'Шахзода Назарова', 'Сухроб Каримов', 'Мадина Саидова', 'Бахтиёр Шарипов',
+        'Нигина Исмоилова', 'Умед Холов', 'Зарина Хасанова', 'Фаррух Мирзоев', 'Манижа Абдуллоева',
     ];
 
     public function run(): void
@@ -36,8 +36,8 @@ class DemoUsersSeeder extends Seeder
                 ['email' => "client{$number}@example.com"],
                 [
                     'name' => $name,
-                    // Every demo phone is unique: +998901000001 … +998901000010.
-                    'phone' => sprintf('+99890100%04d', $number),
+                    // Every demo phone is unique: +992931000001 … +992931000010.
+                    'phone' => sprintf('+99293100%04d', $number),
                     'password' => self::PASSWORD,
                 ],
             );
@@ -46,6 +46,13 @@ class DemoUsersSeeder extends Seeder
             $user->syncRoles([Role::Client]);
         }
 
-        $this->command?->info('DemoUsersSeeder: 10 clients (client1..10@example.com / '.self::PASSWORD.').');
+        $manager = User::query()->updateOrCreate(
+            ['email' => 'manager@example.com'],
+            ['name' => 'Менеджер Bakht Stroy', 'phone' => '+992931009999', 'password' => 'Manager12345'],
+        );
+        $manager->forceFill(['email_verified_at' => $manager->email_verified_at ?? now()])->save();
+        $manager->syncRoles([Role::Manager]);
+
+        $this->command?->info('DemoUsersSeeder: 10 clients (client1..10@example.com / '.self::PASSWORD.'), manager@example.com / Manager12345.');
     }
 }

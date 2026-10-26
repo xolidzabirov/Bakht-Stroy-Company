@@ -11,6 +11,7 @@ Swagger: **http://localhost:8000/api/documentation**
 | Роль | Email | Пароль |
 |---|---|---|
 | Администратор | `admin@gmail.com` | `Admin12345` (из `ADMIN_PASSWORD` в `.env`) |
+| Менеджер | `manager@example.com` | `Manager12345` |
 | Покупатели (10) | `client1@example.com` … `client10@example.com` | `Client12345` |
 
 Демо-данные пересоздаются командой `php artisan migrate:fresh --seed` (в папке `backend`).
@@ -27,13 +28,13 @@ Swagger: **http://localhost:8000/api/documentation**
 | # | Группа | Что проверить | Ожидаем |
 |---|---|---|---|
 | 1 | Каталог | `GET /categories` | 5 категорий, у каждой картинка и 30 товаров |
-| 2 | Каталог | `GET /products?search=цементы&sort=price` | цемент, по возрастанию цены |
+| 2 | Каталог | `GET /products?search=цементы&sort=price` | цемент, по возрастанию цены (цены в дирамах: 6800 = 68 сом.) |
 | 3 | Каталог | `GET /products/{product}` (slug из списка) | фото, характеристики, категория |
 | 4 | Новости | `GET /news`, `GET /news/{slug}` | 6 новостей, текст, обложка, галерея, товары |
 | 5 | Магазин | `GET /settings/public`, `GET /banners` | контакты, 3 баннера |
 | 6 | Авторизация | `POST /auth/register/send-code` с новым email | 202, код — в `backend/storage/logs/laravel-<дата>.log` |
-| 7 | Авторизация | `POST /auth/register` с кодом, телефоном `+998 90 …` и паролем | 201 и токен |
-| 8 | Авторизация | регистрация с телефоном `90 123 45 67` или `+998 99 999 99 99` | 422, понятное сообщение |
+| 7 | Авторизация | `POST /auth/register` с кодом, телефоном `+992 93 …` и паролем | 201 и токен |
+| 8 | Авторизация | регистрация с телефоном `93 123 45 67` (без кода) или `+992 99 999 99 99` | 422, понятное сообщение |
 | 9 | Авторизация | регистрация с паролем `qwerty123` | 422 «слишком простой» |
 | 10 | Корзина | `POST /cart/items` `{ "product_id": 2, "quantity": 5 }` | корзина с суммой |
 | 11 | Корзина | кирпич меньше 500 шт | 422 `BELOW_MIN_ORDER` |
@@ -46,6 +47,7 @@ Swagger: **http://localhost:8000/api/documentation**
 | 18 | Админ | `POST /admin/news` с HTML и `<script>` | скрипт удалён, текст остался |
 | 19 | Админ | `PATCH /admin/users/{id}/block` | покупатель не может войти |
 | 20 | Права | любой `/admin/...` с токеном покупателя | 403 `FORBIDDEN` |
+| 21 | Права | менеджер: `PATCH /admin/users/{id}/block` или `PUT /admin/settings` | 403 — это только для админа |
 
 ## Формат ответов
 

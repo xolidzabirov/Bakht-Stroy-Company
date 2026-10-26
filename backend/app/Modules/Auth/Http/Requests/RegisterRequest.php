@@ -60,10 +60,10 @@ final class RegisterRequest extends FormRequest
             /** @example secret123 */
             'password_confirmation' => ['required', 'string'],
             /**
-             * Телефон для связи по заказам (необязательно), с кодом страны: +998 90 123 45 67.
+             * Телефон для связи по заказам (необязательно), с кодом страны: +992 93 123 45 67.
              * Один номер можно привязать только к одному аккаунту.
              *
-             * @example +998901234567
+             * @example +992931234567
              */
             'phone' => ['nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')), 'unique:users,phone'],
             /**

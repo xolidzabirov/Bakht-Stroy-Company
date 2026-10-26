@@ -3,11 +3,22 @@
 return [
 
     /*
-    | Phone numbers are stored in E.164 format (+998901234567).
+    | Tajik somoni. All money in the API and the database is in dirams (1 somoni = 100 dirams):
+    | 6550 means 65,50 сом.
+    */
+    'currency' => [
+        'code' => 'TJS',
+        'name' => 'сомони',
+        'symbol' => 'сом.',
+        'minor_units' => 100,
+    ],
+
+    /*
+    | Phone numbers are stored in E.164 format (+992931234567).
     | A local number without a country code gets this code prepended.
     */
     'phone' => [
-        'default_country_code' => env('PHONE_COUNTRY_CODE', '998'),
+        'default_country_code' => env('PHONE_COUNTRY_CODE', '992'),
     ],
 
     /*
@@ -35,13 +46,13 @@ return [
     'low_stock_threshold' => (int) env('LOW_STOCK_THRESHOLD', 10),
 
     /*
-    | Delivery cost in sums. Pickup from the warehouse is free.
+    | Delivery cost in dirams (1/100 somoni). Pickup from the warehouse is free.
     | Will be editable in the admin panel (stage 5).
     */
     'delivery' => [
-        'price' => (int) env('DELIVERY_PRICE', 50000),
+        'price' => (int) env('DELIVERY_PRICE', 5000),
         // Free delivery for orders from this subtotal; 0 — never free.
-        'free_from' => (int) env('DELIVERY_FREE_FROM', 3000000),
+        'free_from' => (int) env('DELIVERY_FREE_FROM', 300000),
     ],
 
     /*

@@ -45,7 +45,7 @@ final class SaveProductRequest extends FormRequest
             'sku' => ['sometimes', 'nullable', 'string', 'max:50', Rule::unique('products', 'sku')->ignore($productId)],
             'description' => ['sometimes', 'nullable', 'string', 'max:10000'],
             /**
-             * Цена за единицу в сумах.
+             * Цена за единицу в дирамах (1 сомони = 100 дирам): 6550 = 65,50 сом.
              *
              * @example 69000
              */

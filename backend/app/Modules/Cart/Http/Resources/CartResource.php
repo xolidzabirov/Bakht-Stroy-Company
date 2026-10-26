@@ -28,7 +28,7 @@ final class CartResource extends JsonResource
             'items' => CartItemResource::collection($this->resource),
             /** Количество разных товаров. */
             'items_count' => $this->resource->count(),
-            /** Сумма товаров, которые можно заказать, в сумах. */
+            /** Сумма товаров, которые можно заказать, в дирамах (1 сомони = 100 дирам). */
             'subtotal' => $orderable->sum(fn (CartItem $item) => $item->total()),
             /** Есть позиции, которые нельзя заказать (см. items.*.problem). */
             'has_problems' => $orderable->count() !== $this->resource->count(),

@@ -23,7 +23,7 @@ final class UserResource extends JsonResource
             'name' => $this->name,
             /** @example client@gmail.com */
             'email' => $this->email,
-            /** @example +998901234567 */
+            /** @example +992931234567 */
             'phone' => $this->phone,
             /** @example ru */
             'locale' => $this->locale,

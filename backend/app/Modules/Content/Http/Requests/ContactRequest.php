@@ -28,7 +28,7 @@ final class ContactRequest extends FormRequest
         return [
             /** @example Сардор */
             'name' => ['required', 'string', 'min:2', 'max:100'],
-            /** @example +998901234567 */
+            /** @example +992931234567 */
             'phone' => ['required', 'string', new ValidPhone($this->attributes->get('raw_phone'))],
             'email' => ['nullable', 'email', 'max:255'],
             /** @example Сколько будет стоить доставка 5 тонн щебня в Чирчик? */

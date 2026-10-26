@@ -8,7 +8,7 @@ use App\Modules\Order\Enums\DeliveryType;
 use App\Shared\Contracts\ShopSettings;
 
 /**
- * Delivery cost in sums: pickup is free, delivery is free from a subtotal threshold.
+ * Delivery cost in dirams: pickup is free, delivery is free from a subtotal threshold.
  * Prices come from the store settings (admin panel), with .env values as defaults.
  */
 final class DeliveryPrice
