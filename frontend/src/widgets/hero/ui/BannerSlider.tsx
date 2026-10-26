@@ -2,90 +2,76 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Banner } from "@/shared/api/types";
 import { cn } from "@/shared/lib/cn";
+import { useSlider } from "@/shared/lib/useSlider";
+import { SlideProgress } from "@/shared/ui";
 
-const AUTOPLAY_MS = 6000;
+const DURATION = 6000;
 
 /**
  * Full-width carousel of admin banners (1920×600). Slides move sideways with a soft ease,
- * the picture zooms in slightly while it is shown. Auto-play pauses on hover; swipe works on phones.
+ * the picture zooms in slightly while it is shown; white bars over the picture show the time left.
+ * Auto-play pauses on hover; swipe works on phones.
  */
 export function BannerSlider({ banners }: { banners: Banner[] }) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const touchX = useRef<number | null>(null);
   const count = banners.length;
-
-  const go = useCallback((step: number) => setIndex((value) => (value + step + count) % count), [count]);
-
-  useEffect(() => {
-    if (count < 2 || paused) return;
-
-    const timer = setTimeout(() => go(1), AUTOPLAY_MS);
-
-    return () => clearTimeout(timer);
-  }, [count, paused, index, go]);
+  const { index, setIndex, go, paused, handlers } = useSlider(count, DURATION);
 
   if (count === 0) return null;
 
   return (
-    <div
-      className="group relative"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onTouchStart={(event) => (touchX.current = event.touches[0].clientX)}
-      onTouchEnd={(event) => {
-        if (touchX.current === null) return;
-        const delta = event.changedTouches[0].clientX - touchX.current;
-        if (Math.abs(delta) > 40) go(delta < 0 ? 1 : -1);
-        touchX.current = null;
-      }}
-    >
-      <div className="relative aspect-[16/7] overflow-hidden rounded-[var(--radius-card)] bg-surface-muted sm:aspect-[16/5]">
-        <div
-          className="flex h-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
-          {banners.map((banner, i) => {
-            const picture = banner.image ?? banner.image_mobile;
-            const slide = picture ? (
-              <Image
-                src={picture}
-                alt={banner.title}
-                fill
-                priority={i === 0}
-                sizes="(max-width: 1280px) 100vw, 1280px"
-                className={cn(
-                  "object-cover transition-transform duration-[6000ms] ease-out motion-reduce:transition-none",
-                  i === index ? "scale-[1.04]" : "scale-100",
-                )}
-              />
-            ) : (
-              <span className="grid size-full place-items-center bg-ink p-6 text-center font-display text-2xl font-extrabold text-white">
-                {banner.title}
-              </span>
-            );
+    <div {...handlers} className="group relative aspect-[16/7] overflow-hidden rounded-[var(--radius-card)] bg-surface-muted sm:aspect-[16/5]">
+      <div
+        className="flex h-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
+        {banners.map((banner, i) => {
+          const picture = banner.image ?? banner.image_mobile;
+          const slide = picture ? (
+            <Image
+              src={picture}
+              alt={banner.title}
+              fill
+              priority={i === 0}
+              sizes="(max-width: 1280px) 100vw, 1760px"
+              className={cn(
+                "object-cover transition-transform duration-[6000ms] ease-out motion-reduce:transition-none",
+                i === index ? "scale-[1.04]" : "scale-100",
+              )}
+            />
+          ) : (
+            <span className="grid size-full place-items-center bg-ink p-6 text-center font-display text-2xl font-extrabold text-white">
+              {banner.title}
+            </span>
+          );
 
-            return (
-              <div key={banner.id} className="relative h-full w-full shrink-0 overflow-hidden" aria-hidden={i !== index}>
-                {banner.link ? (
-                  <Link href={banner.link} aria-label={banner.title} tabIndex={i === index ? 0 : -1} className="block size-full">
-                    {slide}
-                  </Link>
-                ) : (
-                  slide
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div key={banner.id} className="relative h-full w-full shrink-0 overflow-hidden" aria-hidden={i !== index}>
+              {banner.link ? (
+                <Link href={banner.link} aria-label={banner.title} tabIndex={i === index ? 0 : -1} className="block size-full">
+                  {slide}
+                </Link>
+              ) : (
+                slide
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {count > 1 && (
         <>
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
+          <SlideProgress
+            count={count}
+            index={index}
+            duration={DURATION}
+            paused={paused}
+            onSelect={setIndex}
+            className="absolute inset-x-6 bottom-3 mx-auto max-w-xl sm:bottom-5"
+          />
           <button
             type="button"
             aria-label="Назад"
@@ -102,27 +88,6 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
           >
             <ChevronRight className="size-5" />
           </button>
-          <div className="mt-3 flex justify-center gap-2">
-            {banners.map((banner, i) => (
-              <button
-                key={banner.id}
-                type="button"
-                aria-label={`Баннер ${i + 1}`}
-                aria-current={i === index}
-                onClick={() => setIndex(i)}
-                className="relative h-1.5 w-8 overflow-hidden rounded-full bg-border"
-              >
-                {/* progress bar: fills during the auto-play interval */}
-                <span
-                  key={i === index ? `active-${index}-${paused}` : undefined}
-                  className={cn(
-                    "absolute inset-y-0 left-0 rounded-full bg-brand",
-                    i === index ? (paused ? "w-full" : "w-full origin-left animate-[banner-progress_6s_linear]") : "w-0",
-                  )}
-                />
-              </button>
-            ))}
-          </div>
         </>
       )}
     </div>

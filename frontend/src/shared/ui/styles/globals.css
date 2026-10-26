@@ -135,7 +135,7 @@ h3 {
   display: none;
 }
 
-@keyframes banner-progress {
+@keyframes slide-progress {
   from {
     transform: scaleX(0);
   }

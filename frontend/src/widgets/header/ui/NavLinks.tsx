@@ -13,7 +13,8 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
   return (
     <nav aria-label="Разделы сайта" className="flex h-full items-center gap-7">
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        // "/" is active only on the home page itself, other sections also on their sub-pages.
+        const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link

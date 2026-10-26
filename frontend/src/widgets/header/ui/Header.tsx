@@ -11,6 +11,7 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
 
 const nav = [
+  { href: routes.home, label: "Главная" },
   { href: routes.catalog, label: "Каталог" },
   { href: routes.delivery, label: "Доставка и оплата" },
   { href: routes.news, label: "Новости и акции" },
