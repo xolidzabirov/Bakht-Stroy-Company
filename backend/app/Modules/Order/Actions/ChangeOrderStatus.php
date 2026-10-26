@@ -6,8 +6,10 @@ namespace App\Modules\Order\Actions;
 
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Order\Enums\OrderStatus;
+use App\Modules\Order\Enums\PaymentStatus;
 use App\Modules\Order\Events\OrderStatusChanged;
 use App\Modules\Order\Exceptions\InvalidStatusTransitionException;
+use App\Modules\Order\Exceptions\OrderNotPaidException;
 use App\Modules\Order\Models\Order;
 use App\Modules\Order\Models\OrderItem;
 use App\Modules\User\Models\User;
@@ -26,6 +28,11 @@ final class ChangeOrderStatus
 
             if (! $from->canTransitionTo($to)) {
                 throw new InvalidStatusTransitionException($from, $to);
+            }
+
+            // Payment comes before delivery: nothing leaves the warehouse unpaid.
+            if (in_array($to, [OrderStatus::Delivering, OrderStatus::Completed], true) && $order->payment_status !== PaymentStatus::Paid) {
+                throw new OrderNotPaidException;
             }
 
             $order->status = $to;

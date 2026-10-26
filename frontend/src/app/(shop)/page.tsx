@@ -1,0 +1,57 @@
+import { getBanners } from "@/entities/banner/api/getBanners";
+import { getCategories } from "@/entities/category/api/getCategories";
+import { getNews } from "@/entities/news/api/getNews";
+import { getProducts } from "@/entities/product/api/getProducts";
+import { getSettings } from "@/entities/settings/api/getSettings";
+import { routes } from "@/shared/config/site";
+import { Advantages } from "@/widgets/advantages/ui/Advantages";
+import { CategoryGrid } from "@/widgets/category-grid/ui/CategoryGrid";
+import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
+import { Hero } from "@/widgets/hero/ui/Hero";
+import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
+import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
+
+export default async function HomePage() {
+  const [banners, categories, featured, discounted, news, settings] =
+    await Promise.all([
+      getBanners(),
+      getCategories(),
+      getProducts({ featured: true, per_page: 8 }),
+      getProducts({ sort: "popular", per_page: 60 }),
+      getNews({ per_page: 3 }),
+      getSettings(),
+    ]);
+
+  const sale = (discounted?.data ?? []).filter(
+    (product) => product.discount_percent,
+  );
+
+  return (
+    <>
+      <Hero banners={banners} phone={settings.phones[0]} />
+      <Advantages />
+      <CategoryGrid categories={categories} />
+      <ProductGrid
+        title="Хиты продаж"
+        subtitle="То, что чаще всего берут на стройку"
+        href={`${routes.catalog}?featured=1`}
+        products={featured?.data ?? []}
+      />
+      {sale.length >= 4 && (
+        <ProductGrid
+          title="Скидки"
+          subtitle="Выгодные цены этой недели"
+          href={routes.catalog}
+          products={sale.slice(0, 4)}
+        />
+      )}
+      <NewsSection news={news?.data ?? []} />
+      <ContactCta
+        phone={settings.phones[0]}
+        whatsapp={settings.socials?.whatsapp}
+        telegram={settings.socials?.telegram}
+        telegramChat={settings.socials?.telegram_chat}
+      />
+    </>
+  );
+}

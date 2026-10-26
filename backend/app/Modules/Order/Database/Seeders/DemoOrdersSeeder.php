@@ -80,8 +80,9 @@ class DemoOrdersSeeder extends Seeder
         $order = Order::query()->create([
             'user_id' => $client->id,
             'status' => $status,
-            'payment_method' => [PaymentMethod::Cash, PaymentMethod::CardOnDelivery, PaymentMethod::Transfer][mt_rand(0, 2)],
-            'payment_status' => $status === OrderStatus::Completed ? PaymentStatus::Paid : PaymentStatus::Pending,
+            'payment_method' => [PaymentMethod::Cash, PaymentMethod::CardTransfer, PaymentMethod::Transfer][mt_rand(0, 2)],
+            // Payment comes before delivery, so orders on the road or completed are already paid.
+            'payment_status' => in_array($status, [OrderStatus::Delivering, OrderStatus::Completed], true) ? PaymentStatus::Paid : PaymentStatus::Pending,
             'delivery_type' => $delivery,
             'address' => $delivery === DeliveryType::Delivery ? $address->toSnapshot() : null,
             'customer_name' => $client->name,

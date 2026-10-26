@@ -52,6 +52,9 @@ class OrderFactory extends Factory
 
     public function status(OrderStatus $status): static
     {
-        return $this->state(fn (array $attributes) => ['status' => $status]);
+        // Orders on the road or completed are always paid: payment comes before delivery.
+        $paid = in_array($status, [OrderStatus::Delivering, OrderStatus::Completed], true);
+
+        return $this->state(fn (array $attributes) => ['status' => $status] + ($paid ? ['payment_status' => PaymentStatus::Paid] : []));
     }
 }

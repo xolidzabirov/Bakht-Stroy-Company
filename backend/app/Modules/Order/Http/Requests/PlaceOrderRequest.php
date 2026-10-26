@@ -39,7 +39,7 @@ final class PlaceOrderRequest extends FormRequest
         return [
             /** delivery — доставка, pickup — самовывоз со склада (бесплатно). */
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],
-            /** cash — наличными, card_on_delivery — картой при получении, card_transfer — переводом на карту, transfer — безнал для юрлиц. */
+            /** Оплата до доставки: cash — наличными в офисе, card_transfer — переводом на карту, transfer — безнал для юрлиц. */
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             /**
              * Имя получателя. По умолчанию — имя из профиля.

@@ -79,7 +79,7 @@ categories 1──* products
 | Enum | Значения |
 |---|---|
 | `OrderStatus` | `new` → `confirmed` → `assembling` → `delivering` → `completed`; `cancelled` |
-| `PaymentMethod` | `cash`, `card_on_delivery`, `transfer` (позже `click`, `payme`) |
+| `PaymentMethod` | `cash` (в офисе), `card_transfer`, `transfer` — оплата до доставки (позже `click`, `payme`) |
 | `PaymentStatus` | `pending`, `paid`, `refunded` |
 | `DeliveryType` | `delivery`, `pickup` |
 | `ProductUnit` | `piece` (шт), `bag` (мешок), `kg`, `ton`, `m`, `m2`, `m3`, `pack` (упак.), `roll` (рулон), `sheet` (лист) |

@@ -31,6 +31,7 @@ class ContentSeeder extends Seeder
             'socials' => [
                 'instagram' => 'https://www.instagram.com/bakht_stroy_company',
                 'telegram' => 'https://t.me/bakht_stroy_dushanbe',
+                'telegram_chat' => 'https://t.me/bakhtsroy01',
                 'whatsapp' => 'https://wa.me/992907666609',
             ],
         ]);
@@ -44,8 +45,8 @@ class ContentSeeder extends Seeder
         ]);
 
         $settings->update('payment', [
-            'note' => 'Оплата наличными или картой при получении, переводом на карту или безналичным расчётом для юрлиц. '
-                .'После перевода отправьте чек менеджеру в WhatsApp или Telegram.',
+            'note' => 'Заказ оплачивается до доставки: наличными в офисе (ул. Джабор Расулов) или переводом на карту, юрлица — безналичным расчётом. '
+                .'После перевода отправьте чек менеджеру в WhatsApp или Telegram — он проверит поступление и отправит заказ.',
         ]);
 
         $banners = [

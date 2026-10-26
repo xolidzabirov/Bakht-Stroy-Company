@@ -4,6 +4,7 @@ use App\Modules\Cart\Models\CartItem;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Order\Actions\ChangeOrderStatus;
 use App\Modules\Order\Enums\OrderStatus;
+use App\Modules\Order\Enums\PaymentStatus;
 use App\Modules\Order\Exceptions\InvalidStatusTransitionException;
 use App\Modules\Order\Models\Order;
 use App\Modules\Order\Notifications\OrderStatusChangedNotification;
@@ -107,6 +108,7 @@ it('moves orders only along allowed statuses and keeps history', function () {
 
     $change->handle($order, OrderStatus::Confirmed, comment: 'Подтвердили по телефону');
     $change->handle($order, OrderStatus::Assembling);
+    $order->update(['payment_status' => PaymentStatus::Paid]);
     $change->handle($order, OrderStatus::Delivering);
     $order = $change->handle($order, OrderStatus::Completed);
 

@@ -72,6 +72,22 @@ it('rejects skipping statuses', function () {
         ->assertJsonPath('details.allowed', ['confirmed', 'cancelled']);
 });
 
+it('does not send an unpaid order to the customer', function () {
+    $order = Order::factory()->for($this->client)->status(OrderStatus::Assembling)->create();
+
+    $this->withToken($this->token)->patchJson("/api/v1/admin/orders/{$order->id}/status", ['status' => 'delivering'])
+        ->assertConflict()
+        ->assertJsonPath('code', 'ORDER_NOT_PAID');
+
+    expect($order->refresh()->status)->toBe(OrderStatus::Assembling);
+
+    $this->withToken($this->token)->patchJson("/api/v1/admin/orders/{$order->id}/payment", ['payment_status' => 'paid'])->assertOk();
+
+    $this->withToken($this->token)->patchJson("/api/v1/admin/orders/{$order->id}/status", ['status' => 'delivering'])
+        ->assertOk()
+        ->assertJsonPath('data.status.value', 'delivering');
+});
+
 it('returns stock when staff cancels', function () {
     $product = Product::factory()->create(['stock' => 5]);
     $order = Order::factory()->for($this->client)->status(OrderStatus::Confirmed)->create();

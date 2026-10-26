@@ -75,7 +75,7 @@ final class DatabaseShopSettings implements ShopSettings
                 'address' => null,
                 'work_hours' => 'Пн–Сб 08:00–19:00, Вс — выходной',
                 'map' => ['lat' => null, 'lng' => null],
-                'socials' => ['telegram' => null, 'instagram' => null, 'whatsapp' => null, 'facebook' => null, 'youtube' => null],
+                'socials' => ['telegram' => null, 'telegram_chat' => null, 'instagram' => null, 'whatsapp' => null, 'facebook' => null, 'youtube' => null],
             ],
             'delivery' => [
                 'price' => (int) config('shop.delivery.price'),

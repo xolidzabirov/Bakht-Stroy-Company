@@ -56,6 +56,7 @@ final class UpdateSettingsRequest extends FormRequest
             'store.map.lng' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
             'store.socials' => ['sometimes', 'array'],
             'store.socials.telegram' => ['sometimes', 'nullable', 'url:https', 'max:300'],
+            'store.socials.telegram_chat' => ['sometimes', 'nullable', 'url:https', 'max:300'],
             'store.socials.instagram' => ['sometimes', 'nullable', 'url:https', 'max:300'],
             /** @example https://wa.me/992907666609 */
             'store.socials.whatsapp' => ['sometimes', 'nullable', 'url:https', 'max:300'],

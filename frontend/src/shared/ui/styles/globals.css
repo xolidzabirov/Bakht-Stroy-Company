@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
+/*
+ * Bakht Stroy design tokens.
+ * Brand: yellow #FFB800 + black (from the logo). Light theme first, dark theme via prefers-color-scheme.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --brand: #ffb800;
+  --brand-hover: #f0ab00;
+  --brand-soft: #fff4d6;
+  --ink: #0a0a0a;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #fafaf7;
+  --surface: #ffffff;
+  --surface-muted: #f3f3ee;
+  --foreground: #16161a;
+  --muted: #5f6168;
+  --border: #e6e6e0;
+
+  --success: #15803d;
+  --danger: #dc2626;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --brand-soft: #2a2410;
+    --background: #0e0e10;
+    --surface: #17171a;
+    --surface-muted: #1f1f23;
+    --foreground: #f2f2f0;
+    --muted: #a1a1aa;
+    --border: #2a2a2f;
   }
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-ink: var(--ink);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+
+  --radius-card: 1.25rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-manrope), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Rich text of news (HTML sanitized by the backend). */
+.prose-bakht h2 {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.prose-bakht h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.prose-bakht p {
+  margin: 0.75rem 0;
+  line-height: 1.75;
+}
+.prose-bakht ul,
+.prose-bakht ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  line-height: 1.75;
+}
+.prose-bakht ul {
+  list-style: disc;
+}
+.prose-bakht ol {
+  list-style: decimal;
+}
+.prose-bakht a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--brand);
+  text-underline-offset: 3px;
+}
+.prose-bakht blockquote {
+  margin: 1.25rem 0;
+  padding: 0.75rem 1.25rem;
+  border-left: 4px solid var(--brand);
+  background: var(--brand-soft);
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+.prose-bakht table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+}
+.prose-bakht th,
+.prose-bakht td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.prose-bakht th {
+  background: var(--surface-muted);
+}
+.prose-bakht img {
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+
+/* Horizontal scroll rows without a visible scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
