@@ -134,3 +134,12 @@ h3 {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes banner-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
