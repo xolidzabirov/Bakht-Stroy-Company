@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { Banknote, Check, MessageCircle, Phone, ShoppingCart, Truck, X } from "lucide-react";
+import { Banknote, Check, MessageCircle, Phone, Truck, X } from "lucide-react";
+import { AddToCartButton } from "@/features/add-to-cart/ui/AddToCartButton";
+import { FavoriteButton } from "@/features/toggle-favorite/ui/FavoriteButton";
 import type { ProductDetails } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
 import { getI18n } from "@/shared/i18n/server";
 import { formatMoney, formatPhone } from "@/shared/lib/format";
-import { Badge, ButtonLink } from "@/shared/ui";
+import { Badge } from "@/shared/ui";
 import { ProductGallery } from "./ProductGallery";
 
 type Props = {
@@ -65,24 +67,21 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
               )}
             </ul>
 
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              <ButtonLink href={`${routes.login}?next=${encodeURIComponent(routes.product(product.slug))}`} size="lg" className="w-full">
-                <ShoppingCart className="size-5" />
-                {t.product.addToCart}
-              </ButtonLink>
+            <AddToCartButton product={product} variant="page" className="mt-6" />
+            <div className="mt-3 flex flex-wrap gap-2">
+              <FavoriteButton productId={product.id} withLabel />
               {whatsapp ? (
                 <a
                   href={`${whatsapp}?text=${whatsappText}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-border px-6 font-semibold transition hover:border-foreground/40"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-semibold transition hover:border-foreground/40"
                 >
-                  <MessageCircle className="size-5" />
+                  <MessageCircle className="size-[18px]" />
                   {t.product.askWhatsapp}
                 </a>
               ) : null}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">{t.product.loginHint}</p>
           </div>
 
           <ul className="mt-4 grid gap-3 text-sm sm:grid-cols-2">

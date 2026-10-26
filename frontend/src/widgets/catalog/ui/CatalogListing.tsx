@@ -4,7 +4,7 @@ import { PackageSearch, SlidersHorizontal } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon";
 import { getProducts } from "@/entities/product/api/getProducts";
-import { ProductCard } from "@/entities/product/ui/ProductCard";
+import { ShopProductCard } from "@/widgets/product-grid/ui/ShopProductCard";
 import { type CatalogSearchParams, catalogHref, hasActiveFilters, parseCatalogParams } from "@/features/product-filters/model/params";
 import { FiltersForm } from "@/features/product-filters/ui/FiltersForm";
 import { SortSelect } from "@/features/product-filters/ui/SortSelect";
@@ -118,7 +118,7 @@ export async function CatalogListing({ category, params }: Props) {
           {products.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ShopProductCard key={product.id} product={product} />
               ))}
             </div>
           ) : (

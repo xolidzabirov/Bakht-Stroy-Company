@@ -33,3 +33,24 @@ export type StoreSettings = {
   payment: { card_number: string | null; card_holder: string | null; bank: string | null; note: string | null };
   currency: { code: string; name: string; symbol: string; minor_units: number };
 };
+
+/** Cart line (written by hand: the generated schema has the totals as strings). */
+export type CartItem = {
+  id: number;
+  product: Product | null;
+  quantity: number;
+  /** Price per unit now, dirams. */
+  price: number;
+  total: number;
+  /** Why the line cannot be ordered: unavailable | not_enough_stock | below_min_order. */
+  problem: "unavailable" | "not_enough_stock" | "below_min_order" | null;
+};
+
+export type Cart = {
+  items: CartItem[];
+  items_count: number;
+  /** Sum of the lines without problems, dirams. */
+  subtotal: number;
+  has_problems: boolean;
+  can_checkout: boolean;
+};

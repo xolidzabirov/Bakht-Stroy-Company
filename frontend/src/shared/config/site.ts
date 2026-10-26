@@ -27,6 +27,7 @@ export const routes = {
   news: "/news",
   newsItem: (slug: string) => `/news/${slug}`,
   cart: "/cart",
+  checkout: "/checkout",
   favorites: "/favorites",
   login: "/login",
   register: "/register",

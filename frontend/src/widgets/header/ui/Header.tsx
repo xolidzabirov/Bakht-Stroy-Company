@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, Heart, Phone, Search, ShoppingCart } from "lucide-react";
+import { Clock, Phone, Search } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
@@ -10,6 +10,7 @@ import { formatPhone } from "@/shared/lib/format";
 import { Container, Logo } from "@/shared/ui";
 import { AccountAction } from "./AccountAction";
 import { CatalogMenu } from "./CatalogMenu";
+import { CartAction, FavoritesAction } from "./CountActions";
 import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
 
@@ -63,13 +64,9 @@ export async function Header() {
         </div>
 
         <div className="ml-auto flex items-center md:ml-0">
-          <Action href={routes.favorites} label={t.header.favorites} className="hidden sm:flex">
-            <Heart className="size-[22px]" />
-          </Action>
+          <FavoritesAction />
           <AccountAction />
-          <Action href={routes.cart} label={t.header.cart}>
-            <ShoppingCart className="size-[22px]" />
-          </Action>
+          <CartAction />
         </div>
       </Container>
 
@@ -97,16 +94,3 @@ export async function Header() {
   );
 }
 
-/** Icon with a caption under it (caption is hidden on small screens). */
-function Action({ href, label, className = "", children }: { href: string; label: string; className?: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      aria-label={label}
-      className={`flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-surface-muted md:min-w-16 ${className}`}
-    >
-      {children}
-      <span className="hidden text-[11px] font-medium text-muted-foreground lg:block">{label}</span>
-    </Link>
-  );
-}

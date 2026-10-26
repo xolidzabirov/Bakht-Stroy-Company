@@ -23,3 +23,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     throw error;
   }
 }
+
+/** API token of the visitor for server-side requests (account, cart, favorites pages). */
+export async function getToken(): Promise<string | undefined> {
+  return (await cookies()).get(AUTH_COOKIE)?.value;
+}

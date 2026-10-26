@@ -1,4 +1,4 @@
-import { ProductCard } from "@/entities/product/ui/ProductCard";
+import { ShopProductCard } from "@/widgets/product-grid/ui/ShopProductCard";
 import type { Product } from "@/shared/api/types";
 import { Container } from "@/shared/ui";
 import { SectionHeading } from "@/shared/ui/SectionHeading";
@@ -18,7 +18,7 @@ export function ProductGrid({ title, subtitle, href, products }: Props) {
       <SectionHeading title={title} subtitle={subtitle} href={href} />
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ShopProductCard key={product.id} product={product} />
         ))}
       </div>
     </Container>

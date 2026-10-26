@@ -11,14 +11,16 @@ type Props = {
   product: Product;
   /** Slot for the "add to cart" button (features/add-to-cart). */
   action?: React.ReactNode;
+  /** Slot over the picture, top right (features/toggle-favorite). */
+  favorite?: React.ReactNode;
 };
 
-export async function ProductCard({ product, action }: Props) {
+export async function ProductCard({ product, action, favorite }: Props) {
   const { t, locale } = await getI18n();
   const image = product.image;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:shadow-xl hover:shadow-black/5">
+    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:shadow-xl hover:shadow-black/5">
       <Link href={routes.product(product.slug)} className="relative block aspect-square overflow-hidden bg-surface-muted">
         {image && (
           <Image
@@ -34,6 +36,7 @@ export async function ProductCard({ product, action }: Props) {
           {product.is_featured && <Badge>{t.common.hit}</Badge>}
         </div>
       </Link>
+      {favorite && <div className="absolute right-3 top-3 z-10">{favorite}</div>}
 
       <div className="flex flex-1 flex-col p-4">
         {product.category?.name && (

@@ -1,24 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
 import { User } from "lucide-react";
-import { USER_COOKIE } from "@/shared/config/auth";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
-
-function readName(): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${USER_COOKIE}=([^;]*)`));
-
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-// Cookies have no change event: re-read when the tab gets focus (login/logout in another tab).
-const subscribe = (onChange: () => void) => {
-  window.addEventListener("focus", onChange);
-  return () => window.removeEventListener("focus", onChange);
-};
+import { useSessionName } from "@/shared/lib/useSession";
 
 /**
  * "Войти" for guests, the first name for signed-in users. Pages stay cached: the name comes from
@@ -26,7 +13,7 @@ const subscribe = (onChange: () => void) => {
  */
 export function AccountAction() {
   const { t } = useI18n();
-  const name = useSyncExternalStore(subscribe, readName, () => null);
+  const name = useSessionName();
 
   return (
     <Link
