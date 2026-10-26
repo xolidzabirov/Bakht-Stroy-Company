@@ -3,9 +3,13 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { plural } from "@/shared/i18n/format";
+import { getI18n } from "@/shared/i18n/server";
 import { CategoryIcon } from "./CategoryIcon";
 
-export function CategoryCard({ category }: { category: Category }) {
+export async function CategoryCard({ category }: { category: Category }) {
+  const { t, locale } = await getI18n();
+
   return (
     <Link
       href={routes.category(category.slug)}
@@ -30,7 +34,7 @@ export function CategoryCard({ category }: { category: Category }) {
         <h3 className="font-display text-base font-bold leading-snug sm:text-lg">{category.name}</h3>
         {category.description && <p className="line-clamp-2 text-xs text-muted sm:text-sm">{category.description}</p>}
         {typeof category.products_count === "number" && (
-          <p className="mt-auto text-xs font-semibold text-foreground">{category.products_count} товаров</p>
+          <p className="mt-auto text-xs font-semibold text-foreground">{category.products_count} {plural(locale, category.products_count, t.common.products)}</p>
         )}
       </div>
     </Link>

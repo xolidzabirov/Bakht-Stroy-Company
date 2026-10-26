@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getI18n } from "@/shared/i18n/server";
 import { cn } from "@/shared/lib/cn";
 
 type Props = {
@@ -24,15 +25,17 @@ function pages(page: number, lastPage: number): (number | "gap")[] {
   return result;
 }
 
-export function Pagination({ page, lastPage, href }: Props) {
+export async function Pagination({ page, lastPage, href }: Props) {
   if (lastPage <= 1) return null;
+
+  const { t } = await getI18n();
 
   const item = "grid h-10 min-w-10 place-items-center rounded-xl px-3 text-sm font-semibold transition";
 
   return (
-    <nav aria-label="Страницы" className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+    <nav aria-label={t.common.pages} className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 && (
-        <Link href={href(page - 1)} aria-label="Предыдущая" className={cn(item, "border border-border hover:border-foreground/40")}>
+        <Link href={href(page - 1)} aria-label={t.common.prevPage} className={cn(item, "border border-border hover:border-foreground/40")}>
           <ChevronLeft className="size-4" />
         </Link>
       )}
@@ -53,7 +56,7 @@ export function Pagination({ page, lastPage, href }: Props) {
         ),
       )}
       {page < lastPage && (
-        <Link href={href(page + 1)} aria-label="Следующая" className={cn(item, "border border-border hover:border-foreground/40")}>
+        <Link href={href(page + 1)} aria-label={t.common.nextPage} className={cn(item, "border border-border hover:border-foreground/40")}>
           <ChevronRight className="size-4" />
         </Link>
       )}

@@ -2,7 +2,11 @@ import Link from "next/link";
 import { Clock, Heart, Phone, Search, ShoppingCart } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getSettings } from "@/entities/settings/api/getSettings";
+import { AccentPicker } from "@/features/preferences/ui/AccentPicker";
+import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
+import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { routes } from "@/shared/config/site";
+import { getAccent, getI18n } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { Container, Logo } from "@/shared/ui";
 import { AccountAction } from "./AccountAction";
@@ -10,28 +14,28 @@ import { CatalogMenu } from "./CatalogMenu";
 import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
 
-const nav = [
-  { href: routes.home, label: "Главная" },
-  { href: routes.catalog, label: "Каталог" },
-  { href: routes.delivery, label: "Доставка и оплата" },
-  { href: routes.news, label: "Новости и акции" },
-  { href: routes.about, label: "О компании" },
-  { href: routes.contacts, label: "Контакты" },
-];
-
 /**
- * Site header: logo, catalog, search and actions in one row; site sections and hours in a slim row below.
+ * Site header. Main row: logo, catalog menu, search, language / accent color / theme, account actions.
+ * Slim row below: site sections on the left, phone and working hours on the right.
  */
 export async function Header() {
-  const [settings, categories] = await Promise.all([getSettings(), getCategories()]);
+  const [settings, categories, { t }, accent] = await Promise.all([getSettings(), getCategories(), getI18n(), getAccent()]);
   const mainPhone = settings.phones[0];
+
+  const sections = [
+    { href: routes.home, label: t.nav.home },
+    { href: routes.delivery, label: t.nav.delivery },
+    { href: routes.news, label: t.nav.news },
+    { href: routes.about, label: t.nav.about },
+    { href: routes.contacts, label: t.nav.contacts },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
-      <Container className="flex h-16 items-center gap-3 md:h-[76px] md:gap-5">
-        <MobileMenu nav={nav} phone={mainPhone} />
+      <Container className="flex h-16 items-center gap-3 md:h-[76px] md:gap-4">
+        <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} accent={accent} />
 
-        <Link href={routes.home} aria-label="Bakht Stroy — на главную" className="shrink-0">
+        <Link href={routes.home} aria-label={t.header.homeAria} className="shrink-0">
           <Logo />
         </Link>
 
@@ -42,36 +46,30 @@ export async function Header() {
           <input
             name="search"
             type="search"
-            placeholder="Поиск: цемент, кирпич, трубы…"
-            aria-label="Поиск товаров"
-            className="h-11 w-full rounded-xl border border-border bg-surface-muted pl-11 pr-24 text-sm outline-none transition focus:border-brand focus:bg-surface focus:ring-2 focus:ring-brand/25"
+            placeholder={t.header.searchPlaceholder}
+            aria-label={t.header.searchLabel}
+            className="h-11 w-full rounded-full border border-border bg-surface-muted pl-11 pr-24 text-sm outline-none transition focus:border-brand focus:bg-surface focus:ring-2 focus:ring-brand/25"
           />
           <button
             type="submit"
-            className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-lg bg-brand px-4 text-sm font-semibold text-ink transition hover:bg-brand-hover"
+            className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-hover"
           >
-            Найти
+            {t.header.find}
           </button>
         </form>
 
-        {mainPhone && (
-          <a href={`tel:${mainPhone}`} className="hidden shrink-0 items-center gap-2.5 xl:flex">
-            <span className="grid size-10 place-items-center rounded-full bg-brand-soft">
-              <Phone className="size-4 text-foreground" />
-            </span>
-            <span className="leading-tight">
-              <span className="block font-display text-[15px] font-extrabold">{formatPhone(mainPhone)}</span>
-              <span className="block text-xs text-muted">Бесплатная консультация</span>
-            </span>
-          </a>
-        )}
+        <div className="hidden items-center gap-2 lg:flex">
+          <LocaleSwitcher />
+          <AccentPicker initial={accent} />
+          <ThemeToggle />
+        </div>
 
         <div className="ml-auto flex items-center md:ml-0">
-          <Action href={routes.favorites} label="Избранное" className="hidden sm:flex">
+          <Action href={routes.favorites} label={t.header.favorites} className="hidden sm:flex">
             <Heart className="size-[22px]" />
           </Action>
           <AccountAction />
-          <Action href={routes.cart} label="Корзина">
+          <Action href={routes.cart} label={t.header.cart}>
             <ShoppingCart className="size-[22px]" />
           </Action>
         </div>
@@ -79,13 +77,22 @@ export async function Header() {
 
       <div className="hidden border-t border-border md:block">
         <Container className="flex h-11 items-center justify-between gap-6">
-          <NavLinks items={nav} />
-          {settings.work_hours && (
-            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted">
-              <Clock className="size-3.5" />
-              {settings.work_hours}
-            </span>
-          )}
+          <NavLinks items={sections} label={t.header.sections} />
+          <div className="flex shrink-0 items-center gap-5 text-xs text-muted">
+            {mainPhone && (
+              <a href={`tel:${mainPhone}`} className="inline-flex items-center gap-1.5 font-semibold text-foreground hover:text-brand">
+                <Phone className="size-3.5 text-brand" />
+                {formatPhone(mainPhone)}
+                <span className="hidden font-normal text-muted xl:inline">· {t.header.consult}</span>
+              </a>
+            )}
+            {settings.work_hours && (
+              <span className="hidden items-center gap-1.5 lg:inline-flex">
+                <Clock className="size-3.5" />
+                {settings.work_hours}
+              </span>
+            )}
+          </div>
         </Container>
       </div>
     </header>

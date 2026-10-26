@@ -1,14 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, LoaderCircle, MailCheck } from "lucide-react";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
+import { useI18n } from "@/shared/i18n/client";
 import { Button, Field, FormAlert, PasswordInput, TextInput } from "@/shared/ui";
-import { type EmailStepValues, type ResetValues, emailStepSchema, resetSchema } from "../model/schemas";
+import { type EmailStepValues, type ResetValues, createAuthSchemas } from "../model/schemas";
 import { PasswordStrength } from "./PasswordStrength";
 
 /**
@@ -22,13 +23,15 @@ export function ForgotPasswordForm({ next }: { next: string }) {
 }
 
 function EmailStep({ onSent }: { onSent: (email: string) => void }) {
+  const { t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
+  const schema = useMemo(() => createAuthSchemas(t).emailStep, [t]);
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<EmailStepValues>({ resolver: zodResolver(emailStepSchema), defaultValues: { email: "" } });
+  } = useForm<EmailStepValues>({ resolver: zodResolver(schema), defaultValues: { email: "" } });
 
   const onSubmit = handleSubmit(async ({ email }) => {
     setFormError(null);
@@ -37,7 +40,7 @@ function EmailStep({ onSent }: { onSent: (email: string) => void }) {
       await bff("/api/proxy/auth/forgot-password", { body: { email } });
       onSent(email);
     } catch (error) {
-      setFormError(applyApiErrors(error, setError, ["email"]));
+      setFormError(applyApiErrors(error, setError, ["email"], t.errors));
     }
   });
 
@@ -45,31 +48,42 @@ function EmailStep({ onSent }: { onSent: (email: string) => void }) {
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <Field label="Email аккаунта" error={errors.email?.message} hint="Пришлём код, по которому можно задать новый пароль.">
+      <Field label={t.auth.forgotEmail} error={errors.email?.message} hint={t.auth.forgotEmailHint}>
         {(id, describedBy) => (
-          <TextInput id={id} type="email" autoComplete="email" inputMode="email" placeholder="you@gmail.com" autoFocus aria-invalid={Boolean(errors.email)} aria-describedby={describedBy} {...register("email")} />
+          <TextInput
+            id={id}
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder={t.auth.emailPlaceholder}
+            autoFocus
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={describedBy}
+            {...register("email")}
+          />
         )}
       </Field>
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : null}
-        Получить код
+        {t.auth.getCode}
       </Button>
     </form>
   );
 }
 
 function ResetStep({ email, next, onBack }: { email: string; next: string; onBack: () => void }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
+  const schema = useMemo(() => createAuthSchemas(t).reset, [t]);
   const {
     register,
     handleSubmit,
     setError,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<ResetValues>({ resolver: zodResolver(resetSchema), defaultValues: { code: "", password: "", password_confirmation: "" } });
-
+  } = useForm<ResetValues>({ resolver: zodResolver(schema), defaultValues: { code: "", password: "", password_confirmation: "" } });
   const password = useWatch({ control, name: "password" });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -80,7 +94,7 @@ function ResetStep({ email, next, onBack }: { email: string; next: string; onBac
       const query = new URLSearchParams({ reset: "1", ...(next !== "/" ? { next } : {}) });
       router.replace(`${routes.login}?${query}`);
     } catch (error) {
-      setFormError(applyApiErrors(error, setError, ["code", "password", "password_confirmation"]));
+      setFormError(applyApiErrors(error, setError, ["code", "password", "password_confirmation"], t.errors));
     }
   });
 
@@ -89,13 +103,15 @@ function ResetStep({ email, next, onBack }: { email: string; next: string; onBac
       <div className="flex gap-3 rounded-xl bg-brand-soft p-4 text-sm">
         <MailCheck className="size-5 shrink-0" />
         <p>
-          Если аккаунт <b className="break-all">{email}</b> существует, на него пришёл код. Он действует 15 минут.
+          {t.auth.resetSentStart}
+          <b className="break-all">{email}</b>
+          {t.auth.resetSentEnd}
         </p>
       </div>
 
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <Field label="Код из письма" error={errors.code?.message}>
+      <Field label={t.auth.code} error={errors.code?.message}>
         {(id, describedBy) => (
           <TextInput
             id={id}
@@ -112,29 +128,43 @@ function ResetStep({ email, next, onBack }: { email: string; next: string; onBac
         )}
       </Field>
 
-      <Field label="Новый пароль" error={errors.password?.message}>
+      <Field label={t.auth.newPassword} error={errors.password?.message}>
         {(id, describedBy) => (
           <>
-            <PasswordInput id={id} autoComplete="new-password" aria-invalid={Boolean(errors.password)} aria-describedby={describedBy} {...register("password")} />
+            <PasswordInput
+              id={id}
+              autoComplete="new-password"
+              placeholder={t.auth.newPasswordPlaceholder}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={describedBy}
+              {...register("password")}
+            />
             <PasswordStrength value={password} />
           </>
         )}
       </Field>
 
-      <Field label="Повторите пароль" error={errors.password_confirmation?.message}>
+      <Field label={t.auth.confirmPassword} error={errors.password_confirmation?.message}>
         {(id, describedBy) => (
-          <PasswordInput id={id} autoComplete="new-password" aria-invalid={Boolean(errors.password_confirmation)} aria-describedby={describedBy} {...register("password_confirmation")} />
+          <PasswordInput
+            id={id}
+            autoComplete="new-password"
+            placeholder={t.auth.confirmPlaceholder}
+            aria-invalid={Boolean(errors.password_confirmation)}
+            aria-describedby={describedBy}
+            {...register("password_confirmation")}
+          />
         )}
       </Field>
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : null}
-        Сохранить пароль
+        {t.auth.savePassword}
       </Button>
 
       <button type="button" onClick={onBack} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground">
         <ArrowLeft className="size-4" />
-        Указать другой email
+        {t.auth.otherEmail}
       </button>
     </form>
   );

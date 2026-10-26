@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/shared/i18n/client";
+import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 
 type Props = {
@@ -17,6 +19,8 @@ type Props = {
  * (when it is full, the next slide comes). Click a bar to jump to its slide.
  */
 export function SlideProgress({ count, index, duration, paused = false, onSelect, className }: Props) {
+  const { t } = useI18n();
+
   if (count < 2) return null;
 
   return (
@@ -25,7 +29,7 @@ export function SlideProgress({ count, index, duration, paused = false, onSelect
         <button
           key={i}
           type="button"
-          aria-label={`Слайд ${i + 1}`}
+          aria-label={fmt(t.common.slide, { n: i + 1 })}
           aria-current={i === index}
           onClick={() => onSelect(i)}
           className="group/bar flex-1 py-2"

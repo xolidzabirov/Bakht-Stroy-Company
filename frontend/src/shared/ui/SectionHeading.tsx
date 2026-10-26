@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { getI18n } from "@/shared/i18n/server";
 
 type Props = {
   title: ReactNode;
@@ -9,7 +10,9 @@ type Props = {
   linkText?: string;
 };
 
-export function SectionHeading({ title, subtitle, href, linkText = "Смотреть все" }: Props) {
+export async function SectionHeading({ title, subtitle, href, linkText }: Props) {
+  const { t } = await getI18n();
+
   return (
     <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
       <div>
@@ -21,7 +24,7 @@ export function SectionHeading({ title, subtitle, href, linkText = "Смотре
           href={href}
           className="group hidden shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground hover:text-muted sm:inline-flex"
         >
-          {linkText}
+          {linkText ?? t.common.seeAll}
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       )}

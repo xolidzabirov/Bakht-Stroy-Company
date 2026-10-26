@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Banner } from "@/shared/api/types";
+import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useSlider } from "@/shared/lib/useSlider";
 import { SlideProgress } from "@/shared/ui";
@@ -16,6 +17,7 @@ const DURATION = 6000;
  * Auto-play pauses on hover; swipe works on phones.
  */
 export function BannerSlider({ banners }: { banners: Banner[] }) {
+  const { t } = useI18n();
   const count = banners.length;
   const { index, setIndex, go, paused, handlers } = useSlider(count, DURATION);
 
@@ -74,7 +76,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
           />
           <button
             type="button"
-            aria-label="Назад"
+            aria-label={t.common.back}
             onClick={() => go(-1)}
             className="absolute left-3 top-1/2 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-ink opacity-0 shadow-lg transition hover:bg-brand group-hover:opacity-100 sm:grid"
           >
@@ -82,7 +84,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
           </button>
           <button
             type="button"
-            aria-label="Вперёд"
+            aria-label={t.common.forward}
             onClick={() => go(1)}
             className="absolute right-3 top-1/2 hidden size-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-ink opacity-0 shadow-lg transition hover:bg-brand group-hover:opacity-100 sm:grid"
           >

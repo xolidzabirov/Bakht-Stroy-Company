@@ -1,6 +1,7 @@
 import { ProductCard } from "@/entities/product/ui/ProductCard";
 import type { Product } from "@/shared/api/types";
-import { Container, SectionHeading } from "@/shared/ui";
+import { Container } from "@/shared/ui";
+import { SectionHeading } from "@/shared/ui/SectionHeading";
 
 type Props = {
   title: string;

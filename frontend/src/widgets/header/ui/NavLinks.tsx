@@ -5,13 +5,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/cn";
 
 /**
- * Site sections; the current one is underlined in the brand yellow.
+ * Site sections; the current one is underlined in the accent color.
  */
-export function NavLinks({ items }: { items: { href: string; label: string }[] }) {
+export function NavLinks({ items, label }: { items: { href: string; label: string }[]; label: string }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Разделы сайта" className="flex h-full items-center gap-7">
+    <nav aria-label={label} className="flex h-full items-center gap-7">
       {items.map((item) => {
         // "/" is active only on the home page itself, other sections also on their sub-pages.
         const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);

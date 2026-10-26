@@ -10,21 +10,17 @@ import { FiltersForm } from "@/features/product-filters/ui/FiltersForm";
 import { SortSelect } from "@/features/product-filters/ui/SortSelect";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { fmt, plural } from "@/shared/i18n/format";
+import { getI18n } from "@/shared/i18n/server";
 import { cn } from "@/shared/lib/cn";
-import { Breadcrumbs, ButtonLink, Container, Pagination } from "@/shared/ui";
+import { ButtonLink, Container } from "@/shared/ui";
+import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
+import { Pagination } from "@/shared/ui/Pagination";
 
 type Props = {
   /** Current category; none — the whole catalog. */
   category?: Category;
   params: CatalogSearchParams;
-};
-
-const plural = (n: number) => {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "товар";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "товара";
-  return "товаров";
 };
 
 /**
@@ -34,11 +30,11 @@ export async function CatalogListing({ category, params }: Props) {
   const base = category ? routes.category(category.slug) : routes.catalog;
   const { filters, priceFrom, priceTo, page, sort } = parseCatalogParams(params);
 
-  const [categories, result] = await Promise.all([getCategories(), getProducts({ ...filters, category: category?.slug })]);
+  const [categories, result, { t, locale }] = await Promise.all([getCategories(), getProducts({ ...filters, category: category?.slug }), getI18n()]);
 
   const products = result?.data ?? [];
   const total = result?.meta.total ?? 0;
-  const title = filters.search && !category ? `Поиск: «${filters.search}»` : (category?.name ?? "Каталог");
+  const title = filters.search && !category ? fmt(t.catalog.searchTitle, { query: filters.search }) : (category?.name ?? t.catalog.title);
 
   const filtersForm = (
     <FiltersForm
@@ -55,7 +51,7 @@ export async function CatalogListing({ category, params }: Props) {
   return (
     <Container className="py-8">
       <Breadcrumbs
-        items={[{ label: "Главная", href: routes.home }, category ? { label: "Каталог", href: routes.catalog } : { label: "Каталог" }, ...(category ? [{ label: category.name }] : [])]}
+        items={[{ label: t.nav.home, href: routes.home }, category ? { label: t.nav.catalog, href: routes.catalog } : { label: t.nav.catalog }, ...(category ? [{ label: category.name }] : [])]}
       />
 
       <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
@@ -64,7 +60,7 @@ export async function CatalogListing({ category, params }: Props) {
           <div>
             <h1 className="text-3xl font-extrabold sm:text-4xl">{title}</h1>
             <p className="mt-1 text-sm text-muted">
-              {result ? `${total} ${plural(total)}` : "Каталог временно недоступен"}
+              {result ? `${total} ${plural(locale, total, t.common.products)}` : t.catalog.unavailable}
               {category?.description && <span className="hidden md:inline"> · {category.description}</span>}
             </p>
           </div>
@@ -73,7 +69,7 @@ export async function CatalogListing({ category, params }: Props) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-6">
-          <nav aria-label="Категории" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:block lg:space-y-1 lg:overflow-visible lg:px-0">
+          <nav aria-label={t.catalog.categories} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:block lg:space-y-1 lg:overflow-visible lg:px-0">
             <Link
               href={catalogHref(routes.catalog, params, {})}
               className={cn(
@@ -81,7 +77,7 @@ export async function CatalogListing({ category, params }: Props) {
                 !category ? "border-ink bg-ink text-white dark:bg-white dark:text-ink" : "border-border hover:bg-surface-muted",
               )}
             >
-              Все товары
+              {t.catalog.allProducts}
             </Link>
             {categories.map((item) => (
               <Link
@@ -104,7 +100,7 @@ export async function CatalogListing({ category, params }: Props) {
           <details className="rounded-[var(--radius-card)] border border-border bg-surface lg:hidden">
             <summary className="flex cursor-pointer list-none items-center gap-2 p-4 font-semibold">
               <SlidersHorizontal className="size-4" />
-              Фильтры
+              {t.catalog.filters}
               {hasActiveFilters(params) && <span className="size-2 rounded-full bg-brand" />}
             </summary>
             <div className="border-t border-border p-4">{filtersForm}</div>
@@ -113,7 +109,7 @@ export async function CatalogListing({ category, params }: Props) {
 
         <section>
           <div className="mb-5 flex items-center justify-between gap-3">
-            <p className="text-sm text-muted">{result && total > 0 && `Показано ${products.length} из ${total}`}</p>
+            <p className="text-sm text-muted">{result && total > 0 && fmt(t.catalog.shown, { shown: products.length, total })}</p>
             <Suspense>
               <SortSelect value={sort} />
             </Suspense>
@@ -128,13 +124,13 @@ export async function CatalogListing({ category, params }: Props) {
           ) : (
             <div className="grid place-items-center rounded-[var(--radius-card)] border border-dashed border-border px-6 py-16 text-center">
               <PackageSearch className="size-12 text-muted" />
-              <p className="mt-4 text-lg font-bold">Ничего не нашли</p>
+              <p className="mt-4 text-lg font-bold">{t.catalog.emptyTitle}</p>
               <p className="mt-1 max-w-sm text-sm text-muted">
-                Попробуйте изменить фильтры или позвоните нам — подберём материал под вашу задачу.
+                {t.catalog.emptyText}
               </p>
               {hasActiveFilters(params) && (
                 <ButtonLink href={base} variant="outline" className="mt-5">
-                  Сбросить фильтры
+                  {t.catalog.resetFilters}
                 </ButtonLink>
               )}
             </div>

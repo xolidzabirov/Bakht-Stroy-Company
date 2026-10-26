@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, LoaderCircle, MailCheck } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
+import { useI18n } from "@/shared/i18n/client";
+import { fmt } from "@/shared/i18n/format";
 import { Button, Field, FormAlert, PasswordInput, TextInput } from "@/shared/ui";
-import { type EmailStepValues, type RegisterValues, emailStepSchema, registerSchema } from "../model/schemas";
+import { type EmailStepValues, type RegisterValues, createAuthSchemas } from "../model/schemas";
 import { PasswordStrength } from "./PasswordStrength";
 import { secondsFromMessage, useCountdown } from "./useCountdown";
 
@@ -36,13 +38,15 @@ async function sendCode(email: string) {
 }
 
 function EmailStep({ next, countdown, onSent }: { next: string; countdown: Countdown; onSent: (email: string) => void }) {
+  const { t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
+  const schema = useMemo(() => createAuthSchemas(t).emailStep, [t]);
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<EmailStepValues>({ resolver: zodResolver(emailStepSchema), defaultValues: { email: "" } });
+  } = useForm<EmailStepValues>({ resolver: zodResolver(schema), defaultValues: { email: "" } });
 
   const onSubmit = handleSubmit(async ({ email }) => {
     setFormError(null);
@@ -58,7 +62,7 @@ function EmailStep({ next, countdown, onSent }: { next: string; countdown: Count
         onSent(email);
         return;
       }
-      setFormError(applyApiErrors(error, setError, ["email"]));
+      setFormError(applyApiErrors(error, setError, ["email"], t.errors));
     }
   });
 
@@ -66,14 +70,14 @@ function EmailStep({ next, countdown, onSent }: { next: string; countdown: Count
     <form onSubmit={onSubmit} noValidate className="space-y-5">
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <Field label="Email" error={errors.email?.message} hint="На него придёт код подтверждения. По email вы будете входить в аккаунт.">
+      <Field label={t.auth.email} error={errors.email?.message} hint={t.auth.emailHint}>
         {(id, describedBy) => (
           <TextInput
             id={id}
             type="email"
             autoComplete="email"
             inputMode="email"
-            placeholder="you@gmail.com"
+            placeholder={t.auth.emailPlaceholder}
             autoFocus
             aria-invalid={Boolean(errors.email)}
             aria-describedby={describedBy}
@@ -84,14 +88,14 @@ function EmailStep({ next, countdown, onSent }: { next: string; countdown: Count
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : null}
-        Получить код
+        {t.auth.getCode}
         {!isSubmitting && <ArrowRight className="size-5" />}
       </Button>
 
       <p className="text-center text-sm text-muted">
-        Уже есть аккаунт?{" "}
+        {t.auth.haveAccount}{" "}
         <Link href={`${routes.login}${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-foreground underline-offset-4 hover:underline">
-          Войти
+          {t.auth.signIn}
         </Link>
       </p>
     </form>
@@ -99,9 +103,11 @@ function EmailStep({ next, countdown, onSent }: { next: string; countdown: Count
 }
 
 function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string; next: string; countdown: Countdown; onChangeEmail: () => void }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const schema = useMemo(() => createAuthSchemas(t).register, [t]);
   const {
     register,
     handleSubmit,
@@ -109,9 +115,10 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
     control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(schema),
     defaultValues: { code: "", name: "", phone: "+992 ", password: "", password_confirmation: "" },
   });
+  const password = useWatch({ control, name: "password" });
 
   const resend = async () => {
     setFormError(null);
@@ -120,14 +127,12 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
     try {
       await sendCode(email);
       countdown.start();
-      setNotice("Новый код отправлен. Старый больше не действует.");
+      setNotice(t.auth.newCodeSent);
     } catch (error) {
       if (error instanceof ApiError && error.code === "CODE_RECENTLY_SENT") countdown.start(secondsFromMessage(error.message) ?? 60);
-      setFormError(error instanceof ApiError ? error.message : "Не удалось отправить код.");
+      setFormError(error instanceof ApiError ? error.message : t.auth.cantSendCode);
     }
   };
-
-  const password = useWatch({ control, name: "password" });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
@@ -139,7 +144,7 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
       router.replace(next);
       router.refresh();
     } catch (error) {
-      const message = applyApiErrors(error, setError, ["code", "name", "phone", "password", "password_confirmation"]);
+      const message = applyApiErrors(error, setError, ["code", "name", "phone", "password", "password_confirmation"], t.errors);
       // The email was taken while the code was on its way — the only fix is another email.
       setFormError(error instanceof ApiError && error.errors?.email ? error.errors.email[0] : message);
     }
@@ -150,7 +155,9 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
       <div className="flex gap-3 rounded-xl bg-brand-soft p-4 text-sm">
         <MailCheck className="size-5 shrink-0" />
         <p>
-          Мы отправили 6-значный код на <b className="break-all">{email}</b>. Он действует 15 минут. Не пришёл — загляните в «Спам».
+          {t.auth.codeSentStart}
+          <b className="break-all">{email}</b>
+          {t.auth.codeSentEnd}
         </p>
       </div>
 
@@ -158,11 +165,11 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
       {formError && <FormAlert>{formError}</FormAlert>}
 
       <Field
-        label="Код из письма"
+        label={t.auth.code}
         error={errors.code?.message}
         aside={
           <button type="button" onClick={resend} disabled={countdown.left > 0} className="text-sm font-medium text-muted hover:text-foreground disabled:cursor-default disabled:hover:text-muted">
-            {countdown.left > 0 ? `Отправить снова через ${countdown.left} с` : "Отправить снова"}
+            {countdown.left > 0 ? fmt(t.auth.resendIn, { seconds: countdown.left }) : t.auth.resend}
           </button>
         }
       >
@@ -182,41 +189,64 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
         )}
       </Field>
 
-      <Field label="Ваше имя" error={errors.name?.message}>
+      <Field label={t.auth.name} error={errors.name?.message}>
         {(id, describedBy) => (
-          <TextInput id={id} autoComplete="name" placeholder="Например, Фирдавс" aria-invalid={Boolean(errors.name)} aria-describedby={describedBy} {...register("name")} />
+          <TextInput id={id} autoComplete="name" placeholder={t.auth.namePlaceholder} aria-invalid={Boolean(errors.name)} aria-describedby={describedBy} {...register("name")} />
         )}
       </Field>
 
-      <Field label="Телефон" error={errors.phone?.message} hint="Необязательно. Менеджер позвонит по нему, чтобы подтвердить заказ.">
+      <Field label={t.auth.phone} error={errors.phone?.message} hint={t.auth.phoneHint}>
         {(id, describedBy) => (
-          <TextInput id={id} type="tel" autoComplete="tel" inputMode="tel" placeholder="+992 93 123 45 67" aria-invalid={Boolean(errors.phone)} aria-describedby={describedBy} {...register("phone")} />
+          <TextInput
+            id={id}
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            placeholder={t.auth.phonePlaceholder}
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={describedBy}
+            {...register("phone")}
+          />
         )}
       </Field>
 
-      <Field label="Пароль" error={errors.password?.message}>
+      <Field label={t.auth.password} error={errors.password?.message}>
         {(id, describedBy) => (
           <>
-            <PasswordInput id={id} autoComplete="new-password" aria-invalid={Boolean(errors.password)} aria-describedby={describedBy} {...register("password")} />
+            <PasswordInput
+              id={id}
+              autoComplete="new-password"
+              placeholder={t.auth.newPasswordPlaceholder}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={describedBy}
+              {...register("password")}
+            />
             <PasswordStrength value={password} />
           </>
         )}
       </Field>
 
-      <Field label="Повторите пароль" error={errors.password_confirmation?.message}>
+      <Field label={t.auth.confirmPassword} error={errors.password_confirmation?.message}>
         {(id, describedBy) => (
-          <PasswordInput id={id} autoComplete="new-password" aria-invalid={Boolean(errors.password_confirmation)} aria-describedby={describedBy} {...register("password_confirmation")} />
+          <PasswordInput
+            id={id}
+            autoComplete="new-password"
+            placeholder={t.auth.confirmPlaceholder}
+            aria-invalid={Boolean(errors.password_confirmation)}
+            aria-describedby={describedBy}
+            {...register("password_confirmation")}
+          />
         )}
       </Field>
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : null}
-        Создать аккаунт
+        {t.auth.createSubmit}
       </Button>
 
       <button type="button" onClick={onChangeEmail} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground">
         <ArrowLeft className="size-4" />
-        Указать другой email
+        {t.auth.otherEmail}
       </button>
     </form>
   );

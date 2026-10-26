@@ -3,10 +3,13 @@ import Image from "next/image";
 import { Clock } from "lucide-react";
 import type { NewsItem } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { getI18n } from "@/shared/i18n/server";
 import { formatDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui";
 
-export function NewsCard({ news }: { news: NewsItem }) {
+export async function NewsCard({ news }: { news: NewsItem }) {
+  const { t, locale } = await getI18n();
+
   return (
     <Link
       href={routes.newsItem(news.slug)}
@@ -30,10 +33,10 @@ export function NewsCard({ news }: { news: NewsItem }) {
         <h3 className="font-display text-lg font-bold leading-snug group-hover:underline">{news.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm text-muted">{news.excerpt}</p>
         <div className="mt-auto flex items-center gap-3 pt-4 text-xs text-muted">
-          <span>{formatDate(news.published_at)}</span>
+          <span>{formatDate(news.published_at, locale)}</span>
           <span className="inline-flex items-center gap-1">
             <Clock className="size-3.5" />
-            {news.reading_time} мин
+            {news.reading_time} {t.common.minutes}
           </span>
         </div>
       </div>

@@ -2,12 +2,18 @@
 
 /*
  * Bakht Stroy design tokens.
- * Brand: yellow #FFB800 + black (from the logo). Light theme first, dark theme via prefers-color-scheme.
+ * Brand: yellow #FFB800 + black (from the logo).
+ * <html data-theme="light|dark"> — color theme (set before paint, see the root layout);
+ * <html data-accent="yellow|orange|green|blue"> — accent color picked by the visitor.
  */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --brand: #ffb800;
   --brand-hover: #f0ab00;
   --brand-soft: #fff4d6;
+  /* text on the accent color (buttons, badges) */
+  --on-brand: #0a0a0a;
   --ink: #0a0a0a;
 
   --background: #fafaf7;
@@ -19,10 +25,59 @@
 
   --success: #15803d;
   --danger: #dc2626;
+
+  color-scheme: light;
 }
 
+:root[data-accent="orange"] {
+  --brand: #ff7a1a;
+  --brand-hover: #f26a05;
+  --brand-soft: #ffe9d8;
+}
+:root[data-accent="green"] {
+  --brand: #16a34a;
+  --brand-hover: #15803d;
+  --brand-soft: #dcfce7;
+  --on-brand: #ffffff;
+}
+:root[data-accent="blue"] {
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-soft: #dbeafe;
+  --on-brand: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --brand-soft: #2a2410;
+  --background: #0e0e10;
+  --surface: #17171a;
+  --surface-muted: #1f1f23;
+  --foreground: #f2f2f0;
+  --muted: #a1a1aa;
+  --border: #2a2a2f;
+  --success: #22c55e;
+  --danger: #f87171;
+
+  color-scheme: dark;
+}
+:root[data-theme="dark"][data-accent="orange"] {
+  --brand-soft: #2b1a0e;
+}
+:root[data-theme="dark"][data-accent="green"] {
+  --brand: #22c55e;
+  --brand-hover: #16a34a;
+  --brand-soft: #0f2a19;
+  --on-brand: #0a0a0a;
+}
+:root[data-theme="dark"][data-accent="blue"] {
+  --brand: #3b82f6;
+  --brand-hover: #2563eb;
+  --brand-soft: #0f1b33;
+}
+
+/* Without JavaScript and no saved choice — follow the device. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --brand-soft: #2a2410;
     --background: #0e0e10;
     --surface: #17171a;
@@ -30,6 +85,7 @@
     --foreground: #f2f2f0;
     --muted: #a1a1aa;
     --border: #2a2a2f;
+    color-scheme: dark;
   }
 }
 
@@ -37,6 +93,7 @@
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
+  --color-on-brand: var(--on-brand);
   --color-ink: var(--ink);
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -141,5 +198,21 @@ h3 {
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+/* Round header buttons: language, accent color, theme. */
+@utility pill-button {
+  display: inline-flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--surface-muted);
+  color: var(--foreground);
+  transition: background-color 150ms, color 150ms;
+
+  &:hover {
+    background: color-mix(in oklab, var(--surface-muted), var(--foreground) 8%);
   }
 }

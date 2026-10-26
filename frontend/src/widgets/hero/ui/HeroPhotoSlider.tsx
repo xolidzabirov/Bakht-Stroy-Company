@@ -46,7 +46,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
               i === index ? "translate-y-0 opacity-100 delay-300" : "translate-y-4 opacity-0",
             )}
           >
-            <span className="inline-flex rounded-full bg-brand px-3 py-1 text-xs font-bold text-ink">{slide.label}</span>
+            <span className="inline-flex rounded-full bg-brand px-3 py-1 text-xs font-bold text-on-brand">{slide.label}</span>
             <p className="mt-3 max-w-md font-display text-2xl font-extrabold leading-tight sm:text-3xl">{slide.title}</p>
           </div>
         </div>

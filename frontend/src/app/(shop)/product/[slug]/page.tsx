@@ -4,19 +4,23 @@ import { getProduct, getRelatedProducts } from "@/entities/product/api/getProduc
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { env } from "@/shared/config/env";
 import { routes } from "@/shared/config/site";
-import { Breadcrumbs, Container } from "@/shared/ui";
+import { fmt } from "@/shared/i18n/format";
+import { getI18n } from "@/shared/i18n/server";
+import { formatMoney } from "@/shared/lib/format";
+import { Container } from "@/shared/ui";
+import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 import { ProductDetailsView } from "@/widgets/product-details/ui/ProductDetailsView";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProduct((await params).slug);
+  const [product, { t, locale }] = await Promise.all([getProduct((await params).slug), getI18n()]);
 
-  if (!product) return { title: "Товар не найден" };
+  if (!product) return { title: t.meta.productNotFound };
 
   return {
-    title: `${product.name} — цена ${product.price / 100} сом. за ${product.unit.label}`,
+    title: fmt(t.meta.product, { name: product.name, price: formatMoney(product.price, locale), unit: product.unit.label }),
     description: product.description?.slice(0, 160),
     alternates: { canonical: routes.product(product.slug) },
     openGraph: { images: product.image ? [product.image.card] : undefined },
@@ -25,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const [product, related, settings] = await Promise.all([getProduct(slug), getRelatedProducts(slug), getSettings()]);
+  const [product, related, settings, { t }] = await Promise.all([getProduct(slug), getRelatedProducts(slug), getSettings(), getI18n()]);
 
   if (!product) notFound();
 
@@ -51,8 +55,8 @@ export default async function ProductPage({ params }: Props) {
       <Container className="py-8">
         <Breadcrumbs
           items={[
-            { label: "Главная", href: routes.home },
-            { label: "Каталог", href: routes.catalog },
+            { label: t.nav.home, href: routes.home },
+            { label: t.nav.catalog, href: routes.catalog },
             ...(product.category ? [{ label: product.category.name, href: routes.category(product.category.slug) }] : []),
             { label: product.name },
           ]}
@@ -63,7 +67,7 @@ export default async function ProductPage({ params }: Props) {
       </Container>
 
       <ProductGrid
-        title="Похожие товары"
+        title={t.product.related}
         href={product.category ? routes.category(product.category.slug) : undefined}
         products={related.slice(0, 4)}
       />

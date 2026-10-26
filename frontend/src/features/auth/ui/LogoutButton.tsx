@@ -5,9 +5,11 @@ import { useTransition } from "react";
 import { LoaderCircle, LogOut } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
+import { useI18n } from "@/shared/i18n/client";
 import { Button } from "@/shared/ui";
 
 export function LogoutButton() {
+  const { t } = useI18n();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -21,7 +23,7 @@ export function LogoutButton() {
   return (
     <Button type="button" variant="outline" onClick={logout} disabled={pending}>
       {pending ? <LoaderCircle className="size-4 animate-spin" /> : <LogOut className="size-4" />}
-      Выйти
+      {t.auth.logout}
     </Button>
   );
 }

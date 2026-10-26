@@ -1,4 +1,5 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
+import type { Dictionary } from "@/shared/i18n/dictionaries";
 import { ApiError } from "./http";
 
 /**
@@ -32,8 +33,15 @@ export async function bff<T>(path: string, { method = "POST", body }: { method?:
  * Puts the API validation errors under the form fields; returns the message for the top of the form
  * when the error is not about a field (wrong password, too many attempts, server down).
  */
-export function applyApiErrors<T extends FieldValues>(error: unknown, setError: UseFormSetError<T>, fields: readonly Path<T>[]): string | null {
-  if (!(error instanceof ApiError)) return "Что-то пошло не так. Попробуйте ещё раз.";
+export function applyApiErrors<T extends FieldValues>(
+  error: unknown,
+  setError: UseFormSetError<T>,
+  fields: readonly Path<T>[],
+  messages: Dictionary["errors"],
+): string | null {
+  if (!(error instanceof ApiError)) return messages.generic;
+
+  if (error.code === "NETWORK_ERROR") return messages.network;
 
   if (error.status === 422 && error.errors) {
     let placed = false;
@@ -49,8 +57,8 @@ export function applyApiErrors<T extends FieldValues>(error: unknown, setError: 
   }
 
   if (error.status === 429) {
-    return error.message || "Слишком много попыток. Подождите минуту и попробуйте снова.";
+    return error.message || messages.tooMany;
   }
 
-  return error.message;
+  return error.message || messages.generic;
 }

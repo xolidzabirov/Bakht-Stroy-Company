@@ -2,15 +2,10 @@ import type { ProductFilters } from "@/entities/product/api/getProducts";
 
 export type CatalogSearchParams = Record<string, string | string[] | undefined>;
 
-export const sortOptions = [
-  { value: "popular", label: "Популярные" },
-  { value: "new", label: "Новинки" },
-  { value: "price", label: "Сначала дешевле" },
-  { value: "-price", label: "Сначала дороже" },
-  { value: "name", label: "По названию" },
-] as const;
+/** Sort keys of the API; their names are in the dictionary (catalog.sorts). */
+export const sortOptions = ["popular", "new", "price", "-price", "name"] as const;
 
-export type SortValue = (typeof sortOptions)[number]["value"];
+export type SortValue = (typeof sortOptions)[number];
 
 export const PER_PAGE = 12;
 
@@ -26,7 +21,7 @@ const somoni = (value: string | undefined): number | undefined => {
  * URL → API filters. Prices are typed in somoni in the URL (?price_from=50), the API wants dirams.
  */
 export function parseCatalogParams(params: CatalogSearchParams) {
-  const sort = sortOptions.some((option) => option.value === first(params.sort)) ? (first(params.sort) as SortValue) : undefined;
+  const sort = sortOptions.includes(first(params.sort) as SortValue) ? (first(params.sort) as SortValue) : undefined;
   const priceFrom = somoni(first(params.price_from));
   const priceTo = somoni(first(params.price_to));
   const page = Math.max(1, Number(first(params.page)) || 1);

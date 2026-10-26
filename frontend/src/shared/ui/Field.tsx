@@ -2,6 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useId, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 
 export const inputClasses =
@@ -51,6 +52,7 @@ export function TextInput({ className, ...props }: ComponentProps<"input">) {
 
 /** Password with a "show" eye button. */
 export function PasswordInput({ className, ...props }: Omit<ComponentProps<"input">, "type">) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
 
   return (
@@ -59,7 +61,7 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<"inpu
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
-        aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
+        aria-label={visible ? t.auth.hidePassword : t.auth.showPassword}
         className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-surface-muted hover:text-foreground"
       >
         {visible ? <EyeOff className="size-[18px]" /> : <Eye className="size-[18px]" />}

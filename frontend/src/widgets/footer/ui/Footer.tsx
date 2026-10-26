@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getSettings } from "@/entities/settings/api/getSettings";
-import { routes, site } from "@/shared/config/site";
+import { routes } from "@/shared/config/site";
+import { fmt } from "@/shared/i18n/format";
+import { getI18n } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { Container, Logo } from "@/shared/ui";
 
@@ -21,10 +23,7 @@ const socialLabel = (key: string, url: string) =>
     : (socialLabels[key] ?? key);
 
 export async function Footer() {
-  const [settings, categories] = await Promise.all([
-    getSettings(),
-    getCategories(),
-  ]);
+  const [settings, categories, { t }] = await Promise.all([getSettings(), getCategories(), getI18n()]);
   const socials = Object.entries(settings.socials ?? {}).filter(
     (entry): entry is [string, string] => Boolean(entry[1]),
   );
@@ -36,7 +35,7 @@ export async function Footer() {
         <div>
           <Logo inverted />
           <p className="mt-4 text-sm leading-relaxed text-white/60">
-            {site.description}
+            {t.footer.description}
           </p>
           {socials.length > 0 && (
             <div className="mt-5 flex flex-wrap gap-2">
@@ -57,7 +56,7 @@ export async function Footer() {
 
         <div>
           <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
-            Каталог
+            {t.footer.catalog}
           </h3>
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             {categories.map((category) => (
@@ -75,15 +74,15 @@ export async function Footer() {
 
         <div>
           <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
-            Покупателям
+            {t.footer.buyers}
           </h3>
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             {[
-              [routes.delivery, "Доставка и оплата"],
-              [routes.news, "Новости и акции"],
-              [routes.about, "О компании"],
-              [routes.contacts, "Контакты"],
-              [routes.account, "Личный кабинет"],
+              [routes.delivery, t.nav.delivery],
+              [routes.news, t.nav.news],
+              [routes.about, t.nav.about],
+              [routes.contacts, t.nav.contacts],
+              [routes.account, t.nav.account],
             ].map(([href, label]) => (
               <li key={href}>
                 <Link href={href} className="hover:text-white">
@@ -96,7 +95,7 @@ export async function Footer() {
 
         <div>
           <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
-            Контакты
+            {t.footer.contacts}
           </h3>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             {settings.phones.map((phone) => (
@@ -139,11 +138,8 @@ export async function Footer() {
 
       <div className="border-t border-white/10">
         <Container className="flex flex-col gap-2 py-5 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} Bakht Stroy Company. Все права
-            защищены.
-          </p>
-          <p>Строительные материалы в Душанбе — оптом и в розницу</p>
+          <p>{fmt(t.footer.rights, { year: new Date().getFullYear() })}</p>
+          <p>{t.footer.slogan}</p>
         </Container>
       </div>
     </footer>

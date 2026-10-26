@@ -4,7 +4,7 @@ import { cn } from "@/shared/lib/cn";
 type Tone = "brand" | "dark" | "success" | "danger" | "muted";
 
 const tones: Record<Tone, string> = {
-  brand: "bg-brand text-ink",
+  brand: "bg-brand text-on-brand",
   dark: "bg-ink text-white",
   success: "bg-success/10 text-success",
   danger: "bg-danger/10 text-danger",

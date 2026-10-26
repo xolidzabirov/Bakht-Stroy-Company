@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { getI18n } from "@/shared/i18n/server";
 
 export type Crumb = { label: string; href?: string };
 
 /**
  * "Главная › Каталог › Цемент и бетон". The last crumb is the current page (no link).
  */
-export function Breadcrumbs({ items }: { items: Crumb[] }) {
+export async function Breadcrumbs({ items }: { items: Crumb[] }) {
+  const { t } = await getI18n();
+
   return (
-    <nav aria-label="Навигация" className="text-sm text-muted">
+    <nav aria-label={t.common.breadcrumbs} className="text-sm text-muted">
       <ol className="flex flex-wrap items-center gap-1.5">
         {items.map((item, index) => (
           <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">

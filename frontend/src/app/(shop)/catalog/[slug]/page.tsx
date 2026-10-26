@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getCategory } from "@/entities/category/api/getCategory";
 import type { CatalogSearchParams } from "@/features/product-filters/model/params";
 import { routes } from "@/shared/config/site";
+import { fmt } from "@/shared/i18n/format";
+import { getI18n } from "@/shared/i18n/server";
 import { CatalogListing } from "@/widgets/catalog/ui/CatalogListing";
 
 type Props = {
@@ -11,13 +13,13 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = await getCategory((await params).slug);
+  const [category, { t }] = await Promise.all([getCategory((await params).slug), getI18n()]);
 
-  if (!category) return { title: "Категория не найдена" };
+  if (!category) return { title: t.meta.categoryNotFound };
 
   return {
-    title: `${category.name} — купить в Душанбе`,
-    description: category.description ?? `${category.name}: цены в сомони, наличие на складе, доставка по Душанбе.`,
+    title: fmt(t.meta.category, { name: category.name }),
+    description: category.description ?? fmt(t.meta.categoryDescription, { name: category.name }),
     alternates: { canonical: routes.category(category.slug) },
     openGraph: { images: category.image ? [category.image] : undefined },
   };

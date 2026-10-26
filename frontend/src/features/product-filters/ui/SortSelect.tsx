@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { sortOptions } from "../model/params";
 
@@ -9,6 +10,7 @@ import { sortOptions } from "../model/params";
  * Sorting dropdown: changes ?sort= right away and goes back to the first page.
  */
 export function SortSelect({ value }: { value: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -27,7 +29,7 @@ export function SortSelect({ value }: { value: string }) {
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="hidden text-muted sm:inline">Сортировка:</span>
+      <span className="hidden text-muted sm:inline">{t.catalog.sort}</span>
       <select
         value={value}
         onChange={(event) => change(event.target.value)}
@@ -37,8 +39,8 @@ export function SortSelect({ value }: { value: string }) {
         )}
       >
         {sortOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
+          <option key={option} value={option}>
+            {t.catalog.sorts[option]}
           </option>
         ))}
       </select>

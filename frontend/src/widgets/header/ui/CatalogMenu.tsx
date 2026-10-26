@@ -6,11 +6,14 @@ import { ArrowRight, LayoutGrid, X } from "lucide-react";
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { useI18n } from "@/shared/i18n/client";
+import { plural } from "@/shared/i18n/format";
 
 /**
  * "Каталог" button with a mega menu: every direction with its round icon, description and product count.
  */
 export function CatalogMenu({ categories }: { categories: Category[] }) {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,7 +43,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
         className="inline-flex h-11 items-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-white transition hover:bg-ink/85 dark:bg-white dark:text-ink"
       >
         {open ? <X className="size-4" /> : <LayoutGrid className="size-4 text-brand" />}
-        Каталог
+        {t.header.catalog}
       </button>
 
       {open && categories.length > 0 && (
@@ -57,7 +60,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
                   <span className="min-w-0">
                     <span className="block font-semibold leading-snug">{category.name}</span>
                     {typeof category.products_count === "number" && (
-                      <span className="text-xs text-muted">{category.products_count} товаров</span>
+                      <span className="text-xs text-muted">{category.products_count} {plural(locale, category.products_count, t.common.products)}</span>
                     )}
                   </span>
                 </Link>
@@ -69,7 +72,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
             onClick={() => setOpen(false)}
             className="mt-3 flex items-center justify-between rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white"
           >
-            Весь каталог
+            {t.common.allCatalog}
             <ArrowRight className="size-4 text-brand" />
           </Link>
         </div>

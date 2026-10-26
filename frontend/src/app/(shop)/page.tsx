@@ -4,6 +4,7 @@ import { getNews } from "@/entities/news/api/getNews";
 import { getProducts } from "@/entities/product/api/getProducts";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
+import { getI18n } from "@/shared/i18n/server";
 import { Advantages } from "@/widgets/advantages/ui/Advantages";
 import { CategoryGrid } from "@/widgets/category-grid/ui/CategoryGrid";
 import { CategoryStrip } from "@/widgets/category-grid/ui/CategoryStrip";
@@ -22,6 +23,7 @@ export default async function HomePage() {
       getNews({ per_page: 3 }),
       getSettings(),
     ]);
+  const { t } = await getI18n();
 
   const sale = (discounted?.data ?? []).filter(
     (product) => product.discount_percent,
@@ -34,15 +36,15 @@ export default async function HomePage() {
       <Advantages />
       <CategoryGrid categories={categories} />
       <ProductGrid
-        title="Хиты продаж"
-        subtitle="То, что чаще всего берут на стройку"
+        title={t.home.hitsTitle}
+        subtitle={t.home.hitsSubtitle}
         href={`${routes.catalog}?featured=1`}
         products={featured?.data ?? []}
       />
       {sale.length >= 4 && (
         <ProductGrid
-          title="Скидки"
-          subtitle="Выгодные цены этой недели"
+          title={t.home.saleTitle}
+          subtitle={t.home.saleSubtitle}
           href={routes.catalog}
           products={sale.slice(0, 4)}
         />

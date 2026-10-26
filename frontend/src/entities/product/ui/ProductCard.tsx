@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { getI18n } from "@/shared/i18n/server";
+import { fmt } from "@/shared/i18n/format";
 import { formatMoney } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui";
 
@@ -11,7 +13,8 @@ type Props = {
   action?: React.ReactNode;
 };
 
-export function ProductCard({ product, action }: Props) {
+export async function ProductCard({ product, action }: Props) {
+  const { t, locale } = await getI18n();
   const image = product.image;
 
   return (
@@ -28,7 +31,7 @@ export function ProductCard({ product, action }: Props) {
         )}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white">−{product.discount_percent}%</Badge> : null}
-          {product.is_featured && <Badge>Хит</Badge>}
+          {product.is_featured && <Badge>{t.common.hit}</Badge>}
         </div>
       </Link>
 
@@ -42,15 +45,15 @@ export function ProductCard({ product, action }: Props) {
 
         <div className="mt-auto pt-4">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-xl font-extrabold">{formatMoney(product.price)}</span>
-            {product.old_price ? <span className="text-sm text-muted line-through">{formatMoney(product.old_price)}</span> : null}
+            <span className="font-display text-xl font-extrabold">{formatMoney(product.price, locale)}</span>
+            {product.old_price ? <span className="text-sm text-muted line-through">{formatMoney(product.old_price, locale)}</span> : null}
           </div>
           <p className="text-xs text-muted">
-            за {product.unit.label}
-            {product.min_order_qty > 1 && ` · от ${product.min_order_qty} ${product.unit.label}`}
+            {fmt(t.common.perUnit, { unit: product.unit.label })}
+            {product.min_order_qty > 1 && ` · ${fmt(t.common.fromQty, { qty: product.min_order_qty, unit: product.unit.label })}`}
           </p>
           <p className={product.in_stock ? "mt-1 text-xs font-medium text-success" : "mt-1 text-xs font-medium text-danger"}>
-            {product.in_stock ? "В наличии" : "Нет в наличии"}
+            {product.in_stock ? t.common.inStock : t.common.outOfStock}
           </p>
           {action && <div className="mt-3">{action}</div>}
         </div>
