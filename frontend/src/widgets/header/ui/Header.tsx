@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Clock, Heart, Phone, Search, ShoppingCart, User } from "lucide-react";
+import { Clock, Heart, Phone, Search, ShoppingCart } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
 import { formatPhone } from "@/shared/lib/format";
 import { Container, Logo } from "@/shared/ui";
+import { AccountAction } from "./AccountAction";
 import { CatalogMenu } from "./CatalogMenu";
 import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
@@ -68,9 +69,7 @@ export async function Header() {
           <Action href={routes.favorites} label="Избранное" className="hidden sm:flex">
             <Heart className="size-[22px]" />
           </Action>
-          <Action href={routes.account} label="Войти">
-            <User className="size-[22px]" />
-          </Action>
+          <AccountAction />
           <Action href={routes.cart} label="Корзина">
             <ShoppingCart className="size-[22px]" />
           </Action>

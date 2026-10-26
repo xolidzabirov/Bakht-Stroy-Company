@@ -30,6 +30,7 @@ export const routes = {
   favorites: "/favorites",
   login: "/login",
   register: "/register",
+  forgotPassword: "/forgot-password",
   account: "/account",
   about: "/about",
   contacts: "/contacts",
