@@ -70,8 +70,6 @@ export const tg: Dictionary = {
     language: "Забон",
     theme: "Мавзӯъ",
     themes: { light: "Равшан", dark: "Торик", system: "Мисли система" },
-    accent: "Ранги ороиш",
-    accents: { yellow: "Зард", orange: "Норинҷӣ", green: "Сабз", blue: "Кабуд" },
   },
   hero: {
     badge: "Масолеҳи сохтмонӣ дар Душанбе",

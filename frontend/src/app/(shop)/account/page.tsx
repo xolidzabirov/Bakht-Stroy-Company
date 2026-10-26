@@ -32,7 +32,7 @@ export default async function AccountPage() {
           </span>
           <div>
             <h1 className="text-3xl font-extrabold">{fmt(t.account.hello, { name: user.name.split(" ")[0] })}</h1>
-            <p className="mt-1 text-sm text-muted">{fmt(t.account.since, { date: formatDate(user.created_at, locale) })}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{fmt(t.account.since, { date: formatDate(user.created_at, locale) })}</p>
           </div>
         </div>
         <LogoutButton />
@@ -46,12 +46,12 @@ export default async function AccountPage() {
           </h2>
           <dl className="mt-4 space-y-3 text-sm">
             <div className="flex items-center gap-2">
-              <Mail className="size-4 text-muted" />
+              <Mail className="size-4 text-muted-foreground" />
               <dd className="break-all">{user.email}</dd>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="size-4 text-muted" />
-              <dd>{user.phone ? formatPhone(user.phone) : <span className="text-muted">{t.account.noPhone}</span>}</dd>
+              <Phone className="size-4 text-muted-foreground" />
+              <dd>{user.phone ? formatPhone(user.phone) : <span className="text-muted-foreground">{t.account.noPhone}</span>}</dd>
             </div>
           </dl>
           <Badge tone={role === "client" ? "muted" : "dark"} className="mt-4">
@@ -61,7 +61,7 @@ export default async function AccountPage() {
 
         <section className="rounded-[var(--radius-card)] border border-border bg-surface p-6">
           <h2 className="font-bold">{t.account.nextTitle}</h2>
-          <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t.account.nextText}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">

@@ -18,7 +18,7 @@ export async function EmptyState({ title, text, icon: Icon }: { title: string; t
           <Icon className="size-9" />
         </span>
         <h1 className="mt-6 text-2xl font-extrabold">{title}</h1>
-        <p className="mt-2 max-w-md text-muted">{text}</p>
+        <p className="mt-2 max-w-md text-muted-foreground">{text}</p>
         <ButtonLink href={routes.catalog} className="mt-6">
           {t.common.toCatalog}
         </ButtonLink>

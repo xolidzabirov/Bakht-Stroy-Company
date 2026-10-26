@@ -1,10 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*
  * Bakht Stroy design tokens.
  * Brand: yellow #FFB800 + black (from the logo).
  * <html data-theme="light|dark"> — color theme (set before paint, see the root layout);
- * <html data-accent="yellow|orange|green|blue"> — accent color picked by the visitor.
  */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -29,24 +29,6 @@
   color-scheme: light;
 }
 
-:root[data-accent="orange"] {
-  --brand: #ff7a1a;
-  --brand-hover: #f26a05;
-  --brand-soft: #ffe9d8;
-}
-:root[data-accent="green"] {
-  --brand: #16a34a;
-  --brand-hover: #15803d;
-  --brand-soft: #dcfce7;
-  --on-brand: #ffffff;
-}
-:root[data-accent="blue"] {
-  --brand: #2563eb;
-  --brand-hover: #1d4ed8;
-  --brand-soft: #dbeafe;
-  --on-brand: #ffffff;
-}
-
 :root[data-theme="dark"] {
   --brand-soft: #2a2410;
   --background: #0e0e10;
@@ -59,20 +41,6 @@
   --danger: #f87171;
 
   color-scheme: dark;
-}
-:root[data-theme="dark"][data-accent="orange"] {
-  --brand-soft: #2b1a0e;
-}
-:root[data-theme="dark"][data-accent="green"] {
-  --brand: #22c55e;
-  --brand-hover: #16a34a;
-  --brand-soft: #0f2a19;
-  --on-brand: #0a0a0a;
-}
-:root[data-theme="dark"][data-accent="blue"] {
-  --brand: #3b82f6;
-  --brand-hover: #2563eb;
-  --brand-soft: #0f1b33;
 }
 
 /* Without JavaScript and no saved choice — follow the device. */
@@ -99,7 +67,22 @@
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
+  /* shadcn/ui names mapped to the Bakht Stroy palette (accent color = primary). */
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--muted);
+  --color-primary: var(--brand);
+  --color-primary-foreground: var(--on-brand);
+  --color-secondary: var(--surface-muted);
+  --color-secondary-foreground: var(--foreground);
+  --color-accent: var(--surface-muted);
+  --color-accent-foreground: var(--foreground);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--foreground);
+  --color-destructive: var(--danger);
+  --color-input: var(--border);
+  --color-ring: var(--brand);
   --color-border: var(--border);
   --color-success: var(--success);
   --color-danger: var(--danger);
@@ -201,7 +184,7 @@ h3 {
   }
 }
 
-/* Round header buttons: language, accent color, theme. */
+/* Round header buttons: language, theme. */
 @utility pill-button {
   display: inline-flex;
   height: 2.5rem;

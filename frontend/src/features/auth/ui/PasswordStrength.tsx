@@ -25,13 +25,13 @@ export function PasswordStrength({ value }: { value: string }) {
             <span key={step} className={cn("h-1.5 rounded-full transition-colors", step <= score ? colors[score] : "bg-border")} />
           ))}
         </div>
-        <span className="w-24 text-right text-xs font-semibold text-muted">{t.auth.strength[score]}</span>
+        <span className="w-24 text-right text-xs font-semibold text-muted-foreground">{t.auth.strength[score]}</span>
       </div>
       <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
         {passwordRules.map((rule, index) => (
           <li
             key={rule.key}
-            className={cn("flex items-center gap-1.5 transition-colors", passed[index] ? "text-success" : "text-muted", "optional" in rule && "col-span-2")}
+            className={cn("flex items-center gap-1.5 transition-colors", passed[index] ? "text-success" : "text-muted-foreground", "optional" in rule && "col-span-2")}
           >
             <Check className={cn("size-3.5 shrink-0", !passed[index] && "opacity-30")} />
             {t.auth.rules[rule.key]}

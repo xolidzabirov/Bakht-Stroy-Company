@@ -71,8 +71,6 @@ export const ru = {
     language: "Язык",
     theme: "Тема",
     themes: { light: "Светлая", dark: "Тёмная", system: "Как в системе" },
-    accent: "Цвет оформления",
-    accents: { yellow: "Жёлтый", orange: "Оранжевый", green: "Зелёный", blue: "Синий" },
   },
   hero: {
     badge: "Строительные материалы в Душанбе",

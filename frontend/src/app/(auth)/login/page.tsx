@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: Props) {
   return (
     <>
       <h1 className="text-3xl font-extrabold">{t.auth.loginTitle}</h1>
-      <p className="mt-2 text-muted">
+      <p className="mt-2 text-muted-foreground">
         {target === "/" ? t.auth.loginLead : t.auth.loginLeadNext}
       </p>
       <div className="mt-8">

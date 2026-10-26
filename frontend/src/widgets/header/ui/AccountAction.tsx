@@ -38,7 +38,7 @@ export function AccountAction() {
         <User className="size-[22px]" />
         {name && <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-surface bg-success" />}
       </span>
-      <span className="hidden max-w-20 truncate text-[11px] font-medium text-muted lg:block">{name ?? t.header.login}</span>
+      <span className="hidden max-w-20 truncate text-[11px] font-medium text-muted-foreground lg:block">{name ?? t.header.login}</span>
     </Link>
   );
 }

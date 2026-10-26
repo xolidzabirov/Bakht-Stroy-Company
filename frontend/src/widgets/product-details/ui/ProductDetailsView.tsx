@@ -41,18 +41,18 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
 
         <div>
           {product.category && (
-            <Link href={routes.category(product.category.slug)} className="text-sm font-semibold uppercase tracking-wide text-muted hover:text-foreground">
+            <Link href={routes.category(product.category.slug)} className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
               {product.category.name}
             </Link>
           )}
           <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">{product.name}</h1>
-          <p className="mt-2 text-sm text-muted">{fmt(t.product.sku, { sku: product.sku ?? "" })}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{fmt(t.product.sku, { sku: product.sku ?? "" })}</p>
 
           <div className="mt-6 rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-6">
             <div className="flex flex-wrap items-baseline gap-3">
               <span className="font-display text-4xl font-extrabold">{money(product.price)}</span>
-              <span className="text-muted">{fmt(t.common.perUnit, { unit })}</span>
-              {product.old_price ? <span className="text-lg text-muted line-through">{money(product.old_price)}</span> : null}
+              <span className="text-muted-foreground">{fmt(t.common.perUnit, { unit })}</span>
+              {product.old_price ? <span className="text-lg text-muted-foreground line-through">{money(product.old_price)}</span> : null}
             </div>
 
             <ul className="mt-4 space-y-1.5 text-sm">
@@ -61,7 +61,7 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
                 {product.in_stock ? fmt(t.product.inStockQty, { qty: product.stock, unit }) : t.product.outOfStock}
               </li>
               {product.min_order_qty > 1 && (
-                <li className="text-muted">{fmt(t.product.minOrder, { qty: product.min_order_qty, unit, sum: money(product.price * product.min_order_qty) })}</li>
+                <li className="text-muted-foreground">{fmt(t.product.minOrder, { qty: product.min_order_qty, unit, sum: money(product.price * product.min_order_qty) })}</li>
               )}
             </ul>
 
@@ -82,7 +82,7 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
                 </a>
               ) : null}
             </div>
-            <p className="mt-3 text-xs text-muted">{t.product.loginHint}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{t.product.loginHint}</p>
           </div>
 
           <ul className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -120,12 +120,12 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
             <h2 className="text-xl font-extrabold">{t.product.specs}</h2>
             <dl className="mt-4 divide-y divide-border rounded-[var(--radius-card)] border border-border bg-surface">
               <div className="flex justify-between gap-4 px-5 py-3 text-sm">
-                <dt className="text-muted">{t.product.unit}</dt>
+                <dt className="text-muted-foreground">{t.product.unit}</dt>
                 <dd className="text-right font-semibold">{unit}</dd>
               </div>
               {product.specs.map((spec) => (
                 <div key={spec.name} className="flex justify-between gap-4 px-5 py-3 text-sm">
-                  <dt className="text-muted">{spec.name}</dt>
+                  <dt className="text-muted-foreground">{spec.name}</dt>
                   <dd className="text-right font-semibold">{spec.value}</dd>
                 </div>
               ))}

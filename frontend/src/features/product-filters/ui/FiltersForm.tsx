@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
 import { Button } from "@/shared/ui";
+import { Checkbox } from "@/shared/ui/kit/checkbox";
 
 type Props = {
   /** Page the form submits to: /catalog or /catalog/{slug}. */
@@ -14,7 +15,7 @@ type Props = {
 };
 
 const input =
-  "h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm outline-none transition placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/30";
+  "h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/30";
 
 /**
  * Plain GET form — works without JavaScript; the state lives in the URL, so a filtered page can be shared.
@@ -43,11 +44,11 @@ export async function FiltersForm({ action, search, sort, priceFrom, priceTo, in
 
       <div className="space-y-3">
         <label className="flex cursor-pointer items-center gap-3 text-sm">
-          <input type="checkbox" name="in_stock" value="1" defaultChecked={inStock} className="size-5 rounded accent-brand" />
+          <Checkbox name="in_stock" value="1" defaultChecked={inStock} />
           {t.catalog.onlyInStock}
         </label>
         <label className="flex cursor-pointer items-center gap-3 text-sm">
-          <input type="checkbox" name="featured" value="1" defaultChecked={featured} className="size-5 rounded accent-brand" />
+          <Checkbox name="featured" value="1" defaultChecked={featured} />
           {t.catalog.hits}
         </label>
       </div>
@@ -56,7 +57,7 @@ export async function FiltersForm({ action, search, sort, priceFrom, priceTo, in
         <Button type="submit" className="flex-1">
           {t.catalog.show}
         </Button>
-        <Link href={action} className="inline-flex h-11 items-center rounded-xl px-4 text-sm font-semibold text-muted hover:text-foreground">
+        <Link href={action} className="inline-flex h-11 items-center rounded-xl px-4 text-sm font-semibold text-muted-foreground hover:text-foreground">
           {t.catalog.reset}
         </Link>
       </div>

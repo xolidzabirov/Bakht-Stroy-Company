@@ -31,8 +31,8 @@ export async function NewsCard({ news }: { news: NewsItem }) {
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-lg font-bold leading-snug group-hover:underline">{news.title}</h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted">{news.excerpt}</p>
-        <div className="mt-auto flex items-center gap-3 pt-4 text-xs text-muted">
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{news.excerpt}</p>
+        <div className="mt-auto flex items-center gap-3 pt-4 text-xs text-muted-foreground">
           <span>{formatDate(news.published_at, locale)}</span>
           <span className="inline-flex items-center gap-1">
             <Clock className="size-3.5" />

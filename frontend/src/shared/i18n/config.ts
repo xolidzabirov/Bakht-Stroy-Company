@@ -31,15 +31,3 @@ export function isTheme(value: string | undefined | null): value is Theme {
   return themes.includes(value as Theme);
 }
 
-/** Accent color of the interface (yellow is the brand color from the logo). */
-export const accents = ["yellow", "orange", "green", "blue"] as const;
-
-export type Accent = (typeof accents)[number];
-
-export const ACCENT_COOKIE = "bakht_accent";
-
-export const accentSwatches: Record<Accent, string> = { yellow: "#FFB800", orange: "#FF7A1A", green: "#16A34A", blue: "#2563EB" };
-
-export function isAccent(value: string | undefined | null): value is Accent {
-  return accents.includes(value as Accent);
-}

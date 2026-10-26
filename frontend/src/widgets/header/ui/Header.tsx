@@ -2,11 +2,10 @@ import Link from "next/link";
 import { Clock, Heart, Phone, Search, ShoppingCart } from "lucide-react";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getSettings } from "@/entities/settings/api/getSettings";
-import { AccentPicker } from "@/features/preferences/ui/AccentPicker";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { routes } from "@/shared/config/site";
-import { getAccent, getI18n } from "@/shared/i18n/server";
+import { getI18n } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { Container, Logo } from "@/shared/ui";
 import { AccountAction } from "./AccountAction";
@@ -15,11 +14,11 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
 
 /**
- * Site header. Main row: logo, catalog menu, search, language / accent color / theme, account actions.
+ * Site header. Main row: logo, catalog menu, search, language / theme, account actions.
  * Slim row below: site sections on the left, phone and working hours on the right.
  */
 export async function Header() {
-  const [settings, categories, { t }, accent] = await Promise.all([getSettings(), getCategories(), getI18n(), getAccent()]);
+  const [settings, categories, { t }] = await Promise.all([getSettings(), getCategories(), getI18n()]);
   const mainPhone = settings.phones[0];
 
   const sections = [
@@ -33,7 +32,7 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
       <Container className="flex h-16 items-center gap-3 md:h-[76px] md:gap-4">
-        <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} accent={accent} />
+        <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} />
 
         <Link href={routes.home} aria-label={t.header.homeAria} className="shrink-0">
           <Logo />
@@ -42,7 +41,7 @@ export async function Header() {
         <CatalogMenu categories={categories} />
 
         <form action={routes.catalog} role="search" className="relative hidden flex-1 md:flex">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="search"
             type="search"
@@ -60,7 +59,6 @@ export async function Header() {
 
         <div className="hidden items-center gap-2 lg:flex">
           <LocaleSwitcher />
-          <AccentPicker initial={accent} />
           <ThemeToggle />
         </div>
 
@@ -78,12 +76,12 @@ export async function Header() {
       <div className="hidden border-t border-border md:block">
         <Container className="flex h-11 items-center justify-between gap-6">
           <NavLinks items={sections} label={t.header.sections} />
-          <div className="flex shrink-0 items-center gap-5 text-xs text-muted">
+          <div className="flex shrink-0 items-center gap-5 text-xs text-muted-foreground">
             {mainPhone && (
               <a href={`tel:${mainPhone}`} className="inline-flex items-center gap-1.5 font-semibold text-foreground hover:text-brand">
                 <Phone className="size-3.5 text-brand" />
                 {formatPhone(mainPhone)}
-                <span className="hidden font-normal text-muted xl:inline">· {t.header.consult}</span>
+                <span className="hidden font-normal text-muted-foreground xl:inline">· {t.header.consult}</span>
               </a>
             )}
             {settings.work_hours && (
@@ -108,7 +106,7 @@ function Action({ href, label, className = "", children }: { href: string; label
       className={`flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-surface-muted md:min-w-16 ${className}`}
     >
       {children}
-      <span className="hidden text-[11px] font-medium text-muted lg:block">{label}</span>
+      <span className="hidden text-[11px] font-medium text-muted-foreground lg:block">{label}</span>
     </Link>
   );
 }

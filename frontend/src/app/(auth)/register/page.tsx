@@ -13,7 +13,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <h1 className="text-3xl font-extrabold">{t.auth.registerTitle}</h1>
-      <p className="mt-2 text-muted">{t.auth.registerLead}</p>
+      <p className="mt-2 text-muted-foreground">{t.auth.registerLead}</p>
       <div className="mt-8">
         <RegisterForm next={safeNext(next)} />
       </div>

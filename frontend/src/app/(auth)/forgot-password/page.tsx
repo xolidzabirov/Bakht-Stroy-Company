@@ -15,11 +15,11 @@ export default async function ForgotPasswordPage({ searchParams }: { searchParam
   return (
     <>
       <h1 className="text-3xl font-extrabold">{t.auth.forgotTitle}</h1>
-      <p className="mt-2 text-muted">{t.auth.forgotLead}</p>
+      <p className="mt-2 text-muted-foreground">{t.auth.forgotLead}</p>
       <div className="mt-8">
         <ForgotPasswordForm next={safeNext(next)} />
       </div>
-      <p className="mt-6 text-center text-sm text-muted">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         {t.auth.remembered}{" "}
         <Link href={routes.login} className="font-semibold text-foreground underline-offset-4 hover:underline">
           {t.auth.signIn}

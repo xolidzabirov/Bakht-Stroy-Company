@@ -3,7 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import { env } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
 import { I18nProvider } from "@/shared/i18n/client";
-import { getAccent, getI18n, getTheme } from "@/shared/i18n/server";
+import { getI18n, getTheme } from "@/shared/i18n/server";
 import "@/shared/ui/styles/globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic", "cyrillic-ext"], variable: "--font-inter", display: "swap" });
@@ -31,13 +31,12 @@ export const viewport: Viewport = {
 const themeScript = `(function(){try{var d=document.documentElement;if(!d.dataset.theme){d.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}}catch(e){}})()`;
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [{ locale }, theme, accent] = await Promise.all([getI18n(), getTheme(), getAccent()]);
+  const [{ locale }, theme] = await Promise.all([getI18n(), getTheme()]);
 
   return (
     <html
       lang={locale}
       data-theme={theme === "system" ? undefined : theme}
-      data-accent={accent}
       className={`${inter.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >

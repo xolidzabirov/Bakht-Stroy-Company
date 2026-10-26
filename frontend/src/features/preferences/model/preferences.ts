@@ -1,4 +1,4 @@
-import { ACCENT_COOKIE, LOCALE_COOKIE, THEME_COOKIE, type Accent, type Locale } from "@/shared/i18n/config";
+import { LOCALE_COOKIE, THEME_COOKIE, type Locale } from "@/shared/i18n/config";
 
 /** Remembers a visitor preference for a year (read by the server on the next request). */
 function remember(name: string, value: string) {
@@ -11,12 +11,6 @@ export function toggleTheme() {
 
   document.documentElement.dataset.theme = next;
   remember(THEME_COOKIE, next);
-}
-
-/** New accent color right away, no reload. */
-export function applyAccent(accent: Accent) {
-  document.documentElement.dataset.accent = accent;
-  remember(ACCENT_COOKIE, accent);
 }
 
 /** The server renders the texts, so the caller refreshes the page data after this. */

@@ -11,7 +11,7 @@ export async function Breadcrumbs({ items }: { items: Crumb[] }) {
   const { t } = await getI18n();
 
   return (
-    <nav aria-label={t.common.breadcrumbs} className="text-sm text-muted">
+    <nav aria-label={t.common.breadcrumbs} className="text-sm text-muted-foreground">
       <ol className="flex flex-wrap items-center gap-1.5">
         {items.map((item, index) => (
           <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">

@@ -60,7 +60,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
                   <span className="min-w-0">
                     <span className="block font-semibold leading-snug">{category.name}</span>
                     {typeof category.products_count === "number" && (
-                      <span className="text-xs text-muted">{category.products_count} {plural(locale, category.products_count, t.common.products)}</span>
+                      <span className="text-xs text-muted-foreground">{category.products_count} {plural(locale, category.products_count, t.common.products)}</span>
                     )}
                   </span>
                 </Link>

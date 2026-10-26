@@ -162,7 +162,7 @@ function ResetStep({ email, next, onBack }: { email: string; next: string; onBac
         {t.auth.savePassword}
       </Button>
 
-      <button type="button" onClick={onBack} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground">
+      <button type="button" onClick={onBack} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" />
         {t.auth.otherEmail}
       </button>

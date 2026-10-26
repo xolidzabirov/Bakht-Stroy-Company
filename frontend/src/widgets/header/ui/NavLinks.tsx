@@ -23,7 +23,7 @@ export function NavLinks({ items, label }: { items: { href: string; label: strin
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex h-full items-center text-sm font-medium transition hover:text-foreground",
-              active ? "text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand" : "text-muted",
+              active ? "text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand" : "text-muted-foreground",
             )}
           >
             {item.label}

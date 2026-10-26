@@ -59,7 +59,7 @@ export async function CatalogListing({ category, params }: Props) {
           {category && <CategoryIcon slug={category.slug} size="md" />}
           <div>
             <h1 className="text-3xl font-extrabold sm:text-4xl">{title}</h1>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-muted-foreground">
               {result ? `${total} ${plural(locale, total, t.common.products)}` : t.catalog.unavailable}
               {category?.description && <span className="hidden md:inline"> · {category.description}</span>}
             </p>
@@ -109,7 +109,7 @@ export async function CatalogListing({ category, params }: Props) {
 
         <section>
           <div className="mb-5 flex items-center justify-between gap-3">
-            <p className="text-sm text-muted">{result && total > 0 && fmt(t.catalog.shown, { shown: products.length, total })}</p>
+            <p className="text-sm text-muted-foreground">{result && total > 0 && fmt(t.catalog.shown, { shown: products.length, total })}</p>
             <Suspense>
               <SortSelect value={sort} />
             </Suspense>
@@ -123,9 +123,9 @@ export async function CatalogListing({ category, params }: Props) {
             </div>
           ) : (
             <div className="grid place-items-center rounded-[var(--radius-card)] border border-dashed border-border px-6 py-16 text-center">
-              <PackageSearch className="size-12 text-muted" />
+              <PackageSearch className="size-12 text-muted-foreground" />
               <p className="mt-4 text-lg font-bold">{t.catalog.emptyTitle}</p>
-              <p className="mt-1 max-w-sm text-sm text-muted">
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                 {t.catalog.emptyText}
               </p>
               {hasActiveFilters(params) && (

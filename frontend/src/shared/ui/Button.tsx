@@ -1,48 +1,34 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { cn } from "@/shared/lib/cn";
+import { Button as KitButton, buttonVariants } from "./kit/button";
 
-type Variant = "primary" | "dark" | "outline" | "ghost";
+/**
+ * Bakht Stroy buttons on top of shadcn/ui: one look for every button and button-link on the site.
+ */
+type Variant = "primary" | "dark" | "outline" | "ghost" | "secondary";
 type Size = "sm" | "md" | "lg";
 
-const variants: Record<Variant, string> = {
-  primary: "bg-brand text-on-brand hover:bg-brand-hover",
-  dark: "bg-ink text-white hover:bg-ink/85 dark:bg-white dark:text-ink dark:hover:bg-white/85",
-  outline: "border border-border bg-surface text-foreground hover:border-foreground/40",
-  ghost: "text-foreground hover:bg-surface-muted",
-};
-
-const sizes: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-sm",
-  md: "h-11 px-5 text-sm",
-  lg: "h-13 px-7 text-base",
-};
+const variants = { primary: "default", dark: "dark", outline: "outline", ghost: "ghost", secondary: "secondary" } as const;
+const sizes = { sm: "sm", md: "default", lg: "lg" } as const;
 
 type StyleProps = { variant?: Variant; size?: Size; className?: string; children: ReactNode };
 
 export function buttonClasses({ variant = "primary", size = "md", className }: Omit<StyleProps, "children">): string {
-  return cn(
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-    "disabled:pointer-events-none disabled:opacity-50",
-    variants[variant],
-    sizes[size],
-    className,
+  return buttonVariants({ variant: variants[variant], size: sizes[size], className });
+}
+
+export function Button({ variant = "primary", size = "md", className, children, ...props }: StyleProps & ComponentProps<"button">) {
+  return (
+    <KitButton variant={variants[variant]} size={sizes[size]} className={className} {...props}>
+      {children}
+    </KitButton>
   );
 }
 
-export function Button({ variant, size, className, children, ...props }: StyleProps & ComponentProps<"button">) {
+export function ButtonLink({ variant = "primary", size = "md", className, children, ...props }: StyleProps & ComponentProps<typeof Link>) {
   return (
-    <button className={buttonClasses({ variant, size, className })} {...props}>
-      {children}
-    </button>
-  );
-}
-
-export function ButtonLink({ variant, size, className, children, ...props }: StyleProps & ComponentProps<typeof Link>) {
-  return (
-    <Link className={buttonClasses({ variant, size, className })} {...props}>
-      {children}
-    </Link>
+    <KitButton asChild variant={variants[variant]} size={sizes[size]} className={className}>
+      <Link {...props}>{children}</Link>
+    </KitButton>
   );
 }

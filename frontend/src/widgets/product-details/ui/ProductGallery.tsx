@@ -21,7 +21,7 @@ export function ProductGallery({ images, name, badges }: { images: ProductImage[
         {current ? (
           <Image src={current.full} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
         ) : (
-          <span className="grid size-full place-items-center text-muted">{t.product.noPhoto}</span>
+          <span className="grid size-full place-items-center text-muted-foreground">{t.product.noPhoto}</span>
         )}
         {badges && <div className="absolute left-4 top-4 flex flex-col gap-2">{badges}</div>}
       </div>

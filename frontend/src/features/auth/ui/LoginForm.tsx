@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { Button, Field, FormAlert, PasswordInput, TextInput } from "@/shared/ui";
+import { Checkbox } from "@/shared/ui/kit/checkbox";
 import { type LoginValues, createAuthSchemas } from "../model/schemas";
 
 type Props = {
@@ -27,6 +28,7 @@ export function LoginForm({ next, notice }: Props) {
     register,
     handleSubmit,
     setError,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", remember: true } });
 
@@ -69,7 +71,7 @@ export function LoginForm({ next, notice }: Props) {
         label={t.auth.password}
         error={errors.password?.message}
         aside={
-          <Link href={`${routes.forgotPassword}${query}`} className="text-sm font-medium text-muted hover:text-foreground">
+          <Link href={`${routes.forgotPassword}${query}`} className="text-sm font-medium text-muted-foreground hover:text-foreground">
             {t.auth.forgotLink}
           </Link>
         }
@@ -87,7 +89,11 @@ export function LoginForm({ next, notice }: Props) {
       </Field>
 
       <label className="flex cursor-pointer items-center gap-3 text-sm">
-        <input type="checkbox" className="size-5 rounded accent-brand" {...register("remember")} />
+        <Controller
+          control={control}
+          name="remember"
+          render={({ field }) => <Checkbox checked={field.value} onCheckedChange={(checked) => field.onChange(checked === true)} />}
+        />
         {t.auth.remember}
       </label>
 
@@ -97,7 +103,7 @@ export function LoginForm({ next, notice }: Props) {
         {!isSubmitting && <ArrowRight className="size-5" />}
       </Button>
 
-      <p className="text-center text-sm text-muted">
+      <p className="text-center text-sm text-muted-foreground">
         {t.auth.noAccount}{" "}
         <Link href={`${routes.register}${query}`} className="font-semibold text-foreground underline-offset-4 hover:underline">
           {t.auth.createAccount}

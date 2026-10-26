@@ -61,7 +61,7 @@ export default async function AuthLayout({ children }: Readonly<{ children: Reac
           <Link href={routes.home} className="lg:hidden">
             <Logo />
           </Link>
-          <Link href={routes.home} className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground">
+          <Link href={routes.home} className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-4" />
             {t.common.toSite}
           </Link>

@@ -29,10 +29,10 @@ export async function CategoryCard({ category }: { category: Category }) {
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-3">
           <CategoryIcon slug={category.slug} size="sm" />
-          <ArrowUpRight className="size-5 text-muted transition group-hover:text-ink" />
+          <ArrowUpRight className="size-5 text-muted-foreground transition group-hover:text-ink" />
         </div>
         <h3 className="font-display text-base font-bold leading-snug sm:text-lg">{category.name}</h3>
-        {category.description && <p className="line-clamp-2 text-xs text-muted sm:text-sm">{category.description}</p>}
+        {category.description && <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{category.description}</p>}
         {typeof category.products_count === "number" && (
           <p className="mt-auto text-xs font-semibold text-foreground">{category.products_count} {plural(locale, category.products_count, t.common.products)}</p>
         )}

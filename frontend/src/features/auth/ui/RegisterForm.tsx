@@ -92,7 +92,7 @@ function EmailStep({ next, countdown, onSent }: { next: string; countdown: Count
         {!isSubmitting && <ArrowRight className="size-5" />}
       </Button>
 
-      <p className="text-center text-sm text-muted">
+      <p className="text-center text-sm text-muted-foreground">
         {t.auth.haveAccount}{" "}
         <Link href={`${routes.login}${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-semibold text-foreground underline-offset-4 hover:underline">
           {t.auth.signIn}
@@ -168,7 +168,7 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
         label={t.auth.code}
         error={errors.code?.message}
         aside={
-          <button type="button" onClick={resend} disabled={countdown.left > 0} className="text-sm font-medium text-muted hover:text-foreground disabled:cursor-default disabled:hover:text-muted">
+          <button type="button" onClick={resend} disabled={countdown.left > 0} className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:cursor-default disabled:hover:text-muted-foreground">
             {countdown.left > 0 ? fmt(t.auth.resendIn, { seconds: countdown.left }) : t.auth.resend}
           </button>
         }
@@ -244,7 +244,7 @@ function DetailsStep({ email, next, countdown, onChangeEmail }: { email: string;
         {t.auth.createSubmit}
       </Button>
 
-      <button type="button" onClick={onChangeEmail} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground">
+      <button type="button" onClick={onChangeEmail} className="mx-auto flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" />
         {t.auth.otherEmail}
       </button>

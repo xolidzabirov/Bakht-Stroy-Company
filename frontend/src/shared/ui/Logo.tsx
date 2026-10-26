@@ -46,7 +46,7 @@ export function Logo({ className, withText = true, inverted = false }: LogoProps
           >
             BAKHT STROY
           </span>
-          <span className={cn("block text-[10px] font-medium uppercase tracking-[0.18em]", inverted ? "text-white/60" : "text-muted")}>
+          <span className={cn("block text-[10px] font-medium uppercase tracking-[0.18em]", inverted ? "text-white/60" : "text-muted-foreground")}>
             company · Душанбе
           </span>
         </span>

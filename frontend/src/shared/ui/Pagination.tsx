@@ -41,7 +41,7 @@ export async function Pagination({ page, lastPage, href }: Props) {
       )}
       {pages(page, lastPage).map((value, index) =>
         value === "gap" ? (
-          <span key={`gap-${index}`} className="px-1 text-muted">
+          <span key={`gap-${index}`} className="px-1 text-muted-foreground">
             …
           </span>
         ) : (

@@ -4,9 +4,8 @@ import { type ComponentProps, type ReactNode, useId, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
-
-export const inputClasses =
-  "h-12 w-full rounded-xl border border-border bg-surface px-4 text-[15px] outline-none transition placeholder:text-muted/70 focus:border-brand focus:ring-2 focus:ring-brand/25 aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/20";
+import { Input } from "./kit/input";
+import { Label } from "./kit/label";
 
 type FieldProps = {
   label: string;
@@ -18,7 +17,7 @@ type FieldProps = {
 };
 
 /**
- * Label + control + error/hint. The error replaces the hint, so the form does not jump.
+ * Label + control + error/hint (shadcn/ui Label and Input). The error replaces the hint, so the form does not jump.
  */
 export function Field({ label, error, hint, aside, children }: FieldProps) {
   const id = useId();
@@ -27,18 +26,18 @@ export function Field({ label, error, hint, aside, children }: FieldProps) {
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-semibold">
+        <Label htmlFor={id} className="font-semibold">
           {label}
-        </label>
+        </Label>
         {aside}
       </div>
       {children(id, error || hint ? messageId : undefined)}
       {error ? (
-        <p id={messageId} role="alert" className="mt-1.5 text-sm text-danger">
+        <p id={messageId} role="alert" className="mt-1.5 text-sm text-destructive">
           {error}
         </p>
       ) : hint ? (
-        <div id={messageId} className="mt-1.5 text-xs text-muted">
+        <div id={messageId} className="mt-1.5 text-xs text-muted-foreground">
           {hint}
         </div>
       ) : null}
@@ -46,8 +45,8 @@ export function Field({ label, error, hint, aside, children }: FieldProps) {
   );
 }
 
-export function TextInput({ className, ...props }: ComponentProps<"input">) {
-  return <input className={cn(inputClasses, className)} {...props} />;
+export function TextInput(props: ComponentProps<"input">) {
+  return <Input {...props} />;
 }
 
 /** Password with a "show" eye button. */
@@ -57,12 +56,12 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<"inpu
 
   return (
     <div className="relative">
-      <input type={visible ? "text" : "password"} className={cn(inputClasses, "pr-12", className)} {...props} />
+      <Input type={visible ? "text" : "password"} className={cn("pr-12", className)} {...props} />
       <button
         type="button"
         onClick={() => setVisible((value) => !value)}
         aria-label={visible ? t.auth.hidePassword : t.auth.showPassword}
-        className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-muted transition hover:bg-surface-muted hover:text-foreground"
+        className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
       >
         {visible ? <EyeOff className="size-[18px]" /> : <Eye className="size-[18px]" />}
       </button>
@@ -77,7 +76,7 @@ export function FormAlert({ tone = "danger", children }: { tone?: "danger" | "su
       role={tone === "danger" ? "alert" : "status"}
       className={cn(
         "rounded-xl px-4 py-3 text-sm",
-        tone === "danger" && "bg-danger/10 text-danger",
+        tone === "danger" && "bg-destructive/10 text-destructive",
         tone === "success" && "bg-success/10 text-success",
         tone === "info" && "bg-brand-soft text-foreground",
       )}

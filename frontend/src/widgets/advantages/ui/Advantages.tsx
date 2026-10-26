@@ -19,7 +19,7 @@ export async function Advantages() {
               <Icon className="size-6" />
             </span>
             <h3 className="mt-4 font-display text-base font-bold">{title}</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{text}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
           </div>
           );
         })}

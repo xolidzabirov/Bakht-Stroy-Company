@@ -70,8 +70,6 @@ export const en: Dictionary = {
     language: "Language",
     theme: "Theme",
     themes: { light: "Light", dark: "Dark", system: "System" },
-    accent: "Accent color",
-    accents: { yellow: "Yellow", orange: "Orange", green: "Green", blue: "Blue" },
   },
   hero: {
     badge: "Building materials in Dushanbe",

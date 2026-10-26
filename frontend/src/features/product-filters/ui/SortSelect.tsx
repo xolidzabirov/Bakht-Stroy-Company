@@ -4,10 +4,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { sortOptions } from "../model/params";
 
 /**
- * Sorting dropdown: changes ?sort= right away and goes back to the first page.
+ * Sorting (shadcn/ui select): changes ?sort= right away and goes back to the first page.
  */
 export function SortSelect({ value }: { value: string }) {
   const { t } = useI18n();
@@ -28,22 +29,20 @@ export function SortSelect({ value }: { value: string }) {
   };
 
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="hidden text-muted sm:inline">{t.catalog.sort}</span>
-      <select
-        value={value}
-        onChange={(event) => change(event.target.value)}
-        className={cn(
-          "h-10 rounded-xl border border-border bg-surface px-3 font-semibold outline-none focus:border-brand",
-          pending && "opacity-60",
-        )}
-      >
-        {sortOptions.map((option) => (
-          <option key={option} value={option}>
-            {t.catalog.sorts[option]}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="flex items-center gap-2 text-sm">
+      <span className="hidden text-muted-foreground sm:inline">{t.catalog.sort}</span>
+      <Select value={value} onValueChange={change}>
+        <SelectTrigger className={cn("h-10 min-w-48 rounded-xl bg-surface font-semibold", pending && "opacity-60")} aria-label={t.catalog.sort}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end" className="rounded-xl">
+          {sortOptions.map((option) => (
+            <SelectItem key={option} value={option} className="rounded-lg">
+              {t.catalog.sorts[option]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
