@@ -6,7 +6,7 @@ import { ButtonLink, Container, LogoMark } from "@/shared/ui";
 import { BannerSlider } from "./BannerSlider";
 
 const facts = [
-  { value: "150+", label: "товаров на складе" },
+  { value: "9", label: "направлений — от асфальта до техники" },
   { value: "10 м³", label: "миксеры для бетона" },
   { value: "1 день", label: "доставка по Душанбе" },
   { value: "152K", label: "подписчиков в Instagram" },
@@ -34,7 +34,7 @@ export function Hero({ banners, phone }: { banners: Banner[]; phone?: string }) 
               Всё для стройки — <span className="text-brand">в одном месте</span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-              Цемент, кирпич, бетон с доставкой миксерами, окна и двери, сантехника, трубы, мебель и техника.
+              Асфальт и укладка дорог, цемент и бетон с доставкой миксерами, кирпич, арматура, окна и двери, сантехника, краски, бытовая техника и оборудование.
               Оптом и в розницу — со склада {site.shortName} на ул. Джабор Расулов.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { ChevronRight, LayoutGrid, X } from "lucide-react";
+import { ArrowRight, LayoutGrid, X } from "lucide-react";
+import { CategoryIcon } from "@/entities/category/ui/CategoryIcon";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { cn } from "@/shared/lib/cn";
 
 /**
- * "Каталог" button with a mega menu: root categories on the left, subcategories on the right.
+ * "Каталог" button with a mega menu: every direction with its round icon, description and product count.
  */
 export function CatalogMenu({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,9 +31,6 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
     };
   }, [open]);
 
-  const current = categories[active];
-  const children = current?.children ?? [];
-
   return (
     <div ref={ref} className="relative hidden md:block">
       <button
@@ -49,60 +44,34 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
       </button>
 
       {open && categories.length > 0 && (
-        <div className="absolute left-0 top-full mt-3 flex w-[min(860px,85vw)] overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl shadow-black/10">
-          <ul className="w-72 shrink-0 border-r border-border bg-surface-muted p-2">
-            {categories.map((category, index) => (
+        <div className="absolute left-0 top-full mt-3 w-[min(900px,88vw)] overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-2xl shadow-black/10">
+          <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+            {categories.map((category) => (
               <li key={category.id}>
                 <Link
                   href={routes.category(category.slug)}
-                  onMouseEnter={() => setActive(index)}
-                  onFocus={() => setActive(index)}
                   onClick={() => setOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
-                    index === active ? "bg-surface shadow-sm" : "hover:bg-surface/60",
-                  )}
+                  className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-brand-soft"
                 >
-                  {category.image && (
-                    <Image src={category.image} alt="" width={32} height={32} className="size-8 rounded-lg object-cover" />
-                  )}
-                  <span className="flex-1">{category.name}</span>
-                  <ChevronRight className="size-4 text-muted" />
+                  <CategoryIcon slug={category.slug} size="md" />
+                  <span className="min-w-0">
+                    <span className="block font-semibold leading-snug">{category.name}</span>
+                    {typeof category.products_count === "number" && (
+                      <span className="text-xs text-muted">{category.products_count} товаров</span>
+                    )}
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
-
-          <div className="flex-1 p-6">
-            {current && (
-              <>
-                <Link
-                  href={routes.category(current.slug)}
-                  onClick={() => setOpen(false)}
-                  className="font-display text-xl font-extrabold hover:underline"
-                >
-                  {current.name}
-                </Link>
-                {current.description && <p className="mt-1 text-sm text-muted">{current.description}</p>}
-                <ul className="mt-5 grid grid-cols-2 gap-2">
-                  {children.map((child) => (
-                    <li key={child.id}>
-                      <Link
-                        href={routes.category(child.slug)}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm font-medium transition hover:border-brand hover:bg-brand-soft"
-                      >
-                        {child.name}
-                        {typeof child.products_count === "number" && (
-                          <span className="text-xs text-muted">{child.products_count}</span>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
+          <Link
+            href={routes.catalog}
+            onClick={() => setOpen(false)}
+            className="mt-3 flex items-center justify-between rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white"
+          >
+            Весь каталог
+            <ArrowRight className="size-4 text-brand" />
+          </Link>
         </div>
       )}
     </div>

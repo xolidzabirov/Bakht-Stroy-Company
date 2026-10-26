@@ -67,7 +67,7 @@ class NewsSeeder extends Seeder
     {
         return [
             [
-                'type' => NewsType::News, 'days_ago' => 2, 'icon' => 'blocks', 'palette' => ['#FFB800', '#B37F00'], 'products' => 'Плита перекрытия%',
+                'type' => NewsType::News, 'days_ago' => 2, 'icon' => 'blocks', 'palette' => ['#FFB800', '#B37F00'], 'products' => 'Арматура%',
                 'title' => 'Bakht Stroy Company на международной выставке Taj Build',
                 'excerpt' => 'Наша команда представила материалы и технику на крупнейшей строительной выставке Таджикистана.',
                 'gallery' => ['Стенд Bakht Stroy на Taj Build', 'Встречи с партнёрами', 'Команда компании'],

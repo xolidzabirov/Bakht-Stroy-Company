@@ -3,36 +3,34 @@ import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { CategoryIcon } from "./CategoryIcon";
 
 export function CategoryCard({ category }: { category: Category }) {
-  const children = Array.isArray(category.children) ? category.children : [];
-
   return (
     <Link
       href={routes.category(category.slug)}
-      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/5"
+      className="group flex overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:-translate-y-0.5 hover:border-brand hover:shadow-xl hover:shadow-black/5"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-surface-muted">
+      <div className="relative w-28 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
         {category.image && (
           <Image
             src={category.image}
             alt={category.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            sizes="144px"
             className="object-cover transition duration-500 group-hover:scale-105"
           />
         )}
-        <span className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-white/90 text-ink opacity-0 transition group-hover:opacity-100">
-          <ArrowUpRight className="size-4" />
-        </span>
       </div>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <CategoryIcon slug={category.slug} size="sm" />
+          <ArrowUpRight className="size-5 text-muted transition group-hover:text-ink" />
+        </div>
         <h3 className="font-display text-base font-bold leading-snug sm:text-lg">{category.name}</h3>
+        {category.description && <p className="line-clamp-2 text-xs text-muted sm:text-sm">{category.description}</p>}
         {typeof category.products_count === "number" && (
-          <p className="mt-1 text-sm text-muted">{category.products_count} товаров</p>
-        )}
-        {children.length > 0 && (
-          <p className="mt-3 line-clamp-2 text-xs text-muted">{children.map((child) => child.name).join(" · ")}</p>
+          <p className="mt-auto text-xs font-semibold text-foreground">{category.products_count} товаров</p>
         )}
       </div>
     </Link>

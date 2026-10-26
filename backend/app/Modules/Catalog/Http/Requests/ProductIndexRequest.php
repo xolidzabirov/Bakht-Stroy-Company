@@ -37,7 +37,7 @@ class ProductIndexRequest extends FormRequest
             /**
              * Slug категории. У корневой категории показываются и товары подкатегорий.
              *
-             * @example tsement-i-sukhie-smesi
+             * @example tsement-i-beton
              */
             'category' => ['nullable', 'string', 'max:140'],
             /**

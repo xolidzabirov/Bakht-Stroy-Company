@@ -9,7 +9,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
   return (
     <Container className="mt-16">
       <SectionHeading title="Каталог" subtitle="Все направления Bakht Stroy" href={routes.catalog} linkText="Весь каталог" />
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
         {categories.map((category) => (
           <CategoryCard key={category.id} category={category} />
         ))}

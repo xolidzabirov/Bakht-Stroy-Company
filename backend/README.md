@@ -31,7 +31,7 @@ powershell -File ..\scripts\db-stop.ps1    # остановить БД
 CREATE DATABASE bakht_stroy OWNER bakht ENCODING 'UTF8' LC_CTYPE 'ru-RU' LC_COLLATE 'ru-RU' TEMPLATE template0;
 ```
 
-Демо-данные: `php artisan migrate:fresh --seed` — админ + каталог (25 категорий, 39 товаров).
+Демо-данные: `php artisan migrate:fresh --seed` — админ, клиенты, каталог (9 категорий × 10 товаров), новости, заказы.
 
 ## Запуск
 
@@ -168,7 +168,7 @@ MAIL_FROM_NAME="Bakht Stroy"
 | Админ | `admin@gmail.com` / пароль из `ADMIN_PASSWORD` |
 | Менеджер | `manager@example.com` / `Manager12345` |
 | Покупатели | 10: `client1@example.com` … `client10@example.com`, пароль `Client12345`, с адресами и заказами |
-| Каталог | 5 направлений Bakht Stroy (стройматериалы; бетон, асфальт и ЖБИ; окна и двери; сантехника и трубы; мебель и техника) × 30 = **150 товаров** |
+| Каталог | 9 направлений Bakht Stroy (как в Instagram: асфальт; цемент и бетон; кирпич и блоки; окна и двери; сантехника; бытовая техника; лакокраска; арматура; оборудование) × 10 = **90 товаров** |
 | Новости | 6 (новости, акции, статьи) с обложками, галереей и товарами |
 | Баннеры | 3 на главную |
 

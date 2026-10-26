@@ -6,6 +6,7 @@ import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
 import { Advantages } from "@/widgets/advantages/ui/Advantages";
 import { CategoryGrid } from "@/widgets/category-grid/ui/CategoryGrid";
+import { CategoryStrip } from "@/widgets/category-grid/ui/CategoryStrip";
 import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 import { Hero } from "@/widgets/hero/ui/Hero";
 import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
@@ -29,6 +30,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero banners={banners} phone={settings.phones[0]} />
+      <CategoryStrip categories={categories} />
       <Advantages />
       <CategoryGrid categories={categories} />
       <ProductGrid
