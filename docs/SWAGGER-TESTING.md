@@ -10,7 +10,7 @@ Swagger: **http://localhost:8000/api/documentation**
 
 | Роль | Email | Пароль |
 |---|---|---|
-| Администратор | `admin@gmail.com` | `Admin12345` (из `ADMIN_PASSWORD` в `.env`) |
+| Администратор | `admin@gmail.com` | значение `ADMIN_PASSWORD` в `backend/.env` (в репозиторий не попадает) |
 | Менеджер | `manager@example.com` | `Manager12345` |
 | Покупатели (10) | `client1@example.com` … `client10@example.com` | `Client12345` |
 
