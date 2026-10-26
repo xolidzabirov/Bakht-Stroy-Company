@@ -52,6 +52,14 @@ return [
 
     'channels' => [
 
+        'orders' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/orders.log'),
+            'level' => 'info',
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
         'sms' => [
             'driver' => 'single',
             'path' => storage_path('logs/sms.log'),

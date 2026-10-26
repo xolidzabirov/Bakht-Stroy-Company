@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Sent to an email address that is not registered yet (on-demand notification).
  */
-final class RegistrationCodeNotification extends Notification
+final class RegistrationCodeNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         public readonly string $code,
         public readonly int $ttlMinutes,

@@ -15,5 +15,6 @@
 | [ROADMAP.md](ROADMAP.md) | Этапы проекта и чек-лист прогресса |
 | [CODING-PLAN.md](CODING-PLAN.md) | Пошаговый план написания кода: что, в каком порядке, какие файлы |
 | [CODE-STYLE.md](CODE-STYLE.md) | Правила кода, именования, git и коммитов |
+| [SWAGGER-TESTING.md](SWAGGER-TESTING.md) | Как проверить backend в Swagger: аккаунты и 20 сценариев |
 
 Порядок работы: **backend целиком → Swagger (тестирование API) → frontend → деплой → мобилка.**

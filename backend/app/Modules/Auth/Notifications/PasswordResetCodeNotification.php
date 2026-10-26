@@ -7,11 +7,15 @@ namespace App\Modules\Auth\Notifications;
 use App\Modules\User\Models\User;
 use App\Shared\Notifications\Channels\SmsChannel;
 use App\Shared\Notifications\SmsMessage;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-final class PasswordResetCodeNotification extends Notification implements SmsMessage
+final class PasswordResetCodeNotification extends Notification implements ShouldQueue, SmsMessage
 {
+    use Queueable;
+
     public function __construct(
         public readonly string $code,
         public readonly int $ttlMinutes,

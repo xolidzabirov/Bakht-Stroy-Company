@@ -6,14 +6,18 @@ namespace App\Modules\Order\Notifications;
 
 use App\Modules\Order\Enums\OrderStatus;
 use App\Modules\Order\Models\Order;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * To the client: the order moved to a new status.
  */
-final class OrderStatusChangedNotification extends Notification
+final class OrderStatusChangedNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         public readonly Order $order,
         public readonly OrderStatus $status,

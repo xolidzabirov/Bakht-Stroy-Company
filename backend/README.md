@@ -172,3 +172,18 @@ MAIL_FROM_NAME="Bakht Stroy"
 
 Картинки сгенерированы автоматически (шрифт Inter, лицензия OFL — `database/seeders/assets/fonts`);
 настоящие фото загружаются через админку.
+
+## Production (этап 6)
+
+- **Очереди**: письма и уведомления ставятся в очередь после коммита транзакции.
+  Локально `QUEUE_CONNECTION=sync` (воркер не нужен), на сервере `database` или `redis` + `php artisan queue:work`.
+- **Redis**: `CACHE_STORE=redis`, `QUEUE_CONNECTION=redis`, `REDIS_CLIENT=predis` — PHP-расширение не нужно.
+- **Кэш**: дерево категорий (`CATALOG_CACHE_TTL`) и настройки магазина, сбрасываются автоматически при изменениях.
+- **Безопасность**: CORS только для `CORS_ALLOWED_ORIGINS`, заголовки `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`; общий лимит `API_RATE_LIMIT` запросов в минуту; телефоны проверяются по базе номеров (libphonenumber),
+  пароли — минимум 8 символов, буквы и цифры, без самых популярных паролей и без email.
+- **Логи**: у каждого ответа `X-Request-Id`, он же в каждой строке лога; заказы — в `storage/logs/orders-<дата>.log`.
+- **Мониторинг**: `GET /api/v1/health` — база, кэш, хранилище, очередь (200 / 503).
+- **Планировщик** (cron каждую минуту `php artisan schedule:run`): удаление просроченных кодов, токенов и упавших задач.
+
+Подробная инструкция для проверки в Swagger — [docs/SWAGGER-TESTING.md](../docs/SWAGGER-TESTING.md).

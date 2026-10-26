@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Account\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Sent to the new email address (on-demand notification).
  */
-final class EmailChangeCodeNotification extends Notification
+final class EmailChangeCodeNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(
         public readonly string $code,
         public readonly int $ttlMinutes,

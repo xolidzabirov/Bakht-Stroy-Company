@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Order\Notifications;
 
 use App\Modules\Order\Models\Order;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
 /**
  * To admins: a new order to process (shown in the admin panel).
  */
-final class NewOrderForStaffNotification extends Notification
+final class NewOrderForStaffNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public readonly Order $order) {}
 
     /**

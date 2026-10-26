@@ -8,12 +8,15 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Category tree (roots → children) with product counts, in 3 queries.
  */
 final class CategoryTreeQuery
 {
+    private const CACHE_KEY = 'catalog:shop-tree';
+
     /**
      * Active categories and the number of products a guest can see.
      *
@@ -21,11 +24,22 @@ final class CategoryTreeQuery
      */
     public function shop(): Collection
     {
-        $roots = Category::query()->active()->roots()->ordered()
-            ->with(['media', 'children' => fn ($q) => $q->active()->with('media')])
-            ->get();
+        /** @var Collection<int, Category> */
+        return Cache::remember(self::CACHE_KEY, (int) config('shop.catalog_cache_ttl'), function (): Collection {
+            $roots = Category::query()->active()->roots()->ordered()
+                ->with(['media', 'children' => fn ($q) => $q->active()->with('media')])
+                ->get();
 
-        return $this->withCounts($roots, Product::query()->visible());
+            return $this->withCounts($roots, Product::query()->visible());
+        });
+    }
+
+    /**
+     * Called whenever categories, products or category images change.
+     */
+    public static function forget(): void
+    {
+        Cache::forget(self::CACHE_KEY);
     }
 
     /**

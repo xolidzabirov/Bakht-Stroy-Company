@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Content\Notifications;
 
 use App\Modules\Content\Models\ContactMessage;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
 /**
  * To admins: someone wrote through the contact form.
  */
-final class NewContactMessageNotification extends Notification
+final class NewContactMessageNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public readonly ContactMessage $message) {}
 
     /**
