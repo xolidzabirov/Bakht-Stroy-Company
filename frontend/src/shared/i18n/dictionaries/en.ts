@@ -522,6 +522,7 @@ export const en: Dictionary = {
     favoritesTitle: "Favorites",
     favoritesText: "Save materials with the heart on a product card — they'll be waiting for you here.",
   },
+  serverError: { title: "This page could not load", text: "The store server is not responding right now. It usually takes a minute — please try again.", retry: "Try again" },
   notFound: {
     title: "Page not found",
     text: "The product may have been discontinued or the link is outdated.",
