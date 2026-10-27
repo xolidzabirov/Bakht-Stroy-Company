@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireUser } from "@/shared/api/requireUser";
+import { requireStaff } from "@/shared/api/requireUser";
 import { routes } from "@/shared/config/site";
 import { getI18n } from "@/shared/i18n/server";
 import { StaffChats } from "@/widgets/chat/ui/StaffChats";
@@ -16,7 +16,7 @@ export default async function AdminChatPage({ params }: { params: Promise<{ id: 
 
   if (!Number.isInteger(conversationId) || conversationId < 1) notFound();
 
-  const user = await requireUser(routes.adminChat(conversationId));
+  const user = await requireStaff(routes.adminChat(conversationId));
 
   return <StaffChats me={{ id: user.id, name: user.name.split(" ")[0], isAdmin: Boolean(user.roles?.includes("admin")) }} conversationId={conversationId} />;
 }

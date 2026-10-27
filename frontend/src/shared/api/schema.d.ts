@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/auth/register/send-code": {
+    "/auth/register/phone": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,12 +14,36 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Регистрация, шаг 1 — код на email
-         * @description Проверяет, что email свободен и существует (у домена есть почтовый сервер), и отправляет
-         *     на него 6-значный код. Повторно — не чаще раза в минуту. Локально письма пишутся
-         *     в storage/logs/laravel-<дата>.log.
+         * Регистрация — код в Telegram
+         * @description Шаги регистрации: 1) имя, фамилия и «кто вы» — только на сайте; 2) этот запрос — номер +992,
+         *     на его Telegram приходит 6-значный код; 3) POST /auth/register/phone/verify — код → пропуск;
+         *     4) POST /auth/register — email и пароль, аккаунт создан.
+         *
+         *     Номер должен быть таджикским, настоящим, свободным и с Telegram. Повторно — не чаще раза в минуту.
+         *     Локально (TELEGRAM_CODES_DRIVER=log) код пишется в storage/logs/laravel-<дата>.log.
          */
-        post: operations["auth.register.send-code"];
+        post: operations["auth.register.phone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register/phone/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Регистрация — проверить код
+         * @description Верный код из Telegram подтверждает номер и даёт пропуск (registration_token) на последний шаг.
+         *     Пропуск действует 30 минут. После 5 неверных попыток код сгорает — запросите новый.
+         */
+        post: operations["auth.register.phone.verify"];
         delete?: never;
         options?: never;
         head?: never;
@@ -36,9 +60,9 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Регистрация, шаг 2 — создать аккаунт
-         * @description Создаёт аккаунт покупателя (роль client) с кодом из письма, email считается подтверждённым.
-         *     Сразу возвращает токен.
+         * Регистрация — создать аккаунт
+         * @description Последний шаг: пропуск из шага с кодом, имя, фамилия, «кто вы», email и пароль.
+         *     Создаёт аккаунт покупателя (роль client) с подтверждённым телефоном и сразу возвращает токен.
          */
         post: operations["auth.register"];
         delete?: never;
@@ -774,6 +798,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Мой диалог
+         * @description Создаётся при первом обращении. manager — кто отвечает (или «Bakht Stroy», пока никто не ответил),
+         *     его статус «в сети» и непрочитанные ответы магазина.
+         */
+        get: operations["chat.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Сообщения
+         * @description Новые в конце. Чтобы подгрузить более старые, передайте before_id — id самого раннего из загруженных.
+         *     В meta.has_more — есть ли ещё.
+         */
+        get: operations["chat.messages.index"];
+        put?: never;
+        /**
+         * Написать
+         * @description Текст, до 5 файлов (multipart/form-data, поле attachments[]), ответ на сообщение, карточка товара или свой заказ.
+         */
+        post: operations["chat.messages.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/messages/{message}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Удалить своё сообщение
+         * @description У обеих сторон останется «Сообщение удалено».
+         */
+        delete: operations["chat.messages.destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * Изменить своё сообщение
+         * @description В течение 48 часов после отправки.
+         */
+        patch: operations["chat.messages.update"];
+        trace?: never;
+    };
+    "/chat/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Прочитать ответы
+         * @description Отмечает ответы магазина прочитанными — у менеджера появятся ✓✓.
+         */
+        post: operations["chat.read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings/public": {
         parameters: {
             query?: never;
@@ -1478,6 +1592,147 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Диалоги
+         * @description Сначала с непрочитанными, потом по времени последнего сообщения. filter: all, unread, mine (закреплённые за мной).
+         *     В meta.unread_conversations — сколько диалогов ждут ответа.
+         */
+        get: operations["admin.chats.index"];
+        put?: never;
+        /**
+         * Начать диалог с покупателем
+         * @description Например, из карточки пользователя. Если диалог уже есть — вернёт его.
+         */
+        post: operations["admin.chats.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chats/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Менеджеры для закрепления
+         * @description Активные менеджеры и администраторы.
+         */
+        get: operations["admin.chats.staff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chats/{conversation}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Диалог и карточка покупателя
+         * @description Покупатель, ответственный менеджер, сколько заказов и на какую сумму, последние 5 заказов.
+         */
+        get: operations["admin.chats.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chats/{conversation}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Сообщения диалога */
+        get: operations["admin.chats.messages.index"];
+        put?: never;
+        /**
+         * Ответить покупателю
+         * @description Первый ответ закрепляет диалог за отвечающим менеджером.
+         */
+        post: operations["admin.chats.messages.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chats/{conversation}/messages/{message}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Удалить своё сообщение */
+        delete: operations["admin.chats.messages.destroy"];
+        options?: never;
+        head?: never;
+        /** Изменить своё сообщение */
+        patch: operations["admin.chats.messages.update"];
+        trace?: never;
+    };
+    "/admin/chats/{conversation}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Прочитать сообщения покупателя */
+        post: operations["admin.chats.read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/chats/{conversation}/manager": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Закрепить диалог за менеджером (только admin)
+         * @description manager_id — менеджер или администратор; null — снять закрепление.
+         */
+        patch: operations["admin.chats.assign"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1491,6 +1746,23 @@ export interface paths {
          *     (для мониторинга сервера).
          */
         get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/broadcasting/auth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Authenticate the request for channel access */
+        get: operations["broadcast.authenticate"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1887,6 +2159,63 @@ export interface components {
             /** @example newSecret123 */
             password_confirmation: string;
         };
+        /** ChatMessageResource */
+        ChatMessageResource: {
+            id: number;
+            conversation_id: number;
+            /** @description true — написал магазин (менеджер или админ), false — покупатель. */
+            from_staff: boolean;
+            sender: {
+                id: number;
+                name: string;
+            } | null;
+            /** @example Здравствуйте! Есть цемент М500 в наличии? */
+            body: string | null;
+            attachments: {
+                id: number;
+                name: string;
+                size: number;
+                mime: string;
+                is_image: boolean;
+                url: string;
+                thumb: string | null;
+            }[];
+            /** @description Цитата: на какое сообщение это ответ. */
+            reply_to: {
+                id: number;
+                from_staff: boolean;
+                is_deleted: boolean;
+                body: string | null;
+                has_attachments: string;
+            } | null;
+            /** @description Карточка товара внутри сообщения. */
+            product: {
+                id: number;
+                name: string;
+                slug: string;
+                /** @description В дирамах. */
+                price: number;
+                /** @enum {string} */
+                unit: "шт" | "мешок" | "кг" | "т" | "м" | "м²" | "м³" | "упак." | "рулон" | "лист";
+                image: string | null;
+            } | null;
+            /** @description Ссылка на заказ. */
+            order: {
+                number: string;
+                status: {
+                    value: string;
+                    /** @enum {string} */
+                    label: "Новый" | "Подтверждён" | "Собирается" | "В пути" | "Выполнен" | "Отменён";
+                };
+                /** @description В дирамах. */
+                total: number;
+            } | null;
+            is_edited: boolean;
+            is_deleted: boolean;
+            /** @description Когда прочитано другой стороной; null — ещё не прочитано (одна галочка). */
+            read_at: string | null;
+            created_at: string;
+        };
         /** ContactMessageResource */
         ContactMessageResource: {
             id: number;
@@ -1910,6 +2239,38 @@ export interface components {
             email?: string | null;
             /** @example Сколько будет стоить доставка 5 тонн щебня в Чирчик? */
             message: string;
+        };
+        /** ConversationResource */
+        ConversationResource: {
+            id: number;
+            client: {
+                id: number;
+                name: string;
+                /** @example +992931234567 */
+                phone: string | null;
+                email: string;
+                is_online: boolean;
+                last_seen_at: string | null;
+            };
+            /** @description Ответственный менеджер; null — ещё никто не отвечал. */
+            manager: {
+                id: number;
+                name: string;
+            } | null;
+            last_message: {
+                id: number;
+                from_staff: boolean;
+                is_deleted: boolean;
+                body: string | null;
+                has_attachments: string;
+                has_product: boolean;
+                has_order: boolean;
+                read_at: string | null;
+                created_at: string;
+            } | null;
+            /** @description Непрочитанные сообщения покупателя. */
+            unread_count: number;
+            last_message_at: string | null;
         };
         /**
          * DeliveryType
@@ -2313,35 +2674,25 @@ export interface components {
         ProductUnit: "piece" | "bag" | "kg" | "ton" | "m" | "m2" | "m3" | "pack" | "roll" | "sheet";
         /** RegisterRequest */
         RegisterRequest: {
-            /**
-             * @description Имя покупателя.
-             * @example Халид
-             */
-            name: string;
+            /** @description Пропуск из шага с кодом (POST /auth/register/phone/verify), действует 30 минут. */
+            registration_token: string;
+            /** @example Фирдавс */
+            first_name: string;
+            /** @example Рахимов */
+            last_name: string;
             /**
              * Format: email
-             * @description Email — используется для входа. Тот же, на который отправлен код.
+             * @description Email для входа и чеков. Без кода — номер уже подтверждён в Telegram.
              * @example client@gmail.com
              */
             email: string;
-            /**
-             * @description 6-значный код из письма (POST /auth/register/send-code).
-             * @example 123456
-             */
-            code: string;
             /**
              * @description Не короче 8 символов, буквы и цифры; символы (!, #, ?) — ещё надёжнее.
              * @example Stroy2026!
              */
             password: string;
-            /** @example secret123 */
+            /** @example Stroy2026! */
             password_confirmation: string;
-            /**
-             * @description Телефон для связи по заказам (необязательно), с кодом страны: +992 93 123 45 67.
-             *     Один номер можно привязать только к одному аккаунту.
-             * @example +992931234567
-             */
-            phone?: string | null;
             /**
              * @description Название устройства для списка сессий.
              * @example Chrome Windows
@@ -2560,14 +2911,29 @@ export interface components {
              */
             email: string;
         };
-        /** SendRegistrationCodeRequest */
-        SendRegistrationCodeRequest: {
+        /**
+         * SendMessageRequest
+         * @description New chat message: text and / or up to 5 files, optionally a quote, a product card or an order link.
+         *     Sent as multipart/form-data when there are files.
+         */
+        SendMessageRequest: {
+            /** @example Здравствуйте! Есть цемент М500 в наличии? */
+            body?: string | null;
+            attachments?: string[] | null;
+            /** @description Ответ на сообщение (цитата). */
+            reply_to_id?: number | null;
+            /** @description Карточка товара. */
+            product_id?: number | null;
+            /** @description Номер своего заказа. @example BS-000025 */
+            order_number?: string | null;
+        };
+        /** SendPhoneCodeRequest */
+        SendPhoneCodeRequest: {
             /**
-             * Format: email
-             * @description Email, на который придёт код. Должен быть свободен и существовать.
-             * @example client@gmail.com
+             * @description Таджикский номер с Telegram: +992 и 9 цифр (или только 9 цифр). Код придёт в Telegram этого номера.
+             * @example +992931234567
              */
-            email: string;
+            phone: string;
         };
         /** SessionResource */
         SessionResource: {
@@ -2739,6 +3105,19 @@ export interface components {
             email_verified_at: string | null;
             created_at: string;
         };
+        /** VerifyPhoneCodeRequest */
+        VerifyPhoneCodeRequest: {
+            /**
+             * @description Тот же номер, на который отправлен код.
+             * @example +992931234567
+             */
+            phone: string;
+            /**
+             * @description 6-значный код из Telegram.
+             * @example 123456
+             */
+            code: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2748,7 +3127,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    "auth.register.send-code": {
+    "auth.register.phone": {
         parameters: {
             query?: never;
             header?: never;
@@ -2757,7 +3136,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SendRegistrationCodeRequest"];
+                "application/json": components["schemas"]["SendPhoneCodeRequest"];
             };
         };
         responses: {
@@ -2769,23 +3148,41 @@ export interface operations {
                     "application/json": {
                         data: {
                             /**
-                             * @example Код отправлен на email.
-                             * @constant
+                             * @example Код отправлен в Telegram.
+                             * @enum {string}
                              */
-                            message: "Код отправлен на email.";
+                            message: "Код отправлен в Telegram." | "Откройте бота Bakht Stroy в Telegram и поделитесь номером — бот пришлёт код.";
+                            /** @example +992931234567 */
+                            phone: string;
+                            /** @description true — код уже в Telegram; false — откройте bot_link и поделитесь номером, бот пришлёт код. */
+                            delivered: boolean;
+                            /**
+                             * @description Ссылка на @BakhtStroyBot (когда номер ещё не связан с ботом).
+                             * @example https://t.me/BakhtStroyBot?start=Ab12Cd34
+                             */
+                            bot_link: string | null;
                             /** @example 15 */
                             expires_in_minutes: number;
                         };
                     };
                 };
             };
-            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            /**
+             * @description На этот номер не зарегистрирован Telegram. Укажите номер, на котором есть Telegram, — код придёт туда. (PHONE_NOT_ON_TELEGRAM)
+             *
+             *     Переданные данные некорректны. (VALIDATION_ERROR)
+             */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
+                        /** @example На этот номер не зарегистрирован Telegram. Укажите номер, на котором есть Telegram, — код придёт туда. */
+                        message: string;
+                        /** @example PHONE_NOT_ON_TELEGRAM */
+                        code: string;
+                    } | {
                         /** @example Переданные данные некорректны. */
                         message: string;
                         /** @example VALIDATION_ERROR */
@@ -2808,6 +3205,79 @@ export interface operations {
                         message: string;
                         /** @enum {string} */
                         code: "CODE_RECENTLY_SENT" | "TOO_MANY_REQUESTS";
+                    };
+                };
+            };
+        };
+    };
+    "auth.register.phone.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyPhoneCodeRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            registration_token: string;
+                            /**
+                             * @example 30
+                             * @constant
+                             */
+                            expires_in_minutes: 30;
+                        };
+                    };
+                };
+            };
+            /**
+             * @description Код подтверждения неверный или устарел. Запросите новый код. (INVALID_VERIFICATION_CODE)
+             *
+             *     Переданные данные некорректны. (VALIDATION_ERROR)
+             */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Код подтверждения неверный или устарел. Запросите новый код. */
+                        message: string;
+                        /** @example INVALID_VERIFICATION_CODE */
+                        code: string;
+                    } | {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
                     };
                 };
             };
@@ -2838,7 +3308,7 @@ export interface operations {
                 };
             };
             /**
-             * @description Код подтверждения неверный или устарел. Запросите новый код. (INVALID_VERIFICATION_CODE)
+             * @description Подтверждение номера устарело. Подтвердите номер ещё раз — это займёт минуту. (REGISTRATION_EXPIRED)
              *
              *     Переданные данные некорректны. (VALIDATION_ERROR)
              */
@@ -2848,9 +3318,9 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example Код подтверждения неверный или устарел. Запросите новый код. */
+                        /** @example Подтверждение номера устарело. Подтвердите номер ещё раз — это займёт минуту. */
                         message: string;
-                        /** @example INVALID_VERIFICATION_CODE */
+                        /** @example REGISTRATION_EXPIRED */
                         code: string;
                     } | {
                         /** @example Переданные данные некорректны. */
@@ -3309,7 +3779,7 @@ export interface operations {
             query?: {
                 /**
                  * @description Slug категории. У корневой категории показываются и товары подкатегорий.
-                 * @example tsement-i-sukhie-smesi
+                 * @example tsement-i-beton
                  */
                 category?: string | null;
                 /**
@@ -5622,6 +6092,414 @@ export interface operations {
             };
         };
     };
+    "chat.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                            manager: {
+                                /** @example Фирдавс */
+                                name: string;
+                                is_assigned: boolean;
+                                is_online: boolean;
+                                last_seen_at: string | null;
+                            };
+                            unread_count: string;
+                            /** @description Можно отправить до 5 файлов по 10 МБ этих типов. */
+                            limits: {
+                                /** @constant */
+                                max_files: 5;
+                                /** @constant */
+                                max_file_size_kb: 10240;
+                                file_types: [
+                                    "jpg",
+                                    "jpeg",
+                                    "png",
+                                    "webp",
+                                    "gif",
+                                    "pdf",
+                                    "doc",
+                                    "docx",
+                                    "xls",
+                                    "xlsx",
+                                    "txt"
+                                ];
+                                /** @constant */
+                                edit_window_hours: 48;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "chat.messages.index": {
+        parameters: {
+            query?: {
+                /** @description Сообщения старше этого id */
+                before_id?: number;
+                /**
+                 * @description Сколько, до 100
+                 * @example 30
+                 */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"][];
+                        meta: {
+                            has_more: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "chat.messages.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description `ChatMessageResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "chat.messages.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "chat.messages.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "chat.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            marked: 0;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
     "settings.public": {
         parameters: {
             query?: never;
@@ -6763,7 +7641,7 @@ export interface operations {
             query?: {
                 /**
                  * @description Slug категории. У корневой категории показываются и товары подкатегорий.
-                 * @example tsement-i-sukhie-smesi
+                 * @example tsement-i-beton
                  */
                 category?: string | null;
                 /**
@@ -9381,6 +10259,793 @@ export interface operations {
             };
         };
     };
+    "admin.chats.index": {
+        parameters: {
+            query?: {
+                /** @description Имя, телефон или email покупателя */
+                search?: string;
+                /**
+                 * @description all | unread | mine
+                 * @example all
+                 */
+                filter?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ConversationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConversationResource"][];
+                        meta: {
+                            unread_conversations: number;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    user_id: number;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: number;
+                            name: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            client_since: string;
+                            orders_count: number;
+                            /** @description Сумма выполненных заказов в дирамах. */
+                            orders_spent: number;
+                            recent_orders: {
+                                number: string;
+                                status: {
+                                    value: string;
+                                    /** @enum {string} */
+                                    label: "Новый" | "Подтверждён" | "Собирается" | "В пути" | "Выполнен" | "Отменён";
+                                };
+                                total: number;
+                                created_at: string;
+                            }[];
+                        } & {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.messages.index": {
+        parameters: {
+            query?: {
+                /** @description Сообщения старше этого id */
+                before_id?: number;
+                /**
+                 * @description Сколько, до 100
+                 * @example 30
+                 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"][];
+                        meta: {
+                            has_more: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.messages.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description `ChatMessageResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.messages.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+                message: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.messages.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+                message: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description `ChatMessageResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ChatMessageResource"];
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            marked: 0;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.chats.assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The conversation ID */
+                conversation: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    manager_id: number | null;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            manager_id: string;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -9396,6 +11061,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": string;
+                };
+            };
+        };
+    };
+    "broadcast.authenticate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
                 };
             };
         };

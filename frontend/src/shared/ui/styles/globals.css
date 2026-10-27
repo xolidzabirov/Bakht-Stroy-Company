@@ -12,6 +12,8 @@
   --brand: #ffb800;
   --brand-hover: #f0ab00;
   --brand-soft: #fff4d6;
+  /* Chart marks: the brand amber stepped down until it passes the dataviz checks on white. */
+  --chart-1: #c28a00;
   /* text on the accent color (buttons, badges) */
   --on-brand: #0a0a0a;
   --ink: #0a0a0a;
@@ -31,6 +33,7 @@
 
 :root[data-theme="dark"] {
   --brand-soft: #2a2410;
+  --chart-1: #a87700;
   --background: #0e0e10;
   --surface: #17171a;
   --surface-muted: #1f1f23;
@@ -47,6 +50,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     --brand-soft: #2a2410;
+    --chart-1: #a87700;
     --background: #0e0e10;
     --surface: #17171a;
     --surface-muted: #1f1f23;
@@ -61,6 +65,7 @@
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-soft: var(--brand-soft);
+  --color-chart-1: var(--chart-1);
   --color-on-brand: var(--on-brand);
   --color-ink: var(--ink);
   --color-background: var(--background);

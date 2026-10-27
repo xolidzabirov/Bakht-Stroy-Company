@@ -64,6 +64,16 @@ final class OrderController extends Controller
     }
 
     /**
+     * Заказ по номеру
+     *
+     * То же, что «Заказ», но по номеру, который видят покупатель и менеджер (BS-000025).
+     */
+    public function showByNumber(string $number): AdminOrderResource
+    {
+        return $this->show(Order::query()->where('number', mb_strtoupper(trim($number)))->firstOrFail());
+    }
+
+    /**
      * Сменить статус
      *
      * Только по порядку: new → confirmed → assembling → delivering → completed; отмена — из любого активного

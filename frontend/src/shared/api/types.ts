@@ -12,6 +12,20 @@ export type Image = Schemas["ImageResource"];
 export type NewsItem = Schemas["NewsListResource"];
 export type NewsDetails = Schemas["NewsResource"];
 export type Banner = Schemas["BannerResource"];
+export type AdminProduct = Schemas["AdminProductResource"];
+export type AdminOrder = Schemas["AdminOrderResource"] & { next_statuses: { value: string; label: string }[] };
+export type AdminUser = Schemas["AdminUserResource"];
+
+/** GET /admin/stats */
+export type AdminStats = {
+  period: { days: number; from: string; to: string };
+  users: { total: number; new_today: number; new_7_days: number; new_30_days: number; new_in_period: number; blocked: number; staff: number };
+  orders: { total: number; in_period: number; awaiting: number; by_status: { value: string; label: string; count: number }[] };
+  revenue: { completed_all_time: number; completed_in_period: number; orders_amount_in_period: number; average_check: number };
+  top_products: { product_id: number | null; name: string; quantity: number; amount: number }[];
+  catalog: { products: number; active_products: number; out_of_stock: number; low_stock: number; categories: number };
+  charts: { date: string; registrations: number; orders: number; amount: number }[];
+};
 
 export type Paginated<T> = {
   data: T[];

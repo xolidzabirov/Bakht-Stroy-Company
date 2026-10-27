@@ -1,48 +1,46 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
-import { requireUser } from "@/shared/api/requireUser";
+import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { routes } from "@/shared/config/site";
 import { getI18n } from "@/shared/i18n/server";
-import { Logo } from "@/shared/ui";
+import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
 
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+
+  return { title: { template: `%s — ${t.admin.title}`, default: t.admin.title }, robots: { index: false, follow: false } };
+}
 
 /**
- * Admin panel for managers and administrators. Customers who open /admin go to their account.
+ * Admin panel for managers and administrators: menu on the left (a drawer on phones), page on the right.
+ * Customers who open /admin go to their account.
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [user, { t }] = await Promise.all([requireUser(routes.admin), getI18n()]);
-
-  if (!user.is_staff) redirect(routes.account);
-
-  const role = user.roles?.includes("admin") ? "admin" : "manager";
+  const [user, { t }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
+  const admin = isAdmin(user);
 
   return (
-    <div className="flex h-dvh flex-col bg-background">
-      <header className="shrink-0 border-b border-border bg-surface">
-        <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-          <Link href={routes.adminChats} aria-label={t.chat.inbox}>
-            <Logo />
-          </Link>
-          <span className="hidden items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-brand sm:inline-flex">
+    <div className="flex h-dvh bg-background">
+      <AdminSidebar isAdmin={admin} />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface px-3 sm:px-5">
+          <AdminMobileNav isAdmin={admin} />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-brand">
             <ShieldCheck className="size-3.5" />
-            {t.acc.profile.roles[role]}
+            {t.acc.profile.roles[admin ? "admin" : "manager"]}
           </span>
+          <span className="hidden truncate text-sm font-semibold text-muted-foreground sm:block">{user.name}</span>
           <div className="ml-auto flex items-center gap-2">
-            <Link href={routes.home} className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex">
-              <ArrowLeft className="size-4" />
-              {t.chat.toSite}
-            </Link>
             <LocaleSwitcher />
             <ThemeToggle />
           </div>
-        </div>
-      </header>
-      <main className="min-h-0 flex-1 p-2 sm:p-4">{children}</main>
+        </header>
+
+        <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6">{children}</main>
+      </div>
     </div>
   );
 }

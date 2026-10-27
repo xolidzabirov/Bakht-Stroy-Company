@@ -47,6 +47,20 @@ it('shows an order with the customer and allowed next statuses', function () {
         ]);
 });
 
+it('finds an order by its number', function () {
+    $order = Order::factory()->for($this->client)->create();
+
+    $this->withToken($this->token)->getJson('/api/v1/admin/orders/number/'.strtolower($order->number))
+        ->assertOk()
+        ->assertJsonPath('data.id', $order->id)
+        ->assertJsonStructure(['data' => ['items', 'history', 'next_statuses', 'user']]);
+
+    $this->withToken($this->token)->getJson('/api/v1/admin/orders/number/BS-999999')->assertNotFound();
+
+    app('auth')->forgetGuards();
+    $this->withToken($this->client->createToken('Pest')->plainTextToken)->getJson('/api/v1/admin/orders/number/'.$order->number)->assertForbidden();
+});
+
 it('changes the status, writes the author and notifies the client', function () {
     Notification::fake();
     $order = Order::factory()->for($this->client)->create();
