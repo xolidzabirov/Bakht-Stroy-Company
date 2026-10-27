@@ -23,7 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // The Next.js server (BFF) calls the API for the browser and passes the client IP in X-Forwarded-For.
         // Only these addresses are trusted, so rate limits count real visitors.
-        $middleware->trustProxies(at: array_values(array_filter(explode(',', (string) env('TRUSTED_PROXIES', '127.0.0.1,::1')))));
+        // "*" — hosting behind a load balancer with changing addresses (Render).
+        $trustedProxies = (string) env('TRUSTED_PROXIES', '127.0.0.1,::1');
+        $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : array_values(array_filter(explode(',', $trustedProxies))));
 
         // Overall limit for every API route (per user or IP), see AppServiceProvider.
         $middleware->api(append: ['throttle:api']);

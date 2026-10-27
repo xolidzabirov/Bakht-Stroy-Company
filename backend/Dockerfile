@@ -38,3 +38,9 @@ ENV AUTORUN_ENABLED=true \
     PHP_POST_MAX_SIZE=60M
 
 COPY --from=app --chown=www-data:www-data /var/www/html /var/www/html
+
+# Start-up hook after migrations: admin + first data when SHOP_BOOTSTRAP=true (servers without a console).
+USER root
+COPY --chmod=755 docker/entrypoint.d/60-shop-bootstrap.sh /etc/entrypoint.d/60-shop-bootstrap.sh
+RUN sed -i 's/\r$//' /etc/entrypoint.d/60-shop-bootstrap.sh
+USER www-data

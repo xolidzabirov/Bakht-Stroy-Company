@@ -1,0 +1,99 @@
+# Free demo of the API on Render (docs/DEPLOY-FREE.md). Render → New → Blueprint → this repository.
+# Values marked "sync: false" are asked for once in the Render dashboard and never stored in git.
+services:
+  - type: web
+    name: bakhtstroy-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      # ---- Laravel ----
+      - key: APP_NAME
+        value: Bakht Stroy
+      # staging — the demo catalog is filled on the first start; production — only real data
+      - key: APP_ENV
+        value: staging
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://bakht-stroy-company.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://bakht-stroy-company.vercel.app
+      - key: APP_LOCALE
+        value: ru
+      - key: SANCTUM_EXPIRATION
+        value: "1440"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: TRUSTED_PROXIES
+        value: "*"
+      # nginx + PHP-FPM in the image listen on 8080; 5 workers fit the free 512 MB
+      - key: PORT
+        value: "8080"
+      - key: PHP_FPM_PM_MAX_CHILDREN
+        value: "5"
+
+      # ---- Database: Neon (connection string from the Neon dashboard) ----
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+
+      # ---- Photos and chat files: Supabase Storage (S3 API), public bucket "media" ----
+      - key: MEDIA_DISK
+        value: s3
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_BUCKET
+        value: media
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+      - key: AWS_DEFAULT_REGION
+        sync: false
+      - key: AWS_ENDPOINT
+        sync: false
+      - key: AWS_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: QUEUE_CONVERSIONS_BY_DEFAULT
+        value: "false"
+
+      # ---- Free plan: no background workers and no WebSocket server ----
+      # The chat refreshes every few seconds instead of live updates.
+      - key: BROADCAST_CONNECTION
+        value: log
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+
+      # ---- First start: admin + demo data (no console on the free plan) ----
+      - key: SHOP_BOOTSTRAP
+        value: "true"
+      - key: ADMIN_NAME
+        value: Администратор
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+      # ---- Optional: Telegram notifications to managers ----
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        value: BakhtStroyBot
