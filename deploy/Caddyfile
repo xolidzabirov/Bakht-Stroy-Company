@@ -1,0 +1,23 @@
+# HTTPS certificates from Let's Encrypt are issued and renewed automatically.
+{
+	email {$ACME_EMAIL}
+}
+
+# The shop (Next.js)
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+# API (Laravel), uploaded photos (/storage) and the live chat WebSocket (/app → Reverb)
+{$API_DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 60MB
+	}
+
+	@websocket path /app /app/*
+	reverse_proxy @websocket reverb:8080
+
+	reverse_proxy api:8080
+}

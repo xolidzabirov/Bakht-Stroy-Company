@@ -16,10 +16,7 @@ class ContentSeeder extends Seeder
 {
     public function run(DatabaseShopSettings $settings): void
     {
-        if (app()->isProduction()) {
-            return;
-        }
-
+        // Real company data: also on the production server (editable later in the admin panel).
         $settings->update('store', [
             'name' => 'Bakht Stroy Company',
             'description' => 'Таъмини ҳама намудҳои масолеҳи сохтмонӣ ва таъмири роҳҳои маҳаллӣ — все виды строительных материалов и ремонт местных дорог.',
@@ -48,6 +45,13 @@ class ContentSeeder extends Seeder
             'note' => 'Заказ оплачивается до доставки: наличными в офисе (ул. Джабор Расулов) или переводом на карту, юрлица — безналичным расчётом. '
                 .'После перевода отправьте чек менеджеру в WhatsApp или Telegram — он проверит поступление и отправит заказ.',
         ]);
+
+        // Generated demo banners: not in production.
+        if (app()->isProduction()) {
+            $this->command?->info('ContentSeeder: store contacts, delivery and payment (demo banners skipped in production).');
+
+            return;
+        }
 
         $banners = [
             ['Цемент «Хуаксин Гаюр» М500 со скидкой', 'Оптом и в розницу со склада в Душанбе', 'Купить цемент', '/catalog/tsement-i-beton', 'bag', ['#18181B', '#3F3F46']],
