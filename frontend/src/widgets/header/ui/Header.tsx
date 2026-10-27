@@ -13,9 +13,10 @@ import { CatalogMenu } from "./CatalogMenu";
 import { CartAction, FavoritesAction } from "./CountActions";
 import { MobileMenu } from "./MobileMenu";
 import { NavLinks } from "./NavLinks";
+import { NotificationBell } from "./NotificationBell";
 
 /**
- * Site header. Main row: logo, catalog menu, search, language / theme, account actions.
+ * Site header. Main row: logo, catalog menu, a compact search, language / notifications / theme, account actions.
  * Slim row below: site sections on the left, phone and working hours on the right.
  */
 export async function Header() {
@@ -41,29 +42,31 @@ export async function Header() {
 
         <CatalogMenu categories={categories} />
 
-        <form action={routes.catalog} role="search" className="relative hidden flex-1 md:flex">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <form action={routes.catalog} role="search" className="relative hidden min-w-0 flex-1 md:flex lg:max-w-sm xl:max-w-md">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="search"
             type="search"
             placeholder={t.header.searchPlaceholder}
             aria-label={t.header.searchLabel}
-            className="h-11 w-full rounded-full border border-border bg-surface-muted pl-11 pr-24 text-sm outline-none transition focus:border-brand focus:bg-surface focus:ring-2 focus:ring-brand/25"
+            className="h-10 w-full rounded-full border border-border bg-surface-muted pl-10 pr-20 text-sm outline-none transition focus:border-brand focus:bg-surface focus:ring-2 focus:ring-brand/25"
           />
           <button
             type="submit"
-            className="absolute right-1.5 top-1/2 h-8 -translate-y-1/2 rounded-full bg-brand px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-hover"
+            className="absolute right-1 top-1/2 h-8 -translate-y-1/2 rounded-full bg-brand px-3.5 text-sm font-semibold text-on-brand transition hover:bg-brand-hover"
           >
             {t.header.find}
           </button>
         </form>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 lg:ml-auto lg:flex">
           <LocaleSwitcher />
+          <NotificationBell />
           <ThemeToggle />
         </div>
 
-        <div className="ml-auto flex items-center md:ml-0">
+        <div className="ml-auto flex items-center lg:ml-0">
+          <NotificationBell className="mr-1 lg:hidden" />
           <FavoritesAction />
           <AccountAction />
           <CartAction />

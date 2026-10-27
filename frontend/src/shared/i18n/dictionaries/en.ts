@@ -72,6 +72,7 @@ export const en: Dictionary = {
     language: "Language",
     theme: "Theme",
     themes: { light: "Light", dark: "Dark", system: "System" },
+    notices: { title: "Notifications", news: "News", messages: "Messages", allNews: "All news", allMessages: "All notifications", emptyNews: "No news yet", emptyMessages: "Manager replies and order updates will appear here", loginHint: "Sign in to see manager messages and order updates" },
   },
   hero: {
     badge: "Building materials in Dushanbe",
