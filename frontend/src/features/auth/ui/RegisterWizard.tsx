@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, Check, ExternalLink, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
@@ -351,7 +351,7 @@ function CodeStep({
         title={t.reg.step3Title}
         lead={
           <>
-            {fmt(delivery.delivered ? t.reg.step3Lead : t.reg.step3LeadBot, { phone: formatPhone(`+992${phone}`) })}{" "}
+            {fmt(t.reg.step3Lead, { phone: formatPhone(`+992${phone}`) })}{" "}
             <button type="button" onClick={onChange} className="font-semibold text-foreground underline-offset-4 hover:underline">
               {t.reg.change}
             </button>
@@ -361,29 +361,20 @@ function CodeStep({
 
       {notice && <FormAlert tone="success">{notice}</FormAlert>}
 
-      {!delivery.delivered && delivery.botLink && (
-        <div className="rounded-2xl border border-primary/40 bg-brand-soft p-5">
-          <p className="flex items-center gap-2 font-bold">
-            <Send className="size-5 text-[#229ED9]" />
-            {t.reg.botTitle}
-          </p>
-          <p className="mt-1.5 text-sm text-muted-foreground">{t.reg.botText}</p>
-          <a
-            href={delivery.botLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-[#229ED9] px-5 text-sm font-semibold text-white transition hover:bg-[#1c8cc2]"
-          >
-            {t.reg.openBot}
-            <ExternalLink className="size-4" />
-          </a>
-        </div>
-      )}
 
       <OtpInput label={t.auth.code} value={code} onChange={setCode} onComplete={(value) => void verify(value)} invalid={Boolean(error)} disabled={pending} />
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
+        </p>
+      )}
+
+      {!delivery.delivered && delivery.botLink && (
+        <p className="text-sm text-muted-foreground">
+          {t.reg.botHint}{" "}
+          <a href={delivery.botLink} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#229ED9] hover:underline">
+            {t.reg.botHintLink}
+          </a>
         </p>
       )}
 
