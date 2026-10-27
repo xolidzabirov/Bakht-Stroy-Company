@@ -759,6 +759,7 @@ export const en: Dictionary = {
       back: "All users",
       since: "With us since {date}",
       lastOrder: "Last order: {date}",
+      lastOrderLabel: "Last order",
       noOrdersYet: "No orders yet",
       ordersCount: "Orders",
       ordersTotal: "Completed for",

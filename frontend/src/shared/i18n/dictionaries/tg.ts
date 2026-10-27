@@ -759,6 +759,7 @@ export const tg: Dictionary = {
       back: "Ҳамаи корбарон",
       since: "Бо мо аз {date}",
       lastOrder: "Фармоиши охирин: {date}",
+      lastOrderLabel: "Фармоиши охирин",
       noOrdersYet: "Ҳоло фармоиш набуд",
       ordersCount: "Фармоишҳо",
       ordersTotal: "Иҷро шуд ба маблағи",
