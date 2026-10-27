@@ -11,7 +11,7 @@ Route::middleware(['auth:sanctum', 'active'])->prefix('me')->name('me.')->group(
     Route::patch('/', [ProfileController::class, 'update'])->name('update');
     Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
     Route::put('password', [ProfileController::class, 'changePassword'])->middleware('throttle:sensitive')->name('password');
-    Route::post('email/send-code', [ProfileController::class, 'sendEmailCode'])->middleware('throttle:register-code')->name('email.send-code');
+    Route::post('email/send-code', [ProfileController::class, 'sendEmailCode'])->middleware('throttle:email-code')->name('email.send-code');
     Route::put('email', [ProfileController::class, 'changeEmail'])->middleware('throttle:sensitive')->name('email');
 
     Route::get('addresses', [AddressController::class, 'index'])->name('addresses.index');

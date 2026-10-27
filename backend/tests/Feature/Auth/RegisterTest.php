@@ -1,181 +1,245 @@
 <?php
 
-use App\Modules\Auth\Notifications\RegistrationCodeNotification;
+use App\Modules\Auth\Contracts\PhoneCodeSender;
+use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
+use App\Modules\Auth\Support\RegistrationTicket;
+use App\Modules\Auth\Support\TelegramGatewaySender;
+use App\Modules\User\Enums\CustomerType;
 use App\Modules\User\Enums\Role;
 use App\Modules\User\Models\User;
-use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 
-beforeEach(fn () => Notification::fake());
+/**
+ * Telegram is replaced by a fake that remembers the codes (and can pretend a number has no Telegram).
+ */
+beforeEach(function () {
+    $this->telegram = new class implements PhoneCodeSender
+    {
+        /** @var array<string, string> */
+        public array $codes = [];
 
-function sendRegistrationCode(object $test, string $email = 'client@gmail.com'): string
-{
-    $test->postJson('/api/v1/auth/register/send-code', ['email' => $email])
-        ->assertAccepted()
-        ->assertJsonPath('data.expires_in_minutes', 15);
+        /** @var list<string> */
+        public array $withoutTelegram = [];
 
-    $code = null;
-    Notification::assertSentOnDemand(RegistrationCodeNotification::class,
-        function (RegistrationCodeNotification $notification, array $channels, AnonymousNotifiable $notifiable) use (&$code, $email) {
-            if ($notifiable->routes['mail'] !== mb_strtolower($email)) {
-                return false;
+        public function send(string $phone, string $code, int $ttlMinutes): void
+        {
+            if (in_array($phone, $this->withoutTelegram, true)) {
+                throw new PhoneNotOnTelegramException;
             }
-            $code = $notification->code;
 
-            return true;
-        });
+            $this->codes[$phone] = $code;
+        }
+    };
 
-    return $code;
+    $this->app->instance(PhoneCodeSender::class, $this->telegram);
+});
+
+function requestPhoneCode(object $test, string $phone = '+992 93 123 45 67')
+{
+    return $test->postJson('/api/v1/auth/register/phone', ['phone' => $phone]);
 }
 
-function registerPayload(string $code, array $overrides = []): array
+function confirmPhone(object $test, string $phone = '+992931234567'): string
+{
+    requestPhoneCode($test, $phone)->assertAccepted();
+
+    return $test->postJson('/api/v1/auth/register/phone/verify', ['phone' => $phone, 'code' => $test->telegram->codes[$phone]])
+        ->assertOk()
+        ->assertJsonPath('data.expires_in_minutes', 30)
+        ->json('data.registration_token');
+}
+
+function accountPayload(string $token, array $overrides = []): array
 {
     return array_merge([
-        'name' => 'Халид',
-        'email' => 'client@gmail.com',
-        'code' => $code,
-        'password' => 'secret123',
-        'password_confirmation' => 'secret123',
-        'phone' => '+998 90 123-45-67',
-        'device_name' => 'Pest',
+        'registration_token' => $token,
+        'first_name' => 'Фирдавс',
+        'last_name' => 'Рахимов',
+        'customer_type' => 'person',
+        'email' => 'firdavs@gmail.com',
+        'password' => 'Stroy2026!',
+        'password_confirmation' => 'Stroy2026!',
     ], $overrides);
 }
 
-it('registers a client in two steps: email code, then account', function () {
-    $code = sendRegistrationCode($this, 'Client@Gmail.com');
+it('registers a client: name, phone, Telegram code, email and password', function () {
+    $token = confirmPhone($this);
 
-    expect($code)->toMatch('/^\d{6}$/');
-
-    $response = $this->postJson('/api/v1/auth/register', registerPayload($code, ['email' => 'CLIENT@gmail.com']));
-
-    $response->assertCreated()
-        ->assertJsonPath('data.user.name', 'Халид')
-        ->assertJsonPath('data.user.email', 'client@gmail.com')
-        ->assertJsonPath('data.user.phone', '+998901234567')
+    $response = $this->postJson('/api/v1/auth/register', accountPayload($token, ['customer_type' => 'company']))
+        ->assertCreated()
+        ->assertJsonPath('data.user.name', 'Фирдавс Рахимов')
+        ->assertJsonPath('data.user.phone', '+992931234567')
+        ->assertJsonPath('data.user.customer_type', 'company')
         ->assertJsonPath('data.user.roles', ['client'])
-        ->assertJsonPath('data.user.email_verified_at', fn ($value) => $value !== null)
-        ->assertJsonPath('data.token_type', 'Bearer')
-        ->assertJsonMissingPath('data.user.password');
+        ->assertJsonStructure(['data' => ['token', 'expires_at']]);
 
-    $user = User::query()->where('email', 'client@gmail.com')->sole();
+    $user = User::query()->where('phone', '+992931234567')->sole();
+    expect($user->hasRole(Role::Client))->toBeTrue()
+        ->and($user->customer_type)->toBe(CustomerType::Company)
+        ->and($user->phone_verified_at)->not->toBeNull()
+        ->and($user->email_verified_at)->toBeNull();
 
-    expect($user->hasRole(Role::Client))->toBeTrue();
-
+    // Signed in right away.
     $this->withToken($response->json('data.token'))->getJson('/api/v1/auth/me')->assertOk();
 });
 
-it('does not register without a valid email code', function (string $code) {
-    sendRegistrationCode($this);
+it('accepts the 9 local digits typed after the fixed +992', function () {
+    requestPhoneCode($this, '93 123 45 67')
+        ->assertAccepted()
+        ->assertJsonPath('data.phone', '+992931234567');
 
-    $this->postJson('/api/v1/auth/register', registerPayload($code))
-        ->assertUnprocessable()
-        ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
-
-    expect(User::query()->count())->toBe(0);
-})->with(['000000', '999999']);
-
-it('does not accept a code sent to another email', function () {
-    $code = sendRegistrationCode($this, 'other@gmail.com');
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code))
-        ->assertUnprocessable()
-        ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
+    expect($this->telegram->codes)->toHaveKey('+992931234567');
 });
 
-it('does not accept an expired or reused code', function () {
-    $code = sendRegistrationCode($this);
-    $this->travel(16)->minutes();
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code))->assertUnprocessable();
-
-    $this->travelBack();
-    $this->travel(2)->minutes();
-    $code = sendRegistrationCode($this);
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code))->assertCreated();
-    $this->postJson('/api/v1/auth/register', registerPayload($code, ['email' => 'client@gmail.com']))
-        ->assertUnprocessable(); // email is taken now
-});
-
-it('blocks the code after 5 wrong attempts', function () {
-    $code = sendRegistrationCode($this);
-
-    foreach (range(1, 5) as $attempt) {
-        $this->postJson('/api/v1/auth/register', registerPayload('000000'))->assertUnprocessable();
-    }
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code))
+it('takes only real Tajik numbers', function (string $phone, string $message) {
+    requestPhoneCode($this, $phone)
         ->assertUnprocessable()
-        ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
+        ->assertJsonPath('errors.phone.0', $message);
+
+    expect($this->telegram->codes)->toBeEmpty();
+})->with([
+    'uzbek number' => ['+998 90 123 45 67', 'Нужен таджикский номер: +992 и 9 цифр, например +992 93 123 45 67.'],
+    'too short' => ['93 123', 'Укажите номер с кодом страны, например +992 93 123 45 67.'],
+    'letters' => ['+992 ab cd', 'Проверьте, пожалуйста, номер — кажется, в нём ошибка.'],
+    'zero subscriber' => ['+992 93 000 00 00', 'Похоже, это не настоящий номер. Укажите номер, по которому с вами можно связаться.'],
+    'empty' => ['', 'Укажите номер телефона.'],
+]);
+
+it('allows one phone number for only one account', function () {
+    User::factory()->create(['phone' => '+992931234567']);
+
+    requestPhoneCode($this)
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.phone.0', 'Этот номер уже зарегистрирован. Войдите в аккаунт или восстановите пароль.');
 });
 
-it('allows a new code only once a minute', function () {
-    sendRegistrationCode($this);
+it('says when the number has no Telegram and lets the person fix it at once', function () {
+    $this->telegram->withoutTelegram = ['+992931234567'];
 
-    $this->postJson('/api/v1/auth/register/send-code', ['email' => 'client@gmail.com'])
+    requestPhoneCode($this)
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'PHONE_NOT_ON_TELEGRAM');
+
+    // No "wait a minute" after a failed send.
+    $this->telegram->withoutTelegram = [];
+    requestPhoneCode($this)->assertAccepted();
+});
+
+it('sends a new code only once a minute', function () {
+    requestPhoneCode($this)->assertAccepted();
+
+    requestPhoneCode($this)
         ->assertTooManyRequests()
         ->assertJsonPath('code', 'CODE_RECENTLY_SENT');
 
     $this->travel(61)->seconds();
-
-    $this->postJson('/api/v1/auth/register/send-code', ['email' => 'client@gmail.com'])->assertAccepted();
+    requestPhoneCode($this)->assertAccepted();
 });
 
-it('does not send a code to an already registered email', function () {
-    User::factory()->create(['email' => 'client@gmail.com']);
+it('does not confirm the phone with a wrong code and blocks it after 5 tries', function () {
+    requestPhoneCode($this)->assertAccepted();
+    $right = $this->telegram->codes['+992931234567'];
+    $wrong = $right === '111111' ? '222222' : '111111';
 
-    $this->postJson('/api/v1/auth/register/send-code', ['email' => 'CLIENT@gmail.com'])
+    foreach (range(1, 5) as $_) {
+        $this->postJson('/api/v1/auth/register/phone/verify', ['phone' => '+992931234567', 'code' => $wrong])
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
+    }
+
+    $this->postJson('/api/v1/auth/register/phone/verify', ['phone' => '+992931234567', 'code' => $right])
         ->assertUnprocessable()
-        ->assertJsonPath('errors.email.0', 'Этот email уже зарегистрирован.');
+        ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
+});
 
-    Notification::assertNothingSent();
+it('does not accept a code sent to another number', function () {
+    requestPhoneCode($this, '+992931234567')->assertAccepted();
+
+    $this->postJson('/api/v1/auth/register/phone/verify', ['phone' => '+992901234567', 'code' => $this->telegram->codes['+992931234567']])
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'INVALID_VERIFICATION_CODE');
+});
+
+it('creates the account only with a fresh pass from the code step', function () {
+    $token = confirmPhone($this);
+
+    $this->postJson('/api/v1/auth/register', accountPayload('forged-pass'))
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'REGISTRATION_EXPIRED');
+
+    $this->travel(31)->minutes();
+
+    $this->postJson('/api/v1/auth/register', accountPayload($token))
+        ->assertUnprocessable()
+        ->assertJsonPath('code', 'REGISTRATION_EXPIRED');
+
+    expect(User::query()->where('phone', '+992931234567')->exists())->toBeFalse();
+});
+
+it('does not give the same phone to two accounts even with two passes', function () {
+    $first = RegistrationTicket::issue('+992931234567');
+    $second = RegistrationTicket::issue('+992931234567');
+
+    $this->postJson('/api/v1/auth/register', accountPayload($first))->assertCreated();
+
+    $this->postJson('/api/v1/auth/register', accountPayload($second, ['email' => 'other@gmail.com']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+});
+
+it('validates the account fields', function (array $payload, string $field) {
+    $this->postJson('/api/v1/auth/register', accountPayload(RegistrationTicket::issue('+992931234567'), $payload))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors($field);
+})->with([
+    'missing first name' => [['first_name' => ''], 'first_name'],
+    'missing last name' => [['last_name' => ''], 'last_name'],
+    'unknown customer type' => [['customer_type' => 'alien'], 'customer_type'],
+    'missing email' => [['email' => ''], 'email'],
+    'invalid email' => [['email' => 'not-an-email'], 'email'],
+    'missing pass' => [['registration_token' => ''], 'registration_token'],
+    'password mismatch' => [['password_confirmation' => 'Other2026!'], 'password'],
+]);
+
+it('does not register an email that is already used', function () {
+    User::factory()->create(['email' => 'firdavs@gmail.com']);
+
+    $this->postJson('/api/v1/auth/register', accountPayload(RegistrationTicket::issue('+992931234567')))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
 });
 
 it('rejects email domains without a mail server when the DNS check is on', function () {
     config(['shop.email_dns_check' => true]);
 
-    $this->postJson('/api/v1/auth/register/send-code', ['email' => 'user@no-such-domain-bakht-stroy.invalid'])
+    $this->postJson('/api/v1/auth/register', accountPayload(RegistrationTicket::issue('+992931234567'), ['email' => 'user@no-such-domain-bakht-stroy.invalid']))
         ->assertUnprocessable()
         ->assertJsonValidationErrors('email');
-
-    Notification::assertNothingSent();
 });
-
-it('allows one phone number for only one account', function () {
-    User::factory()->create(['phone' => '+998901234567']);
-    $code = sendRegistrationCode($this);
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code, ['phone' => '+998 90 123 45 67']))
-        ->assertUnprocessable()
-        ->assertJsonPath('errors.phone.0', 'Этот номер телефона уже привязан к другому аккаунту.');
-});
-
-it('allows registration without phone', function () {
-    $code = sendRegistrationCode($this);
-
-    $this->postJson('/api/v1/auth/register', registerPayload($code, ['phone' => null]))
-        ->assertCreated()
-        ->assertJsonPath('data.user.phone', null);
-});
-
-it('validates registration fields', function (array $payload, string $field) {
-    $this->postJson('/api/v1/auth/register', registerPayload('123456', $payload))
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors($field);
-})->with([
-    'missing name' => [['name' => ''], 'name'],
-    'missing email' => [['email' => ''], 'email'],
-    'invalid email' => [['email' => 'not-an-email'], 'email'],
-    'missing code' => [['code' => ''], 'code'],
-    'short code' => [['code' => '123'], 'code'],
-    'invalid phone' => [['phone' => '123'], 'phone'],
-    'short password' => [['password' => 'abc1', 'password_confirmation' => 'abc1'], 'password'],
-    'password without digits' => [['password' => 'abcdefgh', 'password_confirmation' => 'abcdefgh'], 'password'],
-    'password mismatch' => [['password_confirmation' => 'other1234'], 'password'],
-]);
 
 it('returns validation messages in russian', function () {
     $this->postJson('/api/v1/auth/register', [])
         ->assertUnprocessable()
-        ->assertJsonPath('errors.name.0', 'Поле имя обязательно.');
+        ->assertJsonPath('errors.first_name.0', 'Поле имя обязательно.');
+});
+
+it('sends the code through Telegram Gateway only to numbers with Telegram', function () {
+    Http::fake([
+        '*/checkSendAbility' => Http::sequence()
+            ->push(['ok' => true, 'result' => ['request_id' => 'req-1']])
+            ->push(['ok' => false, 'error' => 'PHONE_NUMBER_INVALID']),
+        '*/sendVerificationMessage' => Http::response(['ok' => true, 'result' => ['request_id' => 'req-1']]),
+    ]);
+    $gateway = new TelegramGatewaySender('test-token', 'https://gatewayapi.telegram.org');
+
+    $gateway->send('+992931234567', '123456', 15);
+
+    Http::assertSent(fn (Request $request) => str_ends_with($request->url(), '/sendVerificationMessage')
+        && $request['phone_number'] === '+992931234567'
+        && $request['code'] === '123456'
+        && $request['request_id'] === 'req-1'
+        && $request->hasHeader('Authorization', 'Bearer test-token'));
+
+    expect(fn () => $gateway->send('+992901234567', '654321', 15))->toThrow(PhoneNotOnTelegramException::class);
 });

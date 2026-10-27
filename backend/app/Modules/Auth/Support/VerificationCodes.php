@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * 6-digit one-time codes sent by email, stored hashed.
+ * 6-digit one-time codes (email or Telegram), stored hashed.
  * A code lives config('shop.verification_codes.ttl_minutes') minutes and allows
  * max_attempts wrong tries; issuing a new code replaces the old one.
  */
 final class VerificationCodes
 {
-    private function __construct(private readonly string $table) {}
+    private function __construct(private readonly string $table, private readonly string $column = 'email') {}
 
     /**
      * Proves the person owns an email: registration and email change.
@@ -24,6 +24,14 @@ final class VerificationCodes
     public static function emailOwnership(): self
     {
         return new self('email_verification_codes');
+    }
+
+    /**
+     * Proves the person owns a phone number: registration (the code comes to Telegram).
+     */
+    public static function phoneOwnership(): self
+    {
+        return new self('phone_verification_codes', 'phone');
     }
 
     public static function passwordReset(): self
@@ -36,13 +44,13 @@ final class VerificationCodes
         return (int) config('shop.verification_codes.ttl_minutes');
     }
 
-    public function issue(string $email): string
+    public function issue(string $key): string
     {
         $code = (string) random_int(100000, 999999);
 
         DB::table($this->table)->upsert(
-            ['email' => $email, 'token' => Hash::make($code), 'attempts' => 0, 'created_at' => now()],
-            ['email'],
+            [$this->column => $key, 'token' => Hash::make($code), 'attempts' => 0, 'created_at' => now()],
+            [$this->column],
             ['token', 'attempts', 'created_at'],
         );
 
@@ -52,9 +60,9 @@ final class VerificationCodes
     /**
      * Seconds until a new code may be issued (0 — right now).
      */
-    public function secondsUntilResend(string $email): int
+    public function secondsUntilResend(string $key): int
     {
-        $createdAt = $this->query($email)->value('created_at');
+        $createdAt = $this->query($key)->value('created_at');
 
         if ($createdAt === null) {
             return 0;
@@ -68,10 +76,10 @@ final class VerificationCodes
     /**
      * Checks the code; a wrong code counts as an attempt.
      */
-    public function check(string $email, string $code): bool
+    public function check(string $key, string $code): bool
     {
         /** @var object{token: string, attempts: int, created_at: string}|null $row */
-        $row = $this->query($email)->first();
+        $row = $this->query($key)->first();
 
         if ($row === null
             || Carbon::parse($row->created_at)->addMinutes(self::ttlMinutes())->isPast()
@@ -80,7 +88,7 @@ final class VerificationCodes
         }
 
         if (! Hash::check($code, $row->token)) {
-            $this->query($email)->increment('attempts');
+            $this->query($key)->increment('attempts');
 
             return false;
         }
@@ -88,13 +96,13 @@ final class VerificationCodes
         return true;
     }
 
-    public function forget(string $email): void
+    public function forget(string $key): void
     {
-        $this->query($email)->delete();
+        $this->query($key)->delete();
     }
 
-    private function query(string $email): Builder
+    private function query(string $key): Builder
     {
-        return DB::table($this->table)->where('email', $email);
+        return DB::table($this->table)->where($this->column, $key);
     }
 }

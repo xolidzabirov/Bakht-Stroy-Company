@@ -25,7 +25,18 @@ export function createAuthSchemas(t: Dictionary) {
 
   const code = z.string().trim().regex(/^\d{6}$/, v.code);
 
+  const r = t.reg.validation;
+
   return {
+    regName: z.object({
+      first_name: z.string().trim().min(2, r.firstName).max(50),
+      last_name: z.string().trim().min(2, r.lastName).max(50),
+      customer_type: z.enum(["person", "company"]),
+    }),
+    regPhone: z.object({ phone: z.string().regex(/^\d{9}$/, r.phone) }),
+    regAccount: z
+      .object({ email, password, password_confirmation: z.string() })
+      .refine((data) => data.password === data.password_confirmation, { path: ["password_confirmation"], message: v.mismatch }),
     login: z.object({ email, password: z.string().min(1, v.passwordRequired), remember: z.boolean() }),
     emailStep: z.object({ email }),
     register: z
@@ -52,3 +63,6 @@ export type LoginValues = z.infer<Schemas["login"]>;
 export type EmailStepValues = z.infer<Schemas["emailStep"]>;
 export type RegisterValues = z.infer<Schemas["register"]>;
 export type ResetValues = z.infer<Schemas["reset"]>;
+export type RegNameValues = z.infer<Schemas["regName"]>;
+export type RegPhoneValues = z.infer<Schemas["regPhone"]>;
+export type RegAccountValues = z.infer<Schemas["regAccount"]>;

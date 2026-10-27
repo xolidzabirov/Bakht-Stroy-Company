@@ -32,9 +32,10 @@ Swagger: **http://localhost:8000/api/documentation**
 | 3 | Каталог | `GET /products/{product}` (slug из списка) | фото, характеристики, категория |
 | 4 | Новости | `GET /news`, `GET /news/{slug}` | 6 новостей, текст, обложка, галерея, товары |
 | 5 | Магазин | `GET /settings/public`, `GET /banners` | контакты, 3 баннера |
-| 6 | Авторизация | `POST /auth/register/send-code` с новым email | 202, код — в `backend/storage/logs/laravel-<дата>.log` |
-| 7 | Авторизация | `POST /auth/register` с кодом, телефоном `+992 93 …` и паролем | 201 и токен |
-| 8 | Авторизация | регистрация с телефоном `93 123 45 67` (без кода) или `+992 99 999 99 99` | 422, понятное сообщение |
+| 6 | Авторизация | `POST /auth/register/phone` с номером `+992 93 …` (у номера должен быть Telegram) | 202, код — в Telegram; локально — в `backend/storage/logs/laravel-<дата>.log` ("Telegram code for …") |
+| 6а | Авторизация | `POST /auth/register/phone/verify` с номером и кодом | 200 и `registration_token` (пропуск на 30 минут) |
+| 7 | Авторизация | `POST /auth/register` с пропуском, именем, фамилией, `customer_type`, email и паролем | 201 и токен, телефон подтверждён |
+| 8 | Авторизация | `POST /auth/register/phone` с `+998 90 123 45 67` (не таджикский) или `+992 93 000 00 00` | 422, понятное сообщение |
 | 9 | Авторизация | регистрация с паролем `qwerty123` | 422 «слишком простой» |
 | 10 | Корзина | `POST /cart/items` `{ "product_id": 2, "quantity": 5 }` | корзина с суммой |
 | 11 | Корзина | кирпич меньше 500 шт | 422 `BELOW_MIN_ORDER` |

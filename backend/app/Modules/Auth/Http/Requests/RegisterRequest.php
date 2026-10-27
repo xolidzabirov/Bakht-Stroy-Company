@@ -5,26 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Http\Requests;
 
 use App\Modules\Auth\DTO\RegisterData;
+use App\Modules\User\Enums\CustomerType;
 use App\Shared\Rules\NotCommonPassword;
-use App\Shared\Rules\ValidPhone;
-use App\Shared\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 final class RegisterRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        // The raw input is kept to check that the country code was typed.
-        $this->attributes->set('raw_phone', $this->input('phone'));
-
-        $this->merge([
-            'email' => EmailRules::normalize($this->input('email')),
-            'phone' => is_string($this->input('phone')) && trim($this->input('phone')) !== ''
-                ? Phone::normalize($this->input('phone'))
-                : null,
-        ]);
+        $this->merge(['email' => EmailRules::normalize($this->input('email'))]);
     }
 
     /**
@@ -34,38 +26,33 @@ final class RegisterRequest extends FormRequest
     {
         return [
             /**
-             * Имя покупателя.
-             *
-             * @example Халид
+             * Пропуск из шага с кодом (POST /auth/register/phone/verify), действует 30 минут.
              */
-            'name' => ['required', 'string', 'min:2', 'max:100'],
+            'registration_token' => ['required', 'string', 'max:2000'],
+            /** @example Фирдавс */
+            'first_name' => ['required', 'string', 'min:2', 'max:50'],
+            /** @example Рахимов */
+            'last_name' => ['required', 'string', 'min:2', 'max:50'],
             /**
-             * Email — используется для входа. Тот же, на который отправлен код.
+             * person — частное лицо, company — компания (строители, бригады; оптовые условия).
+             *
+             * @example person
+             */
+            'customer_type' => ['required', Rule::enum(CustomerType::class)],
+            /**
+             * Email для входа и чеков. Без кода — номер уже подтверждён в Telegram.
              *
              * @example client@gmail.com
              */
             'email' => EmailRules::newAccount(),
-            /**
-             * 6-значный код из письма (POST /auth/register/send-code).
-             *
-             * @example 123456
-             */
-            'code' => ['required', 'string', 'digits:6'],
             /**
              * Не короче 8 символов, буквы и цифры; символы (!, #, ?) — ещё надёжнее.
              *
              * @example Stroy2026!
              */
             'password' => ['required', 'string', 'max:100', 'confirmed', Password::defaults(), new NotCommonPassword($this->input('email'))],
-            /** @example secret123 */
+            /** @example Stroy2026! */
             'password_confirmation' => ['required', 'string'],
-            /**
-             * Телефон для связи по заказам (необязательно), с кодом страны: +992 93 123 45 67.
-             * Один номер можно привязать только к одному аккаунту.
-             *
-             * @example +992931234567
-             */
-            'phone' => ['nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')), 'unique:users,phone'],
             /**
              * Название устройства для списка сессий.
              *
@@ -80,10 +67,7 @@ final class RegisterRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
-            ...EmailRules::messages(),
-            'phone.unique' => 'Этот номер телефона уже привязан к другому аккаунту.',
-        ];
+        return EmailRules::messages();
     }
 
     /**
@@ -91,16 +75,17 @@ final class RegisterRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['code' => 'код'];
+        return ['first_name' => 'имя', 'last_name' => 'фамилия', 'customer_type' => 'кто вы'];
     }
 
     public function toData(): RegisterData
     {
         return new RegisterData(
-            name: trim($this->string('name')->toString()),
+            firstName: trim($this->string('first_name')->toString()),
+            lastName: trim($this->string('last_name')->toString()),
+            customerType: $this->enum('customer_type', CustomerType::class) ?? CustomerType::Person,
+            registrationToken: $this->string('registration_token')->toString(),
             email: $this->string('email')->toString(),
-            code: $this->string('code')->toString(),
-            phone: $this->input('phone'),
             password: $this->string('password')->toString(),
             deviceName: DeviceName::from($this),
         );

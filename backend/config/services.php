@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    /*
+     * Registration codes to the phone's Telegram (https://core.telegram.org/gateway).
+     * driver: "gateway" — real messages (needs TELEGRAM_GATEWAY_TOKEN), "log" — the code goes to storage/logs (development).
+     */
+    'telegram_gateway' => [
+        'driver' => env('TELEGRAM_CODES_DRIVER', 'log'),
+        'token' => env('TELEGRAM_GATEWAY_TOKEN'),
+        'url' => env('TELEGRAM_GATEWAY_URL', 'https://gatewayapi.telegram.org'),
+    ],
+
 ];
