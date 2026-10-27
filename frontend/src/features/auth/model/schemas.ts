@@ -12,16 +12,23 @@ export const passwordRules = [
   { key: "symbol", test: (value: string) => /[^\p{L}\d\s]/u.test(value), optional: true },
 ] as const;
 
+/** A new password: 8+ characters with letters and digits (the same rules as the backend). */
+export function newPasswordSchema(t: Dictionary) {
+  const v = t.auth.validation;
+
+  return z
+    .string()
+    .min(8, v.passwordMin)
+    .max(100, v.passwordMax)
+    .refine((value) => /\p{L}/u.test(value) && /\d/.test(value), v.passwordMix);
+}
+
 export function createAuthSchemas(t: Dictionary) {
   const v = t.auth.validation;
 
   const email = z.string().trim().min(1, v.emailRequired).email(v.emailInvalid);
 
-  const password = z
-    .string()
-    .min(8, v.passwordMin)
-    .max(100, v.passwordMax)
-    .refine((value) => /\p{L}/u.test(value) && /\d/.test(value), v.passwordMix);
+  const password = newPasswordSchema(t);
 
   const code = z.string().trim().regex(/^\d{6}$/, v.code);
 

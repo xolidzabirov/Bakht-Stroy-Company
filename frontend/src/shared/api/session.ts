@@ -28,3 +28,10 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function getToken(): Promise<string | undefined> {
   return (await cookies()).get(AUTH_COOKIE)?.value;
 }
+
+/**
+ * GET from the API as the signed-in user (account pages). Never cached between users.
+ */
+export async function userFetch<T>(path: string): Promise<T> {
+  return apiFetch<T>(path, { token: await getToken(), cache: "no-store" });
+}

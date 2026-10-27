@@ -88,3 +88,22 @@ export type Order = {
   comment: string | null;
   items: { id: number; product_slug: string | null; name: string; unit: { label: string }; price: number; quantity: number; total: number; image: string | null }[];
 };
+
+/** Order in lists (/orders, dashboard): without items and history. */
+export type OrderSummary = Pick<Order, "id" | "number" | "status" | "payment_method" | "payment_status" | "delivery_type" | "total" | "can_cancel" | "created_at"> & {
+  items_count: number;
+};
+
+export type OrderHistoryEntry = { status: { value: string; label: string }; comment: string | null; created_at: string };
+
+export type AppNotification = {
+  id: string;
+  type: string | null;
+  title: string | null;
+  text: string | null;
+  order_number: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
+export type Session = { id: number; device: string; is_current: boolean; last_used_at: string | null; created_at: string; expires_at: string | null };
