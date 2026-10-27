@@ -25,12 +25,6 @@ final class UserResource extends JsonResource
             'email' => $this->email,
             /** @example +992931234567 */
             'phone' => $this->phone,
-            /**
-             * Частное лицо (person) или компания (company).
-             *
-             * @example person
-             */
-            'customer_type' => $this->customer_type->value,
             /** @example ru */
             'locale' => $this->locale,
             /** @example system */

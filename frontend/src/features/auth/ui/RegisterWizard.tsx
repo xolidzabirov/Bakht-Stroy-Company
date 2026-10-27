@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, Building2, Check, House, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
@@ -26,13 +26,13 @@ type Countdown = ReturnType<typeof useCountdown>;
 
 /**
  * Registration in 4 steps (like a phone setup wizard):
- * 1) name and "who are you" — 2) Tajik phone → code to its Telegram — 3) the code → a pass for 30 min —
+ * 1) first and last name — 2) Tajik phone → code to its Telegram — 3) the code → a pass for 30 min —
  * 4) email and password → the account is created and signed in.
  */
 export function RegisterWizard({ next }: { next: string }) {
   const { t } = useI18n();
   const [step, setStep] = useState(1);
-  const [name, setName] = useState<RegNameValues>({ first_name: "", last_name: "", customer_type: "person" });
+  const [name, setName] = useState<RegNameValues>({ first_name: "", last_name: "" });
   const [phone, setPhone] = useState("");
   const [ticket, setTicket] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -132,7 +132,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/* ---------- 1. Name and who you are ---------- */
+/* ---------- 1. Name ---------- */
 
 function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: string; onDone: (values: RegNameValues) => void }) {
   const { t } = useI18n();
@@ -140,14 +140,9 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = useForm<RegNameValues>({ resolver: zodResolver(schema), defaultValues: initial });
 
-  const types = [
-    { value: "person" as const, icon: House, title: t.reg.person, text: t.reg.personText },
-    { value: "company" as const, icon: Building2, title: t.reg.company, text: t.reg.companyText },
-  ];
 
   return (
     <form onSubmit={handleSubmit(onDone)} noValidate className="space-y-5">
@@ -181,43 +176,6 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
         </Field>
       </div>
 
-      <fieldset>
-        <legend className="mb-2 text-sm font-semibold">{t.reg.whoAreYou}</legend>
-        <Controller
-          control={control}
-          name="customer_type"
-          render={({ field }) => (
-            <div role="radiogroup" className="grid gap-3 sm:grid-cols-2">
-              {types.map(({ value, icon: Icon, title, text }) => {
-                const active = field.value === value;
-
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => field.onChange(value)}
-                    className={cn(
-                      "relative flex gap-3 rounded-2xl border bg-surface p-4 text-left transition",
-                      active ? "border-primary ring-[3px] ring-primary/25" : "border-border hover:border-foreground/30",
-                    )}
-                  >
-                    <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl transition", active ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                      <Icon className="size-5" />
-                    </span>
-                    <span>
-                      <b className="block">{title}</b>
-                      <span className="text-sm leading-snug text-muted-foreground">{text}</span>
-                    </span>
-                    {active && <Check className="absolute right-3 top-3 size-4 text-primary" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        />
-      </fieldset>
 
       <Button type="submit" size="lg" className="w-full">
         {t.reg.next}

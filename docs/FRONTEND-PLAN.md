@@ -28,7 +28,7 @@
 
 ### Авторизация (BFF)
 
-- Токен Sanctum **никогда** не попадает в JS браузера: Route Handlers `src/app/api/auth/*` вызывают Laravel и кладут токен в httpOnly cookie `bakht_token` (Secure, SameSite=Lax, 30 дней).
+- Токен Sanctum **никогда** не попадает в JS браузера: Route Handlers `src/app/api/auth/*` вызывают Laravel и кладут токен в httpOnly cookie `bakht_token` (Secure, SameSite=Lax, 24 часа).
 - Все запросы, требующие входа, идут через `src/app/api/proxy/[...path]/route.ts`: берёт cookie → добавляет `Authorization: Bearer` → проксирует в `API_URL`.
 - `src/proxy.ts` (бывший middleware) — редирект гостя с `/account/*`, `/checkout` на `/login?next=…`; с `/admin/*` — если нет cookie.
 - Роль проверяется на сервере (`GET /me` в layout кабинета/админки): `client` → кабинет; `manager`/`admin` → админка; лишнее прячем, но сервер всё равно проверяет права.

@@ -4,7 +4,6 @@ use App\Modules\Auth\Contracts\PhoneCodeSender;
 use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
 use App\Modules\Auth\Support\RegistrationTicket;
 use App\Modules\Auth\Support\TelegramGatewaySender;
-use App\Modules\User\Enums\CustomerType;
 use App\Modules\User\Enums\Role;
 use App\Modules\User\Models\User;
 use Illuminate\Http\Client\Request;
@@ -56,27 +55,24 @@ function accountPayload(string $token, array $overrides = []): array
         'registration_token' => $token,
         'first_name' => 'Фирдавс',
         'last_name' => 'Рахимов',
-        'customer_type' => 'person',
         'email' => 'firdavs@gmail.com',
         'password' => 'Stroy2026!',
         'password_confirmation' => 'Stroy2026!',
     ], $overrides);
 }
 
-it('registers a client: name, phone, Telegram code, email and password', function () {
+it('registers a client: name, phone, Telegram code, email and password — always as a client', function () {
     $token = confirmPhone($this);
 
-    $response = $this->postJson('/api/v1/auth/register', accountPayload($token, ['customer_type' => 'company']))
+    $response = $this->postJson('/api/v1/auth/register', accountPayload($token))
         ->assertCreated()
         ->assertJsonPath('data.user.name', 'Фирдавс Рахимов')
         ->assertJsonPath('data.user.phone', '+992931234567')
-        ->assertJsonPath('data.user.customer_type', 'company')
         ->assertJsonPath('data.user.roles', ['client'])
         ->assertJsonStructure(['data' => ['token', 'expires_at']]);
 
     $user = User::query()->where('phone', '+992931234567')->sole();
     expect($user->hasRole(Role::Client))->toBeTrue()
-        ->and($user->customer_type)->toBe(CustomerType::Company)
         ->and($user->phone_verified_at)->not->toBeNull()
         ->and($user->email_verified_at)->toBeNull();
 
@@ -195,7 +191,6 @@ it('validates the account fields', function (array $payload, string $field) {
 })->with([
     'missing first name' => [['first_name' => ''], 'first_name'],
     'missing last name' => [['last_name' => ''], 'last_name'],
-    'unknown customer type' => [['customer_type' => 'alien'], 'customer_type'],
     'missing email' => [['email' => ''], 'email'],
     'invalid email' => [['email' => 'not-an-email'], 'email'],
     'missing pass' => [['registration_token' => ''], 'registration_token'],

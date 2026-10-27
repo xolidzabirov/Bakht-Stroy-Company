@@ -11,7 +11,6 @@ function registrationAttempt(object $test, array $overrides)
         'registration_token' => RegistrationTicket::issue('+992931234567'),
         'first_name' => 'Новый',
         'last_name' => 'Покупатель',
-        'customer_type' => 'person',
         'email' => 'new.client@gmail.com',
         'password' => 'Stroy2026!',
         'password_confirmation' => 'Stroy2026!',

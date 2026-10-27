@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Http\Requests;
 
 use App\Modules\Auth\DTO\RegisterData;
-use App\Modules\User\Enums\CustomerType;
 use App\Shared\Rules\NotCommonPassword;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 final class RegisterRequest extends FormRequest
@@ -33,12 +31,6 @@ final class RegisterRequest extends FormRequest
             'first_name' => ['required', 'string', 'min:2', 'max:50'],
             /** @example Рахимов */
             'last_name' => ['required', 'string', 'min:2', 'max:50'],
-            /**
-             * person — частное лицо, company — компания (строители, бригады; оптовые условия).
-             *
-             * @example person
-             */
-            'customer_type' => ['required', Rule::enum(CustomerType::class)],
             /**
              * Email для входа и чеков. Без кода — номер уже подтверждён в Telegram.
              *
@@ -75,7 +67,7 @@ final class RegisterRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['first_name' => 'имя', 'last_name' => 'фамилия', 'customer_type' => 'кто вы'];
+        return ['first_name' => 'имя', 'last_name' => 'фамилия'];
     }
 
     public function toData(): RegisterData
@@ -83,7 +75,6 @@ final class RegisterRequest extends FormRequest
         return new RegisterData(
             firstName: trim($this->string('first_name')->toString()),
             lastName: trim($this->string('last_name')->toString()),
-            customerType: $this->enum('customer_type', CustomerType::class) ?? CustomerType::Person,
             registrationToken: $this->string('registration_token')->toString(),
             email: $this->string('email')->toString(),
             password: $this->string('password')->toString(),

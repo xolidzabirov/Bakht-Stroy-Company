@@ -6,8 +6,8 @@
 export const AUTH_COOKIE = "bakht_token";
 export const USER_COOKIE = "bakht_user";
 
-/** Token lifetime on the backend (Sanctum): 30 days. */
-export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+/** Token lifetime on the backend (Sanctum): 24 hours, then the person signs in again. */
+export const SESSION_MAX_AGE = 60 * 60 * 24;
 
 /** Pages that need a signed-in user; guests are sent to /login?next=… */
 export const PROTECTED_PATHS = ["/account", "/cart", "/favorites", "/checkout"];

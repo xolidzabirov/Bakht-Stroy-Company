@@ -38,7 +38,6 @@ final class RegisterUser
                 'name' => $data->name(),
                 'email' => $data->email,
                 'phone' => $phone,
-                'customer_type' => $data->customerType,
                 'password' => $data->password,
             ]);
 

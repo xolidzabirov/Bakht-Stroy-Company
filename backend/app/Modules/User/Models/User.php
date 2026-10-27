@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\User\Models;
 
 use App\Modules\User\Database\Factories\UserFactory;
-use App\Modules\User\Enums\CustomerType;
 use App\Modules\User\Enums\Role;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -25,7 +24,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $name
  * @property string $email
  * @property string|null $phone
- * @property CustomerType $customer_type
  * @property string $locale
  * @property string $theme
  * @property Carbon|null $email_verified_at
@@ -37,7 +35,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static Builder<static> byEmail(string $email)
  */
 #[UseFactory(UserFactory::class)]
-#[Fillable(['name', 'email', 'phone', 'customer_type', 'password', 'locale', 'theme'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'locale', 'theme'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -57,7 +55,6 @@ class User extends Authenticatable
     protected $attributes = [
         'locale' => 'ru',
         'theme' => 'system',
-        'customer_type' => 'person',
     ];
 
     /**
@@ -70,7 +67,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
-            'customer_type' => CustomerType::class,
             'blocked_at' => 'datetime',
             'password' => 'hashed',
         ];

@@ -31,7 +31,6 @@ export function createAuthSchemas(t: Dictionary) {
     regName: z.object({
       first_name: z.string().trim().min(2, r.firstName).max(50),
       last_name: z.string().trim().min(2, r.lastName).max(50),
-      customer_type: z.enum(["person", "company"]),
     }),
     regPhone: z.object({ phone: z.string().regex(/^\d{9}$/, r.phone) }),
     regAccount: z
