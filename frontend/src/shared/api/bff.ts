@@ -6,15 +6,21 @@ import { env } from "@/shared/config/env";
  * Server side of the BFF: Route Handlers call Laravel on behalf of the browser.
  * Adds the token from the httpOnly cookie, the client IP (rate limits) and the device name (sessions list).
  */
-export async function callBackend(request: NextRequest, path: string, init: { method?: string; body?: string | null } = {}): Promise<Response> {
+export async function callBackend(
+  request: NextRequest,
+  path: string,
+  init: { method?: string; body?: string | ArrayBuffer | null; contentType?: string | null } = {},
+): Promise<Response> {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const forwardedFor = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip");
+  // JSON by default; uploads (multipart/form-data with its boundary) keep the browser's own type.
+  const contentType = init.body ? (init.contentType ?? "application/json") : null;
 
   return fetch(`${env.apiUrl}${path}`, {
     method: init.method ?? request.method,
     headers: {
       Accept: "application/json",
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(contentType ? { "Content-Type": contentType } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(forwardedFor ? { "X-Forwarded-For": forwardedFor } : {}),
       "Accept-Language": request.headers.get("accept-language") ?? "ru",

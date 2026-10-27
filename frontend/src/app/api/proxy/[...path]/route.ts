@@ -11,10 +11,11 @@ type Context = { params: Promise<{ path: string[] }> };
 async function handle(request: NextRequest, { params }: Context) {
   const { path } = await params;
   const target = `/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`;
-  const body = ["GET", "HEAD"].includes(request.method) ? null : await request.text();
+  // Raw bytes, so photos and documents reach Laravel intact.
+  const body = ["GET", "HEAD"].includes(request.method) ? null : await request.arrayBuffer();
 
   try {
-    const upstream = await callBackend(request, target, { body: body || null });
+    const upstream = await callBackend(request, target, { body: body?.byteLength ? body : null, contentType: request.headers.get("content-type") });
     const response = await relay(upstream);
 
     // The token expired or was revoked (logout on another device) — forget it here too.

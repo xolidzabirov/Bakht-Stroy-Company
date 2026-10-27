@@ -10,7 +10,7 @@ export const USER_COOKIE = "bakht_user";
 export const SESSION_MAX_AGE = 60 * 60 * 24;
 
 /** Pages that need a signed-in user; guests are sent to /login?next=… */
-export const PROTECTED_PATHS = ["/account", "/cart", "/favorites", "/checkout"];
+export const PROTECTED_PATHS = ["/account", "/cart", "/favorites", "/checkout", "/admin"];
 
 /** Pages a signed-in user does not need. */
 export const GUEST_ONLY_PATHS = ["/login", "/register", "/forgot-password"];

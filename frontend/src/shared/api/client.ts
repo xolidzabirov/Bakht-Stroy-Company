@@ -7,12 +7,14 @@ import { ApiError } from "./http";
  */
 export async function bff<T>(path: string, { method = "POST", body }: { method?: string; body?: unknown } = {}): Promise<T> {
   let response: Response;
+  // FormData (file uploads) sets its own multipart type with the boundary.
+  const isForm = body instanceof FormData;
 
   try {
     response = await fetch(path, {
       method,
-      headers: { Accept: "application/json", ...(body !== undefined ? { "Content-Type": "application/json" } : {}) },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      headers: { Accept: "application/json", ...(body !== undefined && !isForm ? { "Content-Type": "application/json" } : {}) },
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiError("Нет соединения с интернетом. Проверьте сеть и попробуйте ещё раз.", 0, "NETWORK_ERROR");
