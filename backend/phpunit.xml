@@ -36,6 +36,10 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="API_DOCS_PUBLIC" value="true"/>
         <env name="EMAIL_DNS_CHECK" value="false"/>
+        <env name="TELEGRAM_CODES_DRIVER" value="log"/>
+        <env name="TELEGRAM_BOT_TOKEN" value=""/>
+        <env name="TELEGRAM_GATEWAY_TOKEN" value=""/>
+        <env name="TELEGRAM_WEBHOOK_SECRET" value=""/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>

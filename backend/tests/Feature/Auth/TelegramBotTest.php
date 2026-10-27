@@ -19,7 +19,7 @@ beforeEach(function () {
         'services.telegram_bot.username' => 'BakhtStroyBot',
         'services.telegram_bot.webhook_secret' => 'secret-123',
     ]);
-    Http::fake(['api.telegram.org/*' => Http::response(['ok' => true, 'result' => true])]);
+    Http::fake(['https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => true])]);
 });
 
 function telegramMessage(array $message): array
@@ -77,7 +77,7 @@ it('sends a new number straight through Telegram Gateway when its token is set',
     Http::fake([
         '*/checkSendAbility' => Http::response(['ok' => true, 'result' => ['request_id' => 'req-9']]),
         '*/sendVerificationMessage' => Http::response(['ok' => true, 'result' => ['request_id' => 'req-9']]),
-        'api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
+        'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
     ]);
 
     $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
@@ -87,6 +87,19 @@ it('sends a new number straight through Telegram Gateway when its token is set',
 
     expect(sentToTelegram('sendVerificationMessage', fn (Request $r) => $r['phone_number'] === '+992931234567'))->toBeTrue()
         ->and(sentToTelegram('sendMessage'))->toBeFalse();
+});
+
+it('falls back to the bot link when Telegram Gateway has no money', function () {
+    config(['services.telegram_gateway.token' => 'gateway-token']);
+    Http::fake([
+        '*/checkSendAbility' => Http::response(['ok' => false, 'error' => 'BALANCE_NOT_ENOUGH']),
+        'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
+    ]);
+
+    $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
+        ->assertAccepted()
+        ->assertJsonPath('data.delivered', false)
+        ->assertJsonPath('data.bot_link', fn (string $link) => str_starts_with($link, 'https://t.me/BakhtStroyBot?start='));
 });
 
 it('does not accept someone else\'s contact card', function () {

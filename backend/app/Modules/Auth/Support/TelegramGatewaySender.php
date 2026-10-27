@@ -24,9 +24,15 @@ final class TelegramGatewaySender implements PhoneCodeSender
         $check = $this->call('checkSendAbility', ['phone_number' => $phone]);
 
         if (! ($check['ok'] ?? false)) {
-            Log::info('Telegram Gateway: cannot send to the number', ['phone' => $phone, 'error' => $check['error'] ?? null]);
+            $error = (string) ($check['error'] ?? 'unknown error');
+            Log::info('Telegram Gateway: cannot send to the number', ['phone' => $phone, 'error' => $error]);
 
-            throw new PhoneNotOnTelegramException;
+            // Only number problems are the person's business; no money, a bad token etc. are ours.
+            if (str_contains($error, 'PHONE_NUMBER')) {
+                throw new PhoneNotOnTelegramException;
+            }
+
+            throw new RuntimeException('Telegram Gateway refused: '.$error);
         }
 
         $sent = $this->call('sendVerificationMessage', [

@@ -8,7 +8,9 @@ use App\Modules\Auth\Contracts\PhoneCodeSender;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * Codes through @BakhtStroyBot (free). A bot cannot write first, so:
@@ -32,7 +34,12 @@ final class BotPhoneCodeSender implements PhoneCodeSender
         }
 
         if ($this->gateway !== null) {
-            return $this->gateway->send($phone, $code, $ttlMinutes);
+            try {
+                return $this->gateway->send($phone, $code, $ttlMinutes);
+            } catch (RuntimeException $exception) {
+                // Gateway is out of money or down — the bot still works, so offer it instead of an error.
+                Log::warning('Telegram Gateway failed, falling back to the bot: '.$exception->getMessage());
+            }
         }
 
         Cache::put(self::pendingKey($phone), Crypt::encryptString($code), now()->addMinutes($ttlMinutes));
