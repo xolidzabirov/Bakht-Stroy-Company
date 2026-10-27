@@ -38,6 +38,7 @@ export const routes = {
   accountOrder: (number: string) => `/account/orders/${number}`,
   accountAddresses: "/account/addresses",
   accountNotifications: "/account/notifications",
+  accountProfile: "/account/profile",
   accountSettings: "/account/settings",
   about: "/about",
   contacts: "/contacts",

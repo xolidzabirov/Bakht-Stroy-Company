@@ -389,7 +389,7 @@ export const en: Dictionary = {
     myOrders: "My orders",
   },
   acc: {
-    nav: { overview: "Overview", orders: "Orders", favorites: "Favorites", addresses: "Addresses", notifications: "Notifications", settings: "Settings", toSite: "Back to site", logout: "Sign out" },
+    nav: { overview: "Overview", profile: "Profile", orders: "Orders", favorites: "Favorites", addresses: "Addresses", notifications: "Notifications", settings: "Settings", toSite: "Back to site", logout: "Sign out" },
     overview: {
       hello: "Hello, {name}!",
       lead: "Your orders, addresses and settings.",
@@ -465,8 +465,10 @@ export const en: Dictionary = {
       emptyText: "Order news will appear here: confirmation, payment, delivery.",
       openOrder: "Open order",
     },
+    profile: { title: "Profile", since: "With us since {date}", verified: "Verified", noPhone: "No phone number", roles: { client: "Customer", manager: "Manager", admin: "Administrator" } },
     settings: {
       title: "Settings",
+      appearance: "Language and appearance", appearanceText: "Site language and light or dark theme are remembered on this device.",
       profile: "Profile",
       name: "Full name",
       save: "Save",

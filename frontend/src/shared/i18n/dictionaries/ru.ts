@@ -390,7 +390,7 @@ export const ru = {
     myOrders: "Мои заказы",
   },
   acc: {
-    nav: { overview: "Обзор", orders: "Заказы", favorites: "Избранное", addresses: "Адреса", notifications: "Уведомления", settings: "Настройки", toSite: "На сайт", logout: "Выйти" },
+    nav: { overview: "Обзор", profile: "Профиль", orders: "Заказы", favorites: "Избранное", addresses: "Адреса", notifications: "Уведомления", settings: "Настройки", toSite: "На сайт", logout: "Выйти" },
     overview: {
       hello: "Здравствуйте, {name}!",
       lead: "Здесь ваши заказы, адреса и настройки.",
@@ -466,8 +466,10 @@ export const ru = {
       emptyText: "Здесь появятся новости о ваших заказах: подтверждение, оплата, доставка.",
       openOrder: "Открыть заказ",
     },
+    profile: { title: "Профиль", since: "С нами с {date}", verified: "Подтверждён", noPhone: "Телефон не указан", roles: { client: "Покупатель", manager: "Менеджер", admin: "Администратор" } },
     settings: {
       title: "Настройки",
+      appearance: "Язык и оформление", appearanceText: "Язык сайта и светлая или тёмная тема — запоминаются на этом устройстве.",
       profile: "Профиль",
       name: "Имя и фамилия",
       save: "Сохранить",

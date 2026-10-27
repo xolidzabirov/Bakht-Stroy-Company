@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Heart, LayoutDashboard, MapPin, Package, Settings } from "lucide-react";
+import { Bell, Heart, LayoutDashboard, MapPin, Package, Settings, UserRound } from "lucide-react";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
@@ -16,6 +16,7 @@ export function AccountNav({ unread, variant }: { unread: number; variant: "side
 
   const items = [
     { href: routes.account, label: t.acc.nav.overview, icon: LayoutDashboard, exact: true },
+    { href: routes.accountProfile, label: t.acc.nav.profile, icon: UserRound },
     { href: routes.accountOrders, label: t.acc.nav.orders, icon: Package },
     { href: routes.favorites, label: t.acc.nav.favorites, icon: Heart },
     { href: routes.accountAddresses, label: t.acc.nav.addresses, icon: MapPin },
@@ -28,7 +29,7 @@ export function AccountNav({ unread, variant }: { unread: number; variant: "side
   if (variant === "bottom") {
     return (
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <ul className="grid grid-cols-6">
+        <ul className="grid grid-cols-7">
           {items.map(({ href, label, icon: Icon, exact, badge }) => (
             <li key={href}>
               <Link href={href} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold", isActive(href, exact) ? "text-foreground" : "text-muted-foreground")}>

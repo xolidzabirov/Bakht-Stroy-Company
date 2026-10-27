@@ -57,7 +57,7 @@ export function AccountAction() {
 
   const items = [
     { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
-    { href: routes.accountSettings, icon: UserRound, label: t.acc.settings.profile },
+    { href: routes.accountProfile, icon: UserRound, label: t.acc.nav.profile },
   ];
 
   return (

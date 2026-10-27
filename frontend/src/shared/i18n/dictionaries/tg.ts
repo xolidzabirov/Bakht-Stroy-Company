@@ -389,7 +389,7 @@ export const tg: Dictionary = {
     myOrders: "Фармоишҳои ман",
   },
   acc: {
-    nav: { overview: "Шарҳ", orders: "Фармоишҳо", favorites: "Интихобшуда", addresses: "Суроғаҳо", notifications: "Огоҳиҳо", settings: "Танзимот", toSite: "Ба сайт", logout: "Баромадан" },
+    nav: { overview: "Шарҳ", profile: "Профил", orders: "Фармоишҳо", favorites: "Интихобшуда", addresses: "Суроғаҳо", notifications: "Огоҳиҳо", settings: "Танзимот", toSite: "Ба сайт", logout: "Баромадан" },
     overview: {
       hello: "Ассалому алейкум, {name}!",
       lead: "Дар ин ҷо фармоишҳо, суроғаҳо ва танзимоти шумо.",
@@ -465,8 +465,10 @@ export const tg: Dictionary = {
       emptyText: "Дар ин ҷо хабарҳо оид ба фармоишҳо пайдо мешаванд: тасдиқ, пардохт, расонидан.",
       openOrder: "Кушодани фармоиш",
     },
+    profile: { title: "Профил", since: "Бо мо аз {date}", verified: "Тасдиқшуда", noPhone: "Телефон нишон дода нашудааст", roles: { client: "Харидор", manager: "Менеҷер", admin: "Администратор" } },
     settings: {
       title: "Танзимот",
+      appearance: "Забон ва намуд", appearanceText: "Забони сайт ва мавзӯи равшан ё торик — дар ин дастгоҳ нигоҳ дошта мешаванд.",
       profile: "Профил",
       name: "Ном ва насаб",
       save: "Нигоҳ доштан",
