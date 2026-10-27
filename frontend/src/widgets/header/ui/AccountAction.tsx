@@ -1,31 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LayoutDashboard, LogOut, Package, Settings, User } from "lucide-react";
+import { bff } from "@/shared/api/client";
+import type { CurrentUser } from "@/shared/api/session";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
+import { formatPhone } from "@/shared/lib/format";
 import { useSessionName } from "@/shared/lib/useSession";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/kit/dropdown-menu";
+
+const triggerClass = "flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 md:min-w-16";
 
 /**
- * "Войти" for guests, the first name for signed-in users. Pages stay cached: the name comes from
- * a readable cookie, the token itself stays httpOnly.
+ * Guests: "Войти". Signed-in users: the first name with a green dot; a click opens a menu with the profile,
+ * account links and sign out. Pages stay cached: the name comes from a readable cookie, details load on demand.
  */
 export function AccountAction() {
   const { t } = useI18n();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const name = useSessionName();
 
-  return (
-    <Link
-      href={name ? routes.account : routes.login}
-      aria-label={name ? fmt(t.header.accountOf, { name }) : t.header.login}
-      className="flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-surface-muted md:min-w-16"
-    >
-      <span className="relative">
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: async () => (await bff<{ data: CurrentUser }>("/api/proxy/auth/me", { method: "GET" })).data,
+    enabled: name !== null,
+    staleTime: 5 * 60_000,
+  });
+
+  if (!name) {
+    return (
+      <Link href={routes.login} aria-label={t.header.login} className={triggerClass}>
         <User className="size-[22px]" />
-        {name && <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-surface bg-success" />}
-      </span>
-      <span className="hidden max-w-20 truncate text-[11px] font-medium text-muted-foreground lg:block">{name ?? t.header.login}</span>
-    </Link>
+        <span className="hidden text-[11px] font-medium text-muted-foreground lg:block">{t.header.login}</span>
+      </Link>
+    );
+  }
+
+  const logout = async () => {
+    await bff("/api/auth/logout").catch(() => null);
+    queryClient.clear();
+    router.replace(routes.home);
+    router.refresh();
+  };
+
+  const items = [
+    { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
+    { href: routes.accountOrders, icon: Package, label: t.acc.orders.title },
+    { href: routes.accountSettings, icon: Settings, label: t.acc.nav.settings },
+  ];
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger aria-label={fmt(t.header.accountOf, { name })} className={triggerClass}>
+        <span className="relative">
+          <User className="size-[22px]" />
+          <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border-2 border-surface bg-success" />
+        </span>
+        <span className="hidden max-w-20 truncate text-[11px] font-medium text-muted-foreground lg:block">{name}</span>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" sideOffset={8} className="w-72 rounded-2xl p-2">
+        <DropdownMenuLabel className="flex items-center gap-3 p-2">
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-ink font-display text-lg font-extrabold text-brand ring-2 ring-brand ring-offset-2 ring-offset-popover">
+            {(me?.name ?? name).charAt(0)}
+          </span>
+          <span className="min-w-0">
+            <b className="block truncate text-sm">{me?.name ?? name}</b>
+            <span className="block truncate text-xs font-normal text-muted-foreground">{me ? (me.phone ? formatPhone(me.phone) : me.email) : "…"}</span>
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {items.map(({ href, icon: Icon, label }) => (
+          <DropdownMenuItem key={href} asChild className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 font-medium">
+            <Link href={href}>
+              <Icon className="size-4" />
+              {label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={logout} className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 font-medium text-destructive focus:bg-destructive/10 focus:text-destructive">
+          <LogOut className="size-4" />
+          {t.acc.nav.logout}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
