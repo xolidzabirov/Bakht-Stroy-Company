@@ -72,6 +72,23 @@ it('asks to open the bot for a new number and sends the code after the person sh
     $this->postJson('/api/v1/auth/register/phone/verify', ['phone' => '+992931234567', 'code' => $match[1]])->assertOk();
 });
 
+it('sends a new number straight through Telegram Gateway when its token is set', function () {
+    config(['services.telegram_gateway.token' => 'gateway-token']);
+    Http::fake([
+        '*/checkSendAbility' => Http::response(['ok' => true, 'result' => ['request_id' => 'req-9']]),
+        '*/sendVerificationMessage' => Http::response(['ok' => true, 'result' => ['request_id' => 'req-9']]),
+        'api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
+    ]);
+
+    $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
+        ->assertAccepted()
+        ->assertJsonPath('data.delivered', true)
+        ->assertJsonPath('data.bot_link', null);
+
+    expect(sentToTelegram('sendVerificationMessage', fn (Request $r) => $r['phone_number'] === '+992931234567'))->toBeTrue()
+        ->and(sentToTelegram('sendMessage'))->toBeFalse();
+});
+
 it('does not accept someone else\'s contact card', function () {
     app(HandleTelegramUpdate::class)->handle(telegramMessage(['contact' => ['phone_number' => '+992931234567', 'user_id' => 999]]));
 

@@ -13,12 +13,13 @@ use Illuminate\Support\Str;
 /**
  * Codes through @BakhtStroyBot (free). A bot cannot write first, so:
  * - the number was already shared with the bot → the code goes to that chat at once;
- * - not yet → the code waits; the person opens the bot (link), taps "Share my number",
+ * - not yet, and Telegram Gateway is configured → Gateway sends the code straight to the number (paid);
+ * - not yet, no Gateway → the code waits; the person opens the bot (link), taps "Share my number",
  *   Telegram proves the number is theirs, and the bot sends the waiting code (HandleTelegramUpdate).
  */
 final class BotPhoneCodeSender implements PhoneCodeSender
 {
-    public function __construct(private readonly TelegramBot $bot) {}
+    public function __construct(private readonly TelegramBot $bot, private readonly ?PhoneCodeSender $gateway = null) {}
 
     public function send(string $phone, string $code, int $ttlMinutes): PhoneCodeDelivery
     {
@@ -28,6 +29,10 @@ final class BotPhoneCodeSender implements PhoneCodeSender
             $this->bot->sendMessage((int) $chatId, self::codeMessage($code, $ttlMinutes), ['remove_keyboard' => true]);
 
             return PhoneCodeDelivery::delivered();
+        }
+
+        if ($this->gateway !== null) {
+            return $this->gateway->send($phone, $code, $ttlMinutes);
         }
 
         Cache::put(self::pendingKey($phone), Crypt::encryptString($code), now()->addMinutes($ttlMinutes));

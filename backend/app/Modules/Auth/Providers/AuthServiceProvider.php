@@ -23,13 +23,15 @@ final class AuthServiceProvider extends ModuleServiceProvider
     {
         $this->app->bind(TelegramBot::class, fn () => TelegramBot::fromConfig());
 
-        // Registration codes go to Telegram: through our bot, Telegram Gateway, or (development) the log.
+        // Registration codes go to Telegram: through our bot (+ Gateway for numbers the bot does not know yet),
+        // Telegram Gateway only, or (development) the log.
         $this->app->bind(PhoneCodeSender::class, function ($app) {
-            $gateway = config('services.telegram_gateway');
+            $config = config('services.telegram_gateway');
+            $gateway = filled($config['token'] ?? null) ? new TelegramGatewaySender((string) $config['token'], (string) $config['url']) : null;
 
-            return match ($gateway['driver'] ?? 'log') {
-                'bot' => filled(config('services.telegram_bot.token')) ? new BotPhoneCodeSender($app->make(TelegramBot::class)) : new LogPhoneCodeSender,
-                'gateway' => filled($gateway['token'] ?? null) ? new TelegramGatewaySender((string) $gateway['token'], (string) $gateway['url']) : new LogPhoneCodeSender,
+            return match ($config['driver'] ?? 'log') {
+                'bot' => filled(config('services.telegram_bot.token')) ? new BotPhoneCodeSender($app->make(TelegramBot::class), $gateway) : ($gateway ?? new LogPhoneCodeSender),
+                'gateway' => $gateway ?? new LogPhoneCodeSender,
                 default => new LogPhoneCodeSender,
             };
         });
