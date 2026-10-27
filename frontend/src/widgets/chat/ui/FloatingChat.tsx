@@ -6,7 +6,7 @@ import { useChatInfo } from "@/entities/chat/api/useChatInfo";
 import { chatPanel, useChatPanel } from "@/entities/chat/model/panel";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
-import { useSessionName } from "@/shared/lib/useSession";
+import { useMe } from "@/shared/api/useMe";
 import { ClientChat } from "./ClientChat";
 
 /**
@@ -16,9 +16,11 @@ import { ClientChat } from "./ClientChat";
  */
 export function FloatingChat() {
   const { t } = useI18n();
-  const signedIn = useSessionName() !== null;
+  // The shop team answers in the admin inbox, not from the customer window.
+  const { signedIn, isStaff, isLoading } = useMe();
+  const customer = signedIn && !isStaff && !isLoading;
   const { open } = useChatPanel();
-  const { data: info } = useChatInfo(signedIn, { silent: open });
+  const { data: info } = useChatInfo(customer, { silent: open });
   const [mounted, setMounted] = useState(false);
   const unread = info?.unread_count ?? 0;
 
@@ -32,7 +34,7 @@ export function FloatingChat() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  if (!signedIn) return null;
+  if (!customer) return null;
 
   return (
     <>

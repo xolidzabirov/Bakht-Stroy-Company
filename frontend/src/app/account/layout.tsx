@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
@@ -17,8 +19,16 @@ import { AccountNav } from "@/widgets/account-shell/ui/AccountNav";
  */
 export default async function AccountLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await requireUser(routes.account);
-  const [{ t }, dashboard] = await Promise.all([getI18n(), userFetch<{ data: { unread_notifications_count: number } }>("/me/dashboard")]);
-  const unread = dashboard.data.unread_notifications_count;
+  const staff = Boolean(user.is_staff);
+
+  // Managers and admins work in the admin panel; here they only keep their password and sessions.
+  if (staff && (await headers()).get("x-pathname") !== routes.accountSettings) redirect(routes.admin);
+
+  const [{ t }, dashboard] = await Promise.all([
+    getI18n(),
+    staff ? null : userFetch<{ data: { unread_notifications_count: number } }>("/me/dashboard"),
+  ]);
+  const unread = dashboard?.data.unread_notifications_count ?? 0;
 
   return (
     <div className="min-h-dvh bg-background">
@@ -50,7 +60,7 @@ export default async function AccountLayout({ children }: Readonly<{ children: R
                 <span className="block truncate text-xs text-muted-foreground">{user.phone ? formatPhone(user.phone) : user.email}</span>
               </span>
             </div>
-            <AccountNav unread={unread} variant="side" />
+            <AccountNav unread={unread} staff={staff} variant="side" />
             <LogoutButton />
           </div>
         </aside>
@@ -58,7 +68,7 @@ export default async function AccountLayout({ children }: Readonly<{ children: R
         <main className="min-w-0">{children}</main>
       </div>
 
-      <AccountNav unread={unread} variant="bottom" />
+      <AccountNav unread={unread} staff={staff} variant="bottom" />
     </div>
   );
 }

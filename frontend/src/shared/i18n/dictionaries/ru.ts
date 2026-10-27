@@ -53,6 +53,7 @@ export const ru = {
     about: "О компании",
     contacts: "Контакты",
     account: "Личный кабинет",
+    admin: "Админ-панель",
   },
   header: {
     homeAria: "Bakht Stroy — на главную",

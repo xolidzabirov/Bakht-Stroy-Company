@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Account\Actions;
 
 use App\Modules\Account\Exceptions\AccountHasActiveOrdersException;
+use App\Modules\Account\Exceptions\StaffAccountCannotBeDeletedException;
 use App\Modules\Cart\Models\CartItem;
 use App\Modules\Favorite\Models\Favorite;
 use App\Modules\Order\Enums\OrderStatus;
@@ -23,6 +24,10 @@ final class DeleteAccount
 {
     public function handle(User $user, string $password): void
     {
+        if ($user->isStaff()) {
+            throw new StaffAccountCannotBeDeletedException;
+        }
+
         if (! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages(['password' => 'Неверный пароль.']);
         }

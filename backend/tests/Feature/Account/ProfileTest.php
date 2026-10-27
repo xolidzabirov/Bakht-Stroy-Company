@@ -164,6 +164,16 @@ it('does not delete an account with active orders', function () {
         ->assertJsonPath('code', 'ACCOUNT_HAS_ACTIVE_ORDERS');
 });
 
+it('never lets an admin or a manager delete their own account', function (string $role) {
+    $staff = User::factory()->{$role}()->create(['password' => 'secret123']);
+
+    $this->withToken($staff->createToken('Phone')->plainTextToken)->deleteJson('/api/v1/me', ['password' => 'secret123'])
+        ->assertForbidden()
+        ->assertJsonPath('code', 'STAFF_ACCOUNT_CANNOT_BE_DELETED');
+
+    expect($staff->fresh()->trashed())->toBeFalse();
+})->with(['admin', 'manager']);
+
 it('lists devices and signs out a chosen one', function () {
     $laptop = $this->user->createToken('Laptop');
 

@@ -52,6 +52,7 @@ export const en: Dictionary = {
     about: "About us",
     contacts: "Contacts",
     account: "My account",
+    admin: "Admin panel",
   },
   header: {
     homeAria: "Bakht Stroy — home page",

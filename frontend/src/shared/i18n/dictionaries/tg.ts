@@ -52,6 +52,7 @@ export const tg: Dictionary = {
     about: "Дар бораи ширкат",
     contacts: "Тамос",
     account: "Кабинети шахсӣ",
+    admin: "Панели идоракунӣ",
   },
   header: {
     homeAria: "Bakht Stroy — ба саҳифаи асосӣ",

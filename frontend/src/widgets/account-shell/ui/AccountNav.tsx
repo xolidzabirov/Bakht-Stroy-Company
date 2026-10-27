@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Heart, LayoutDashboard, MapPin, MessageCircle, Package, Settings, UserRound } from "lucide-react";
+import { Bell, Heart, LayoutDashboard, MapPin, MessageCircle, Package, Settings, ShieldCheck, UserRound } from "lucide-react";
 import { useChatInfo } from "@/entities/chat/api/useChatInfo";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
@@ -11,21 +11,27 @@ import { cn } from "@/shared/lib/cn";
 /**
  * Account sections: a vertical list on desktop, a bottom tab bar on phones (like a mobile app).
  */
-export function AccountNav({ unread, variant }: { unread: number; variant: "side" | "bottom" }) {
+export function AccountNav({ unread, staff = false, variant }: { unread: number; staff?: boolean; variant: "side" | "bottom" }) {
   const { t } = useI18n();
   const pathname = usePathname();
-  const { data: chat } = useChatInfo(true, { silent: pathname === routes.accountChat });
+  const { data: chat } = useChatInfo(!staff, { silent: pathname === routes.accountChat });
 
-  const items = [
-    { href: routes.account, label: t.acc.nav.overview, icon: LayoutDashboard, exact: true },
-    { href: routes.accountProfile, label: t.acc.nav.profile, icon: UserRound },
-    { href: routes.accountOrders, label: t.acc.nav.orders, icon: Package },
-    { href: routes.accountChat, label: t.acc.nav.chat, icon: MessageCircle, badge: chat?.unread_count },
-    { href: routes.favorites, label: t.acc.nav.favorites, icon: Heart },
-    { href: routes.accountAddresses, label: t.acc.nav.addresses, icon: MapPin },
-    { href: routes.accountNotifications, label: t.acc.nav.notifications, icon: Bell, badge: unread },
-    { href: routes.accountSettings, label: t.acc.nav.settings, icon: Settings },
-  ];
+  // The shop team has no purchases here — only the way to the admin panel and their settings.
+  const items: { href: string; label: string; icon: typeof Settings; exact?: boolean; badge?: number }[] = staff
+    ? [
+        { href: routes.admin, label: t.nav.admin, icon: ShieldCheck },
+        { href: routes.accountSettings, label: t.acc.nav.settings, icon: Settings },
+      ]
+    : [
+        { href: routes.account, label: t.acc.nav.overview, icon: LayoutDashboard, exact: true },
+        { href: routes.accountProfile, label: t.acc.nav.profile, icon: UserRound },
+        { href: routes.accountOrders, label: t.acc.nav.orders, icon: Package },
+        { href: routes.accountChat, label: t.acc.nav.chat, icon: MessageCircle, badge: chat?.unread_count },
+        { href: routes.favorites, label: t.acc.nav.favorites, icon: Heart },
+        { href: routes.accountAddresses, label: t.acc.nav.addresses, icon: MapPin },
+        { href: routes.accountNotifications, label: t.acc.nav.notifications, icon: Bell, badge: unread },
+        { href: routes.accountSettings, label: t.acc.nav.settings, icon: Settings },
+      ];
 
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
 

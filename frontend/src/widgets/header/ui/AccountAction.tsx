@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, User, UserRound } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { LayoutDashboard, LogOut, Settings, ShieldCheck, User, UserRound } from "lucide-react";
 import { bff } from "@/shared/api/client";
-import type { CurrentUser } from "@/shared/api/session";
+import { useMe } from "@/shared/api/useMe";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { formatPhone } from "@/shared/lib/format";
+import { disconnectRealtime } from "@/shared/lib/realtime";
 import { useSessionName } from "@/shared/lib/useSession";
 import {
   DropdownMenu,
@@ -23,21 +24,15 @@ import {
 const triggerClass = "flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 md:min-w-16";
 
 /**
- * Guests: "Войти". Signed-in users: the first name with a green dot; a click opens a menu with the profile,
- * account links and sign out. Pages stay cached: the name comes from a readable cookie, details load on demand.
+ * Guests: "Войти". Signed-in users: the first name with a green dot; a click opens a menu.
+ * Customers get their account and profile; the shop team gets the admin panel and settings.
  */
 export function AccountAction() {
   const { t } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
   const name = useSessionName();
-
-  const { data: me } = useQuery({
-    queryKey: ["me"],
-    queryFn: async () => (await bff<{ data: CurrentUser }>("/api/proxy/auth/me", { method: "GET" })).data,
-    enabled: name !== null,
-    staleTime: 5 * 60_000,
-  });
+  const { data: me, isStaff } = useMe();
 
   if (!name) {
     return (
@@ -50,15 +45,21 @@ export function AccountAction() {
 
   const logout = async () => {
     await bff("/api/auth/logout").catch(() => null);
+    disconnectRealtime();
     queryClient.clear();
     router.replace(routes.home);
     router.refresh();
   };
 
-  const items = [
-    { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
-    { href: routes.accountProfile, icon: UserRound, label: t.acc.nav.profile },
-  ];
+  const items = isStaff
+    ? [
+        { href: routes.admin, icon: ShieldCheck, label: t.nav.admin },
+        { href: routes.accountSettings, icon: Settings, label: t.acc.nav.settings },
+      ]
+    : [
+        { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
+        { href: routes.accountProfile, icon: UserRound, label: t.acc.nav.profile },
+      ];
 
   return (
     <DropdownMenu>

@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { LoaderCircle, LogOut } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
+import { disconnectRealtime } from "@/shared/lib/realtime";
 import { useI18n } from "@/shared/i18n/client";
 import { Button } from "@/shared/ui";
 
@@ -16,6 +17,7 @@ export function LogoutButton() {
   const logout = () =>
     startTransition(async () => {
       await bff("/api/auth/logout").catch(() => null);
+      disconnectRealtime();
       router.replace(routes.home);
       router.refresh();
     });

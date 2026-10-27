@@ -22,7 +22,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(safeNext(request.nextUrl.searchParams.get("next"), "/account"), request.url));
   }
 
-  return NextResponse.next();
+  // Layouts read the path (e.g. the account sends the shop team to the admin panel).
+  const headers = new Headers(request.headers);
+  headers.set("x-pathname", pathname);
+
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {

@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Security and preferences: password, language and theme, devices, account removal. Profile data lives on /account/profile. */
 export default async function AccountSettingsPage() {
-  const [, { t }, sessions] = await Promise.all([requireUser(routes.accountSettings), getI18n(), userFetch<{ data: Session[] }>("/me/sessions")]);
+  const [user, { t }, sessions] = await Promise.all([requireUser(routes.accountSettings), getI18n(), userFetch<{ data: Session[] }>("/me/sessions")]);
   const s = t.acc.settings;
 
   return (
@@ -30,7 +30,8 @@ export default async function AccountSettingsPage() {
         </div>
       </section>
       <SessionsList sessions={sessions.data} />
-      <DeleteAccount />
+      {/* Staff accounts are never removed by their owner (the API refuses too). */}
+      {!user.is_staff && <DeleteAccount />}
     </div>
   );
 }
