@@ -54,3 +54,37 @@ export type Cart = {
   has_problems: boolean;
   can_checkout: boolean;
 };
+
+/** Saved delivery address of the user (/me/addresses). */
+export type Address = {
+  id: number;
+  title: string | null;
+  city: string;
+  street: string;
+  house: string;
+  apartment: string | null;
+  comment: string | null;
+  is_default: boolean;
+  full: string;
+};
+
+type Labeled<T extends string> = { value: T; label: string };
+
+/** Order as the API returns it after checkout and on the order page. */
+export type Order = {
+  id: number;
+  number: string;
+  status: Labeled<string>;
+  payment_method: Labeled<"cash" | "card_transfer" | "transfer">;
+  payment_status: Labeled<string>;
+  delivery_type: Labeled<"delivery" | "pickup">;
+  total: number;
+  subtotal: number;
+  delivery_price: number;
+  can_cancel: boolean;
+  created_at: string;
+  address: { full?: string; city?: string; street?: string; house?: string } | null;
+  customer: { name: string; phone: string; email: string };
+  comment: string | null;
+  items: { id: number; product_slug: string | null; name: string; unit: { label: string }; price: number; quantity: number; total: number; image: string | null }[];
+};

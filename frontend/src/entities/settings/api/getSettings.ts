@@ -6,7 +6,7 @@ import { site } from "@/shared/config/site";
  * Contacts, delivery and payment settings from the admin panel,
  * with the static company data as a fallback when the API is unavailable.
  */
-export async function getSettings(): Promise<StoreSettings["store"] & { delivery?: StoreSettings["delivery"] }> {
+export async function getSettings(): Promise<StoreSettings["store"] & { delivery?: StoreSettings["delivery"]; payment?: StoreSettings["payment"] }> {
   const response = await apiTry<{ data: StoreSettings }>("/settings/public", { revalidate: 600 });
 
   if (!response) {
@@ -22,5 +22,5 @@ export async function getSettings(): Promise<StoreSettings["store"] & { delivery
     };
   }
 
-  return { ...response.data.store, delivery: response.data.delivery };
+  return { ...response.data.store, delivery: response.data.delivery, payment: response.data.payment };
 }
