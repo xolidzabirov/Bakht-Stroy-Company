@@ -29,6 +29,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $phone_verified_at
  * @property Carbon|null $blocked_at
+ * @property Carbon|null $last_seen_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
@@ -68,6 +69,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'blocked_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
