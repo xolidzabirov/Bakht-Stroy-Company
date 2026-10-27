@@ -22,11 +22,12 @@ return [
     ],
 
     /*
-    | The administrator account, created by AdminSeeder (php artisan db:seed).
+    | The main administrator: php artisan admin:seed (also part of db:seed). Safe to run again.
     */
     'admin' => [
         'name' => env('ADMIN_NAME', 'Администратор'),
         'email' => env('ADMIN_EMAIL'),
+        'phone' => env('ADMIN_PHONE'),
         'password' => env('ADMIN_PASSWORD'),
     ],
 

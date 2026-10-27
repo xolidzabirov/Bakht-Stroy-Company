@@ -4,37 +4,25 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Database\Seeders;
 
-use App\Modules\User\Enums\Role;
-use App\Modules\User\Models\User;
+use App\Modules\User\Actions\EnsureAdminAccount;
 use Illuminate\Database\Seeder;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Creates (or updates) the single administrator from config/shop.php (ADMIN_* in .env).
+ * The main administrator from ADMIN_* in .env — the same as `php artisan admin:seed`.
  */
 class AdminSeeder extends Seeder
 {
-    public function run(): void
+    public function run(EnsureAdminAccount $ensureAdmin): void
     {
-        /** @var array{name: string, email: ?string, password: ?string} $config */
-        $config = config('shop.admin');
-
-        if (empty($config['email']) || empty($config['password'])) {
-            $this->command?->warn('AdminSeeder: set ADMIN_EMAIL and ADMIN_PASSWORD in .env — admin was not created.');
+        try {
+            $result = $ensureAdmin->handle((array) config('shop.admin'));
+        } catch (ValidationException $exception) {
+            $this->command?->warn('AdminSeeder: '.collect($exception->errors())->flatten()->first().' — администратор не создан.');
 
             return;
         }
 
-        $admin = User::query()->updateOrCreate(
-            ['email' => mb_strtolower(trim($config['email']))],
-            [
-                'name' => $config['name'],
-                'password' => $config['password'],
-                'email_verified_at' => now(),
-            ],
-        );
-
-        $admin->syncRoles([Role::Admin]);
-
-        $this->command?->info("AdminSeeder: admin {$admin->email} is ready.");
+        $this->command?->info("AdminSeeder: admin {$result['user']->email} is ready.");
     }
 }
