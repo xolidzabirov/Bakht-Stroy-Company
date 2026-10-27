@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Package, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, User, UserRound } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import type { CurrentUser } from "@/shared/api/session";
 import { routes } from "@/shared/config/site";
@@ -57,8 +57,7 @@ export function AccountAction() {
 
   const items = [
     { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
-    { href: routes.accountOrders, icon: Package, label: t.acc.orders.title },
-    { href: routes.accountSettings, icon: Settings, label: t.acc.nav.settings },
+    { href: routes.accountSettings, icon: UserRound, label: t.acc.settings.profile },
   ];
 
   return (
