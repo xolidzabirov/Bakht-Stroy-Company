@@ -19,7 +19,7 @@ final class TelegramGatewaySender implements PhoneCodeSender
 {
     public function __construct(private readonly string $token, private readonly string $baseUrl) {}
 
-    public function send(string $phone, string $code, int $ttlMinutes): void
+    public function send(string $phone, string $code, int $ttlMinutes): PhoneCodeDelivery
     {
         $check = $this->call('checkSendAbility', ['phone_number' => $phone]);
 
@@ -39,6 +39,8 @@ final class TelegramGatewaySender implements PhoneCodeSender
         if (! ($sent['ok'] ?? false)) {
             throw new RuntimeException('Telegram Gateway did not send the code: '.($sent['error'] ?? 'unknown error'));
         }
+
+        return PhoneCodeDelivery::delivered();
     }
 
     /**

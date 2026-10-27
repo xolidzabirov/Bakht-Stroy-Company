@@ -36,9 +36,17 @@ return [
     ],
 
     /*
-     * Registration codes to the phone's Telegram (https://core.telegram.org/gateway).
-     * driver: "gateway" — real messages (needs TELEGRAM_GATEWAY_TOKEN), "log" — the code goes to storage/logs (development).
+     * Registration codes to the phone's Telegram. TELEGRAM_CODES_DRIVER:
+     * "bot" — through @BakhtStroyBot (free; first time the person shares the number with the bot),
+     * "gateway" — Telegram Gateway API, straight to the number (paid, needs TELEGRAM_GATEWAY_TOKEN),
+     * "log" — the code goes to storage/logs (development without Telegram).
      */
+    'telegram_bot' => [
+        'token' => env('TELEGRAM_BOT_TOKEN'),
+        'username' => env('TELEGRAM_BOT_USERNAME', 'BakhtStroyBot'),
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
     'telegram_gateway' => [
         'driver' => env('TELEGRAM_CODES_DRIVER', 'log'),
         'token' => env('TELEGRAM_GATEWAY_TOKEN'),

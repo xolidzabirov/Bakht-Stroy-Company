@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Log;
  */
 final class LogPhoneCodeSender implements PhoneCodeSender
 {
-    public function send(string $phone, string $code, int $ttlMinutes): void
+    public function send(string $phone, string $code, int $ttlMinutes): PhoneCodeDelivery
     {
         Log::info("Telegram code for {$phone}: {$code} (valid {$ttlMinutes} min)");
+
+        return PhoneCodeDelivery::delivered();
     }
 }

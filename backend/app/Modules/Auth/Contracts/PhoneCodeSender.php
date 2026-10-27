@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Contracts;
 
 use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
+use App\Modules\Auth\Support\PhoneCodeDelivery;
 
 /**
  * Delivers a registration code to the phone number's Telegram account.
@@ -16,5 +17,5 @@ interface PhoneCodeSender
      *
      * @throws PhoneNotOnTelegramException when the number has no Telegram
      */
-    public function send(string $phone, string $code, int $ttlMinutes): void;
+    public function send(string $phone, string $code, int $ttlMinutes): PhoneCodeDelivery;
 }

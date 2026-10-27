@@ -2,7 +2,11 @@
 
 use App\Modules\Auth\Http\Controllers\AuthController;
 use App\Modules\Auth\Http\Controllers\PasswordResetController;
+use App\Modules\Auth\Http\Controllers\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
+
+// Messages to @BakhtStroyBot (production; locally — php artisan telegram:poll).
+Route::post('telegram/webhook', TelegramWebhookController::class)->name('telegram.webhook');
 
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('register/phone', [AuthController::class, 'sendPhoneCode'])->middleware('throttle:register-code')->name('register.phone');

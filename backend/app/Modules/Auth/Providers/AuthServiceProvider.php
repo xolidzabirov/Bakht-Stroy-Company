@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Providers;
 
+use App\Modules\Auth\Console\PollTelegram;
+use App\Modules\Auth\Console\SetTelegramWebhook;
 use App\Modules\Auth\Contracts\PhoneCodeSender;
+use App\Modules\Auth\Support\BotPhoneCodeSender;
 use App\Modules\Auth\Support\LogPhoneCodeSender;
+use App\Modules\Auth\Support\TelegramBot;
 use App\Modules\Auth\Support\TelegramGatewaySender;
 use App\Shared\Providers\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -17,18 +21,26 @@ final class AuthServiceProvider extends ModuleServiceProvider
 {
     public function register(): void
     {
-        // Registration codes go to Telegram; without a gateway token (development) — to the log.
-        $this->app->bind(PhoneCodeSender::class, function () {
-            $config = config('services.telegram_gateway');
+        $this->app->bind(TelegramBot::class, fn () => TelegramBot::fromConfig());
 
-            return ($config['driver'] ?? 'log') === 'gateway' && ! empty($config['token'])
-                ? new TelegramGatewaySender((string) $config['token'], (string) $config['url'])
-                : new LogPhoneCodeSender;
+        // Registration codes go to Telegram: through our bot, Telegram Gateway, or (development) the log.
+        $this->app->bind(PhoneCodeSender::class, function ($app) {
+            $gateway = config('services.telegram_gateway');
+
+            return match ($gateway['driver'] ?? 'log') {
+                'bot' => filled(config('services.telegram_bot.token')) ? new BotPhoneCodeSender($app->make(TelegramBot::class)) : new LogPhoneCodeSender,
+                'gateway' => filled($gateway['token'] ?? null) ? new TelegramGatewaySender((string) $gateway['token'], (string) $gateway['url']) : new LogPhoneCodeSender,
+                default => new LogPhoneCodeSender,
+            };
         });
     }
 
     protected function bootModule(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([PollTelegram::class, SetTelegramWebhook::class]);
+        }
+
         // Brute-force protection: 5 login attempts per minute for one email from one IP.
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
             ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));

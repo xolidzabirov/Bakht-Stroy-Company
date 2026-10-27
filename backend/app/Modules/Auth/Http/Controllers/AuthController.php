@@ -49,14 +49,22 @@ final class AuthController extends Controller
     public function sendPhoneCode(SendPhoneCodeRequest $request, SendPhoneCode $sendCode): JsonResponse
     {
         $phone = $request->string('phone')->toString();
-        $sendCode->handle($phone);
+        $delivery = $sendCode->handle($phone);
 
         return response()->json([
             'data' => [
                 /** @example Код отправлен в Telegram. */
-                'message' => 'Код отправлен в Telegram.',
+                'message' => $delivery->delivered ? 'Код отправлен в Telegram.' : 'Откройте бота Bakht Stroy в Telegram и поделитесь номером — бот пришлёт код.',
                 /** @example +992931234567 */
                 'phone' => $phone,
+                /** true — код уже в Telegram; false — откройте bot_link и поделитесь номером, бот пришлёт код. */
+                'delivered' => $delivery->delivered,
+                /**
+                 * Ссылка на @BakhtStroyBot (когда номер ещё не связан с ботом).
+                 *
+                 * @example https://t.me/BakhtStroyBot?start=Ab12Cd34
+                 */
+                'bot_link' => $delivery->botLink,
                 /** @example 15 */
                 'expires_in_minutes' => VerificationCodes::ttlMinutes(),
             ],

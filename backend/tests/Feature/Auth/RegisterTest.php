@@ -2,6 +2,7 @@
 
 use App\Modules\Auth\Contracts\PhoneCodeSender;
 use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
+use App\Modules\Auth\Support\PhoneCodeDelivery;
 use App\Modules\Auth\Support\RegistrationTicket;
 use App\Modules\Auth\Support\TelegramGatewaySender;
 use App\Modules\User\Enums\Role;
@@ -21,13 +22,15 @@ beforeEach(function () {
         /** @var list<string> */
         public array $withoutTelegram = [];
 
-        public function send(string $phone, string $code, int $ttlMinutes): void
+        public function send(string $phone, string $code, int $ttlMinutes): PhoneCodeDelivery
         {
             if (in_array($phone, $this->withoutTelegram, true)) {
                 throw new PhoneNotOnTelegramException;
             }
 
             $this->codes[$phone] = $code;
+
+            return PhoneCodeDelivery::delivered();
         }
     };
 

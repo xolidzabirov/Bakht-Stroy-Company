@@ -7,6 +7,7 @@ namespace App\Modules\Auth\Actions;
 use App\Modules\Auth\Contracts\PhoneCodeSender;
 use App\Modules\Auth\Exceptions\CodeRecentlySentException;
 use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
+use App\Modules\Auth\Support\PhoneCodeDelivery;
 use App\Modules\Auth\Support\VerificationCodes;
 
 /**
@@ -20,7 +21,7 @@ final class SendPhoneCode
      * @throws CodeRecentlySentException
      * @throws PhoneNotOnTelegramException
      */
-    public function handle(string $phone): void
+    public function handle(string $phone): PhoneCodeDelivery
     {
         $codes = VerificationCodes::phoneOwnership();
 
@@ -31,7 +32,7 @@ final class SendPhoneCode
         $code = $codes->issue($phone);
 
         try {
-            $this->sender->send($phone, $code, VerificationCodes::ttlMinutes());
+            return $this->sender->send($phone, $code, VerificationCodes::ttlMinutes());
         } catch (PhoneNotOnTelegramException $exception) {
             // Nothing was sent — let the person fix the number right away, without the resend pause.
             $codes->forget($phone);

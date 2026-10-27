@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ExternalLink, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
@@ -24,6 +24,9 @@ const TOTAL = 4;
 
 type Countdown = ReturnType<typeof useCountdown>;
 
+/** delivered — the code is already in Telegram; otherwise the person opens the bot (botLink) and shares the number. */
+type Delivery = { delivered: boolean; botLink: string | null };
+
 /**
  * Registration in 4 steps (like a phone setup wizard):
  * 1) first and last name — 2) Tajik phone → code to its Telegram — 3) the code → a pass for 30 min —
@@ -34,6 +37,7 @@ export function RegisterWizard({ next }: { next: string }) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState<RegNameValues>({ first_name: "", last_name: "" });
   const [phone, setPhone] = useState("");
+  const [delivery, setDelivery] = useState<Delivery>({ delivered: true, botLink: null });
   const [ticket, setTicket] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const countdown = useCountdown();
@@ -76,8 +80,9 @@ export function RegisterWizard({ next }: { next: string }) {
             initial={phone}
             countdown={countdown}
             onBack={() => go(1)}
-            onSent={(digits) => {
+            onSent={(digits, sent) => {
               setPhone(digits);
+              if (sent) setDelivery(sent);
               go(3);
             }}
           />
@@ -85,6 +90,8 @@ export function RegisterWizard({ next }: { next: string }) {
         {step === 3 && (
           <CodeStep
             phone={phone}
+            delivery={delivery}
+            onResent={setDelivery}
             countdown={countdown}
             onChange={() => go(2)}
             onConfirmed={(token) => {
@@ -194,11 +201,15 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
 
 /* ---------- 2. Phone ---------- */
 
-async function sendPhoneCode(digits: string) {
-  await bff("/api/proxy/auth/register/phone", { body: { phone: `+992${digits}` } });
+async function sendPhoneCode(digits: string): Promise<Delivery> {
+  const response = await bff<{ data: { delivered: boolean; bot_link: string | null } }>("/api/proxy/auth/register/phone", {
+    body: { phone: `+992${digits}` },
+  });
+
+  return { delivered: response.data.delivered, botLink: response.data.bot_link };
 }
 
-function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; countdown: Countdown; onBack: () => void; onSent: (digits: string) => void }) {
+function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; countdown: Countdown; onBack: () => void; onSent: (digits: string, delivery?: Delivery) => void }) {
   const { t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const schema = useMemo(() => createAuthSchemas(t).regPhone, [t]);
@@ -213,9 +224,9 @@ function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; co
     setFormError(null);
 
     try {
-      await sendPhoneCode(phone);
+      const sent = await sendPhoneCode(phone);
       countdown.start();
-      onSent(phone);
+      onSent(phone, sent);
     } catch (error) {
       // A code went to this number a moment ago — go on and wait for it.
       if (error instanceof ApiError && error.code === "CODE_RECENTLY_SENT") {
@@ -269,7 +280,21 @@ function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; co
 
 /* ---------- 3. Code from Telegram ---------- */
 
-function CodeStep({ phone, countdown, onChange, onConfirmed }: { phone: string; countdown: Countdown; onChange: () => void; onConfirmed: (token: string) => void }) {
+function CodeStep({
+  phone,
+  delivery,
+  onResent,
+  countdown,
+  onChange,
+  onConfirmed,
+}: {
+  phone: string;
+  delivery: Delivery;
+  onResent: (delivery: Delivery) => void;
+  countdown: Countdown;
+  onChange: () => void;
+  onConfirmed: (token: string) => void;
+}) {
   const { t } = useI18n();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -303,9 +328,10 @@ function CodeStep({ phone, countdown, onChange, onConfirmed }: { phone: string; 
     setNotice(null);
 
     try {
-      await sendPhoneCode(phone);
+      const sent = await sendPhoneCode(phone);
+      onResent(sent);
       countdown.start();
-      setNotice(t.reg.newCodeSent);
+      if (sent.delivered) setNotice(t.reg.newCodeSent);
     } catch (failure) {
       if (failure instanceof ApiError && failure.code === "CODE_RECENTLY_SENT") countdown.start(secondsFromMessage(failure.message) ?? 60);
       setError(failure instanceof ApiError ? failure.message : t.errors.generic);
@@ -325,7 +351,7 @@ function CodeStep({ phone, countdown, onChange, onConfirmed }: { phone: string; 
         title={t.reg.step3Title}
         lead={
           <>
-            {fmt(t.reg.step3Lead, { phone: formatPhone(`+992${phone}`) })}{" "}
+            {fmt(delivery.delivered ? t.reg.step3Lead : t.reg.step3LeadBot, { phone: formatPhone(`+992${phone}`) })}{" "}
             <button type="button" onClick={onChange} className="font-semibold text-foreground underline-offset-4 hover:underline">
               {t.reg.change}
             </button>
@@ -334,6 +360,25 @@ function CodeStep({ phone, countdown, onChange, onConfirmed }: { phone: string; 
       />
 
       {notice && <FormAlert tone="success">{notice}</FormAlert>}
+
+      {!delivery.delivered && delivery.botLink && (
+        <div className="rounded-2xl border border-primary/40 bg-brand-soft p-5">
+          <p className="flex items-center gap-2 font-bold">
+            <Send className="size-5 text-[#229ED9]" />
+            {t.reg.botTitle}
+          </p>
+          <p className="mt-1.5 text-sm text-muted-foreground">{t.reg.botText}</p>
+          <a
+            href={delivery.botLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-[#229ED9] px-5 text-sm font-semibold text-white transition hover:bg-[#1c8cc2]"
+          >
+            {t.reg.openBot}
+            <ExternalLink className="size-4" />
+          </a>
+        </div>
+      )}
 
       <OtpInput label={t.auth.code} value={code} onChange={setCode} onComplete={(value) => void verify(value)} invalid={Boolean(error)} disabled={pending} />
       {error && (
