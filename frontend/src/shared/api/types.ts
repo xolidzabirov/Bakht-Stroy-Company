@@ -15,6 +15,7 @@ export type Banner = Schemas["BannerResource"];
 export type AdminProduct = Schemas["AdminProductResource"];
 export type AdminOrder = Schemas["AdminOrderResource"] & { next_statuses: { value: string; label: string }[] };
 export type AdminUser = Schemas["AdminUserResource"];
+export type AdminNews = Schemas["AdminNewsResource"];
 
 /** GET /admin/stats */
 export type AdminStats = {
