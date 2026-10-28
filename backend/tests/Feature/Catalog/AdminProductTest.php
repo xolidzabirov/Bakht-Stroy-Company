@@ -148,6 +148,36 @@ it('uploads product images with webp previews and deletes them', function () {
     expect($product->refresh()->getMedia(Product::IMAGES_COLLECTION))->toHaveCount(1);
 });
 
+it('reorders product images and makes the first one the main', function () {
+    Storage::fake('public');
+    $product = Product::factory()->for($this->category)->create();
+    $other = Product::factory()->for($this->category)->create();
+
+    $ids = $this->withToken($this->token)
+        ->post("/api/v1/admin/products/{$product->id}/images", ['images' => [
+            UploadedFile::fake()->image('a.jpg', 100, 100),
+            UploadedFile::fake()->image('b.jpg', 100, 100),
+            UploadedFile::fake()->image('c.jpg', 100, 100),
+        ]])
+        ->json('data.images.*.id');
+    $foreign = $other->addMedia(UploadedFile::fake()->image('x.jpg', 100, 100))->toMediaCollection(Product::IMAGES_COLLECTION)->id;
+
+    $this->withToken($this->token)
+        ->patchJson("/api/v1/admin/products/{$product->id}/images/order", ['ids' => [$ids[2], $ids[0], $ids[1]]])
+        ->assertOk()
+        ->assertJsonPath('data.images.0.id', $ids[2])
+        ->assertJsonPath('data.images.2.id', $ids[1]);
+
+    // Every photo of this product, once, and nothing else.
+    foreach ([[$ids[0], $ids[1]], [$ids[0], $ids[1], $foreign], [$ids[0], $ids[0], $ids[1]]] as $bad) {
+        $this->withToken($this->token)
+            ->patchJson("/api/v1/admin/products/{$product->id}/images/order", ['ids' => $bad])
+            ->assertUnprocessable();
+    }
+
+    expect($product->refresh()->getFirstMedia(Product::IMAGES_COLLECTION)?->id)->toBe($ids[2]);
+});
+
 it('limits a product to 10 images', function () {
     Storage::fake('public');
     $product = Product::factory()->for($this->category)->create();

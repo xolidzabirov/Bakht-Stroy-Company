@@ -29,6 +29,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'r
     Route::get('products/low-stock', [AdminProductController::class, 'lowStock'])->name('products.low-stock');
     Route::patch('products/{product}/stock', [AdminProductController::class, 'updateStock'])->name('products.stock');
     Route::post('products/{product}/images', [ProductImageController::class, 'store'])->name('products.images.store');
+    Route::patch('products/{product}/images/order', [ProductImageController::class, 'reorder'])->name('products.images.reorder');
     Route::delete('products/{product}/images/{media}', [ProductImageController::class, 'destroy'])
         ->whereNumber('media')
         ->name('products.images.destroy');

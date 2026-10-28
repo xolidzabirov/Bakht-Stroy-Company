@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import type { Image } from "@/shared/api/types";
@@ -15,7 +15,7 @@ const MAX_IMAGES = 10;
 const MAX_SIZE = 5 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-/** Product photos: drop or pick several at once, the first one is the main photo, delete one by one. */
+/** Product photos: drop or pick several at once, reorder by dragging or the arrows (the first is the main photo), delete one by one. */
 export function ProductImages({ productId, images }: { productId: number; images: Image[] }) {
   const { t } = useI18n();
   const p = t.admin.product;
@@ -45,6 +45,27 @@ export function ProductImages({ productId, images }: { productId: number; images
     }
   };
 
+  // Order shown while a reorder is saving / until the refreshed list arrives; ignored once the set of photos changes.
+  const [draft, setDraft] = useState<number[] | null>(null);
+  const [dragged, setDragged] = useState<number | null>(null);
+  const sameSet = draft !== null && draft.length === images.length && images.every((image) => draft.includes(image.id));
+  const shown = sameSet ? draft.map((id) => images.find((image) => image.id === id)!) : images;
+
+  const reorder = async (from: number, to: number) => {
+    if (from === to || to < 0 || to >= shown.length) return;
+    const ids = shown.map((image) => image.id);
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    setDraft(ids);
+    try {
+      await bff(`/api/proxy/admin/products/${productId}/images/order`, { method: "PATCH", body: { ids } });
+      toast.success(p.photoOrderSaved);
+      router.refresh();
+    } catch (error) {
+      setDraft(null);
+      toast.error(error instanceof ApiError ? error.message : t.errors.generic);
+    }
+  };
+
   const remove = async (mediaId: number) => {
     setDeleting(mediaId);
     try {
@@ -62,12 +83,59 @@ export function ProductImages({ productId, images }: { productId: number; images
       <h2 className="text-base font-extrabold">{p.photos}</h2>
       <p className="mb-4 mt-1 text-xs text-muted-foreground">{fmt(p.photosHint, { count: MAX_IMAGES })}</p>
 
-      {images.length > 0 && (
+      {shown.length > 0 && (
         <ul className="mb-3 grid grid-cols-3 gap-2">
-          {images.map((image, index) => (
-            <li key={image.id} className="group relative aspect-square overflow-hidden rounded-xl bg-muted">
+          {shown.map((image, index) => (
+            <li
+              key={image.id}
+              draggable={shown.length > 1}
+              onDragStart={(event) => {
+                setDragged(index);
+                event.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(event) => {
+                if (dragged === null) return;
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onDrop={(event) => {
+                if (dragged === null) return;
+                event.preventDefault();
+                event.stopPropagation();
+                void reorder(dragged, index);
+                setDragged(null);
+              }}
+              onDragEnd={() => setDragged(null)}
+              className={cn(
+                "group relative aspect-square overflow-hidden rounded-xl bg-muted",
+                shown.length > 1 && "cursor-grab active:cursor-grabbing",
+                dragged === index && "opacity-40",
+              )}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.thumb} alt="" className="size-full object-cover" />
+              <img src={image.thumb} alt="" draggable={false} className="size-full object-cover" />
+              {shown.length > 1 && (
+                <div className="absolute inset-x-1.5 bottom-1.5 flex justify-between opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => void reorder(index, index - 1)}
+                    disabled={index === 0}
+                    aria-label={p.movePhotoBack}
+                    className="grid size-7 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:invisible"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void reorder(index, index + 1)}
+                    disabled={index === shown.length - 1}
+                    aria-label={p.movePhotoForward}
+                    className="grid size-7 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80 disabled:invisible"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+                </div>
+              )}
               {index === 0 && <span className="absolute left-1.5 top-1.5 rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-brand">{p.mainPhoto}</span>}
               <button
                 type="button"

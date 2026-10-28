@@ -1111,6 +1111,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/products/{product}/images/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Изменить порядок фото товара
+         * @description Передаются все фото товара в новом порядке; первое становится главным.
+         */
+        patch: operations["admin.products.images.reorder"];
+        trace?: never;
+    };
     "/admin/products/{product}/images/{media}": {
         parameters: {
             query?: never;
@@ -1310,6 +1330,26 @@ export interface paths {
          * @description С покупателем, товарами, историей статусов (кто менял) и списком доступных следующих статусов.
          */
         get: operations["admin.orders.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/orders/number/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Заказ по номеру
+         * @description То же, что «Заказ», но по номеру, который видят покупатель и менеджер (BS-000025).
+         */
+        get: operations["admin.orders.show-by-number"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2706,6 +2746,11 @@ export interface components {
                 id: number;
                 sort_order: number;
             }[];
+        };
+        /** ReorderProductImagesRequest */
+        ReorderProductImagesRequest: {
+            /** @description Все фото товара в новом порядке: [12, 9, 15]. Первое станет главным. */
+            ids: number[];
         };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
@@ -7572,6 +7617,95 @@ export interface operations {
             };
         };
     };
+    "admin.products.images.reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product ID */
+                product: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderProductImagesRequest"];
+            };
+        };
+        responses: {
+            /** @description `AdminProductResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminProductResource"] & Record<string, never>;
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "admin.products.images.destroy": {
         parameters: {
             query?: never;
@@ -8941,6 +9075,58 @@ export interface operations {
                         message: string;
                         /** @example NOT_FOUND */
                         code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.orders.show-by-number": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AdminOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
                     };
                 };
             };
