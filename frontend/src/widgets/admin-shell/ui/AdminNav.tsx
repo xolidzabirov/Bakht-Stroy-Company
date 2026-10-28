@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Boxes, FolderTree, LayoutDashboard, Menu, MessagesSquare, Package, Settings, Store, Users } from "lucide-react";
+import { Boxes, FolderTree, GalleryHorizontalEnd, Inbox, LayoutDashboard, Menu, MessagesSquare, Newspaper, Package, Settings, SlidersHorizontal, Store, Users } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
@@ -31,13 +31,19 @@ function useBadges() {
     refetchInterval: interval,
   });
 
-  return { awaiting: awaiting ?? 0, unread: unread ?? 0 };
+  const { data: letters } = useQuery({
+    queryKey: ["admin-badge-messages"],
+    queryFn: async () => (await bff<{ meta: { unread_count: number } }>("/api/proxy/admin/messages?unread=1&per_page=1", { method: "GET" })).meta.unread_count,
+    refetchInterval: interval,
+  });
+
+  return { awaiting: awaiting ?? 0, unread: unread ?? 0, letters: letters ?? 0 };
 }
 
 function useItems(isAdmin: boolean): Item[] {
   const { t } = useI18n();
   const n = t.admin.nav;
-  const { awaiting, unread } = useBadges();
+  const { awaiting, unread, letters } = useBadges();
 
   return [
     { href: routes.admin, label: n.dashboard, icon: LayoutDashboard, exact: true },
@@ -45,7 +51,15 @@ function useItems(isAdmin: boolean): Item[] {
     { href: routes.adminProducts, label: n.products, icon: Boxes },
     { href: routes.adminCategories, label: n.categories, icon: FolderTree },
     { href: routes.adminChats, label: n.chats, icon: MessagesSquare, badge: unread },
-    ...(isAdmin ? [{ href: routes.adminUsers, label: n.users, icon: Users }] : []),
+    { href: routes.adminNews, label: n.news, icon: Newspaper },
+    { href: routes.adminBanners, label: n.banners, icon: GalleryHorizontalEnd },
+    { href: routes.adminMessages, label: n.messages, icon: Inbox, badge: letters },
+    ...(isAdmin
+      ? [
+          { href: routes.adminUsers, label: n.users, icon: Users },
+          { href: routes.adminSettings, label: n.storeSettings, icon: SlidersHorizontal },
+        ]
+      : []),
   ];
 }
 
