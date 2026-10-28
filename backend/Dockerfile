@@ -1,17 +1,17 @@
-# Laravel API for production (see docs/DEPLOY.md).
-#   web    — nginx + PHP-FPM on :8080 (runs migrations, storage:link and caches on start)
-#   worker — the same code for queue:work / reverb:start / schedule:work
+# Laravel API for production (see docs/DEPLOY.md, docs/DEPLOY-FREE.md).
+#   web    — nginx + PHP-FPM on :8080 (runs migrations, storage:link and caches on start) — the default (last) stage
+#   worker — the same image for queue:work / reverb:start / schedule:work (docker-compose sets the command)
+# PHP extensions are compiled once in "base" and shared by every stage (builds on small servers take long).
 
-ARG PHP_EXTENSIONS="intl gd exif bcmath"
-
-# ---------- code + composer packages (no dev tools) ----------
-FROM serversideup/php:8.4-cli AS app
-ARG PHP_EXTENSIONS
+# ---------- PHP with the extensions the shop needs ----------
+FROM serversideup/php:8.4-fpm-nginx AS base
 USER root
-RUN install-php-extensions ${PHP_EXTENSIONS}
+RUN install-php-extensions intl gd exif bcmath
 USER www-data
 WORKDIR /var/www/html
 
+# ---------- code + composer packages (no dev tools) ----------
+FROM base AS app
 COPY --chown=www-data:www-data composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress
 
@@ -24,20 +24,13 @@ ENV AUTORUN_ENABLED=false
 CMD ["php", "artisan", "queue:work", "--tries=3", "--max-time=3600"]
 
 # ---------- HTTP: nginx + PHP-FPM ----------
-FROM serversideup/php:8.4-fpm-nginx AS web
-ARG PHP_EXTENSIONS
-USER root
-RUN install-php-extensions ${PHP_EXTENSIONS}
-USER www-data
-
+FROM app AS web
 ENV AUTORUN_ENABLED=true \
     AUTORUN_LARAVEL_MIGRATION=true \
     AUTORUN_LARAVEL_STORAGE_LINK=true \
     PHP_OPCACHE_ENABLE=1 \
     PHP_UPLOAD_MAX_FILE_SIZE=60M \
     PHP_POST_MAX_SIZE=60M
-
-COPY --from=app --chown=www-data:www-data /var/www/html /var/www/html
 
 # Start-up hook after migrations: admin + first data when SHOP_BOOTSTRAP=true (servers without a console).
 USER root
