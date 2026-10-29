@@ -36,8 +36,10 @@ export function LoginForm({ next, notice }: Props) {
     setFormError(null);
 
     try {
-      await bff("/api/auth/login", { body: values });
-      router.replace(next);
+      const { data } = await bff<{ data: { user: { is_staff?: boolean } } }>("/api/auth/login", { body: values });
+      // The shop team works in the admin panel: without a specific page to return to, go straight there.
+      const staffHome = data.user.is_staff && (next === routes.home || next.startsWith(routes.account));
+      router.replace(staffHome ? routes.admin : next);
       router.refresh();
     } catch (error) {
       setFormError(applyApiErrors(error, setError, ["email", "password"], t.errors));
