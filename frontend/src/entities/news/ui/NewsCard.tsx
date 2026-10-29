@@ -26,7 +26,7 @@ export async function NewsCard({ news }: { news: NewsItem }) {
           />
         )}
         <Badge tone={news.type.value === "promo" ? "brand" : "dark"} className="absolute left-3 top-3">
-          {news.type.label}
+          {t.news.types[news.type.value] ?? news.type.label}
         </Badge>
       </div>
       <div className="flex flex-1 flex-col p-5">

@@ -1,14 +1,17 @@
 import { BadgePercent, Building2, Truck, Warehouse } from "lucide-react";
 import { getI18n } from "@/shared/i18n/server";
 import { Container } from "@/shared/ui";
+import { SectionHeading } from "@/shared/ui/SectionHeading";
 
 const icons = [Warehouse, Truck, BadgePercent, Building2];
 
-export async function Advantages() {
+/** Four reasons to buy here — on the home page (no heading) and on /about (with one). */
+export async function Advantages({ title }: { title?: string } = {}) {
   const { t } = await getI18n();
 
   return (
-    <Container className="mt-14">
+    <Container className={title ? "mt-16" : "mt-14"}>
+      {title && <SectionHeading title={title} />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {t.advantages.map(({ title, text }, i) => {
           const Icon = icons[i];

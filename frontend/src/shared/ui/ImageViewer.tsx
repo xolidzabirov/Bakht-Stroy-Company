@@ -2,12 +2,16 @@
 
 import { useEffect } from "react";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
-import type { ChatAttachment } from "@/entities/chat/model/types";
 import { useI18n } from "@/shared/i18n/client";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/kit/dialog";
 
-/** Photos from a message on a dark full-screen backdrop: arrows / keyboard to flip, download the original. */
-export function ImageViewer({ images, index, onIndex, onClose }: { images: ChatAttachment[]; index: number; onIndex: (index: number) => void; onClose: () => void }) {
+export type ViewerImage = { url: string; name: string };
+
+/**
+ * Photos on a dark full-screen backdrop: arrows / keyboard to flip, download the original.
+ * Used by the chat (photos in a message) and the news gallery.
+ */
+export function ImageViewer({ images, index, onIndex, onClose }: { images: ViewerImage[]; index: number; onIndex: (index: number) => void; onClose: () => void }) {
   const { t } = useI18n();
   const image = images[index];
   const go = (step: number) => onIndex((index + step + images.length) % images.length);
@@ -36,20 +40,20 @@ export function ImageViewer({ images, index, onIndex, onClose }: { images: ChatA
             {image.name}
             {images.length > 1 && <span className="ml-2 opacity-70">{`${index + 1} / ${images.length}`}</span>}
           </span>
-          <a href={image.url} download={image.name} target="_blank" rel="noopener noreferrer" aria-label={t.chat.file} className="grid size-10 place-items-center rounded-full hover:bg-white/15">
+          <a href={image.url} download={image.name} target="_blank" rel="noopener noreferrer" aria-label={t.common.download} className="grid size-10 place-items-center rounded-full hover:bg-white/15">
             <Download className="size-5" />
           </a>
-          <button type="button" onClick={onClose} aria-label={t.chat.close} className="grid size-10 place-items-center rounded-full hover:bg-white/15">
+          <button type="button" onClick={onClose} aria-label={t.common.close} className="grid size-10 place-items-center rounded-full hover:bg-white/15">
             <X className="size-5" />
           </button>
         </div>
 
         {images.length > 1 && (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="←" className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25">
+            <button type="button" onClick={() => go(-1)} aria-label={t.common.back} className="absolute left-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25">
               <ChevronLeft className="size-6" />
             </button>
-            <button type="button" onClick={() => go(1)} aria-label="→" className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25">
+            <button type="button" onClick={() => go(1)} aria-label={t.common.forward} className="absolute right-3 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25">
               <ChevronRight className="size-6" />
             </button>
           </>

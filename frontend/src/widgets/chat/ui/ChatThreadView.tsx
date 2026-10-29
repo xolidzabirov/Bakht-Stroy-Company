@@ -13,7 +13,7 @@ import { Button } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 import { dayLabel, sameDay } from "../lib/format";
 import { acceptFiles, Composer, type ComposerLimits } from "./Composer";
-import { ImageViewer } from "./ImageViewer";
+import { ImageViewer } from "@/shared/ui/ImageViewer";
 import { MessageBubble } from "./MessageBubble";
 
 type Props = {
