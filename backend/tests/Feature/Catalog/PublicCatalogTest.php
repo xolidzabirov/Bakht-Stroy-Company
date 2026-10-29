@@ -116,7 +116,11 @@ it('shows a product page and counts views', function () {
         ->assertJsonPath('data.category.parent.slug', 'tsement-i-smesi')
         ->assertJsonStructure(['data' => ['description', 'specs', 'images']]);
 
-    $this->getJson('/api/v1/products/tsement-m500');
+    expect($this->m500->refresh()->views_count)->toBe(0);
+
+    $this->postJson('/api/v1/products/tsement-m500/view')->assertNoContent();
+    $this->postJson('/api/v1/products/tsement-m500/view')->assertNoContent();
+    $this->postJson('/api/v1/products/no-such-product/view')->assertNotFound();
 
     expect($this->m500->refresh()->views_count)->toBe(2);
 });

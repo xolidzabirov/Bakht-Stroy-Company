@@ -15,6 +15,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[Group('Новости', weight: 7)]
@@ -62,7 +63,7 @@ final class NewsController extends Controller
      * Новость
      *
      * Полный текст, галерея, видео, товары из новости, предыдущая / следующая и похожие новости.
-     * Каждый просмотр увеличивает счётчик.
+     * Просмотр считает отдельный запрос `POST /news/{slug}/view`, поэтому страницу можно кэшировать.
      */
     public function show(string $slug): NewsResource
     {
@@ -75,8 +76,6 @@ final class NewsController extends Controller
             throw new NotFoundHttpException;
         }
 
-        News::query()->whereKey($news->id)->toBase()->increment('views_count');
-
         $resource = NewsResource::make($news);
         $resource->around = [
             'previous' => $this->neighbour($news, older: true),
@@ -87,6 +86,22 @@ final class NewsController extends Controller
         ];
 
         return $resource;
+    }
+
+    /**
+     * Засчитать просмотр новости
+     *
+     * Сайт отправляет его из браузера, когда новость открыта.
+     */
+    public function view(string $slug): Response
+    {
+        $updated = News::query()->published()->where('slug', $slug)->toBase()->increment('views_count');
+
+        if ($updated === 0) {
+            throw new NotFoundHttpException;
+        }
+
+        return response()->noContent();
     }
 
     private function neighbour(News $news, bool $older): ?News

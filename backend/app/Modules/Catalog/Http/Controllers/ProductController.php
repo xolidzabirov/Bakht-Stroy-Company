@@ -12,6 +12,7 @@ use App\Modules\Catalog\Queries\ProductQuery;
 use App\Shared\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[Group('Каталог', weight: 2)]
@@ -34,7 +35,8 @@ final class ProductController extends Controller
     /**
      * Товар
      *
-     * Страница товара по slug: фото, характеристики, категория. Каждый просмотр увеличивает счётчик популярности.
+     * Страница товара по slug: фото, характеристики, категория. Просмотр считает отдельный запрос `POST /products/{slug}/view`,
+     * поэтому страницу можно кэшировать.
      */
     public function show(Product $product): ProductResource
     {
@@ -44,10 +46,24 @@ final class ProductController extends Controller
             throw new NotFoundHttpException;
         }
 
+        return ProductResource::make($product);
+    }
+
+    /**
+     * Засчитать просмотр товара
+     *
+     * Сайт отправляет его из браузера, когда страница товара открыта. Счётчик влияет на сортировку «популярные».
+     */
+    public function view(Product $product): Response
+    {
+        if (! $product->isVisible()) {
+            throw new NotFoundHttpException;
+        }
+
         // Without touching updated_at.
         Product::query()->whereKey($product->id)->toBase()->increment('views_count');
 
-        return ProductResource::make($product);
+        return response()->noContent();
     }
 
     /**

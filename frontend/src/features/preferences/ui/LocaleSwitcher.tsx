@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState } from "react";
 import { Check, Globe } from "lucide-react";
 import { localeNames, locales, type Locale } from "@/shared/i18n/config";
 import { useI18n } from "@/shared/i18n/client";
@@ -11,18 +10,18 @@ import { saveLocale } from "../model/preferences";
 
 /**
  * 🌐 RU / TJ / EN (shadcn/ui dropdown). The choice goes to a cookie for a year;
- * the server re-renders the page in the new language.
+ * the page reloads in the new language (every language is a separate prerendered page).
  */
 export function LocaleSwitcher({ className }: { className?: string }) {
   const { locale, t } = useI18n();
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
   const choose = (next: Locale) => {
     if (next === locale) return;
 
     saveLocale(next);
-    startTransition(() => router.refresh());
+    setPending(true);
+    window.location.reload();
   };
 
   return (

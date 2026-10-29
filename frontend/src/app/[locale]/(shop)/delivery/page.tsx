@@ -3,7 +3,7 @@ import { Banknote, Building2, CalendarClock, Check, Clock, CreditCard, MapPin, N
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatMoney } from "@/shared/lib/format";
 import { mapLinks } from "@/shared/lib/maps";
 import { Container } from "@/shared/ui";
@@ -13,13 +13,17 @@ import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 const paymentIcons = { cash: Banknote, card_transfer: CreditCard, transfer: Building2 } as const;
 const STATUS_FLOW = ["new", "confirmed", "assembling", "delivering", "completed"] as const;
 
-export async function generateMetadata(): Promise<Metadata> {
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await setLocaleFrom(params);
   const { t } = await getI18n();
 
   return { title: t.meta.delivery, description: t.meta.deliveryDescription, alternates: { canonical: routes.delivery } };
 }
 
-export default async function DeliveryPage() {
+export default async function DeliveryPage({ params }: Props) {
+  await setLocaleFrom(params);
   const [settings, { t, locale }] = await Promise.all([getSettings(), getI18n()]);
   const { delivery, payment } = settings;
   const pickupAddress = delivery?.pickup_address || settings.address;

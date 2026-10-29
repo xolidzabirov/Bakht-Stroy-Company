@@ -63,7 +63,14 @@ it('shows a news page with products, neighbours and related news', function () {
         ->assertJsonCount(2, 'data.related')
         ->assertJsonPath('data.meta.title', 'Акция на кирпич');
 
-    expect($news->refresh()->views_count)->toBe(1);
+    // Opening the post does not count — the site sends a separate view request.
+    expect($news->refresh()->views_count)->toBe(0);
+
+    $this->postJson("/api/v1/news/{$news->slug}/view")->assertNoContent();
+    $this->postJson("/api/v1/news/{$news->slug}/view")->assertNoContent();
+    $this->postJson('/api/v1/news/no-such-post/view')->assertNotFound();
+
+    expect($news->refresh()->views_count)->toBe(2);
 });
 
 it('hides drafts, scheduled and deleted news', function () {

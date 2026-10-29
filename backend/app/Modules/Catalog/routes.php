@@ -15,6 +15,7 @@ Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->n
 
 Route::get('products', [ProductController::class, 'index'])->name('products.index');
 Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+Route::post('products/{product:slug}/view', [ProductController::class, 'view'])->middleware('throttle:60,1')->name('products.view');
 Route::get('products/{product:slug}/related', [ProductController::class, 'related'])->name('products.related');
 
 /*

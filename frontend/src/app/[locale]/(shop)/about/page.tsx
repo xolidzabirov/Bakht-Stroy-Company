@@ -4,7 +4,7 @@ import { getCategories } from "@/entities/category/api/getCategories";
 import { getProducts } from "@/entities/product/api/getProducts";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes, site } from "@/shared/config/site";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { ButtonLink, Container } from "@/shared/ui";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
@@ -15,13 +15,17 @@ import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 
 const serviceIcons = [Truck, Construction, Factory];
 
-export async function generateMetadata(): Promise<Metadata> {
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await setLocaleFrom(params);
   const { t } = await getI18n();
 
   return { title: t.meta.about, description: t.meta.aboutDescription, alternates: { canonical: routes.about } };
 }
 
-export default async function AboutPage() {
+export default async function AboutPage({ params }: Props) {
+  await setLocaleFrom(params);
   const [categories, products, settings, { t }] = await Promise.all([getCategories(), getProducts({ per_page: 1 }), getSettings(), getI18n()]);
   const productsTotal = products?.meta.total ?? 0;
 

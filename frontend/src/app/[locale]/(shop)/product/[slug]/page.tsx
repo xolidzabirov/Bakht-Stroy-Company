@@ -5,16 +5,23 @@ import { getSettings } from "@/entities/settings/api/getSettings";
 import { env } from "@/shared/config/env";
 import { routes } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatMoney } from "@/shared/lib/format";
 import { Container } from "@/shared/ui";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
+import { TrackView } from "@/shared/ui/TrackView";
 import { ProductDetailsView } from "@/widgets/product-details/ui/ProductDetailsView";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ locale: string; slug: string }> };
+
+/** Rendered on the first visit, then served from the cache and refreshed in the background (ISR). */
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await setLocaleFrom(params);
   const [product, { t, locale }] = await Promise.all([getProduct((await params).slug), getI18n()]);
 
   if (!product) return { title: t.meta.productNotFound };
@@ -28,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
+  await setLocaleFrom(params);
   const { slug } = await params;
   const [product, related, settings, { t }] = await Promise.all([getProduct(slug), getRelatedProducts(slug), getSettings(), getI18n()]);
 
@@ -72,6 +80,7 @@ export default async function ProductPage({ params }: Props) {
         products={related.slice(0, 4)}
       />
 
+      <TrackView path={`/products/${product.slug}/view`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
     </>
   );

@@ -21,10 +21,10 @@ export async function getNewsTypes(): Promise<NewsTypeTab[]> {
 
 /**
  * One post with its gallery, products, neighbours and related posts; null when it does not exist (or the API is down).
- * Not cached between visitors — every opening counts as a view; cache() lets the metadata and the page share one request.
+ * Cached for 5 minutes (views are counted from the browser by <TrackView>); cache() lets the metadata and the page share it.
  */
 export const getNewsItem = cache(async (slug: string): Promise<NewsDetails | null> => {
-  const response = await apiTry<{ data: NewsDetails }>(`/news/${encodeURIComponent(slug)}`, { cache: "no-store" });
+  const response = await apiTry<{ data: NewsDetails }>(`/news/${encodeURIComponent(slug)}`, { revalidate: 300 });
 
   return response?.data ?? null;
 });

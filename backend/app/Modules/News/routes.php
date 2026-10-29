@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('news', [NewsController::class, 'index'])->name('news.index');
 Route::get('news/types', [NewsController::class, 'types'])->name('news.types');
 Route::get('news/{slug}', [NewsController::class, 'show'])->name('news.show');
+Route::post('news/{slug}/view', [NewsController::class, 'view'])->middleware('throttle:60,1')->name('news.view');
 
 /*
 | Admin panel — admins and managers.

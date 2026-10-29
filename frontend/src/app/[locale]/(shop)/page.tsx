@@ -4,7 +4,7 @@ import { getNews } from "@/entities/news/api/getNews";
 import { getProducts } from "@/entities/product/api/getProducts";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { Advantages } from "@/widgets/advantages/ui/Advantages";
 import { CategoryGrid } from "@/widgets/category-grid/ui/CategoryGrid";
 import { CategoryStrip } from "@/widgets/category-grid/ui/CategoryStrip";
@@ -13,7 +13,8 @@ import { Hero } from "@/widgets/hero/ui/Hero";
 import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
 
-export default async function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  await setLocaleFrom(params);
   const [banners, categories, featured, discounted, news, settings] =
     await Promise.all([
       getBanners(),

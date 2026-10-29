@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, BellRing, Heart, PackageCheck, Phone } from "lucide-react";
 import { routes, site } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { Logo } from "@/shared/ui";
 
@@ -11,7 +11,8 @@ const icons = [PackageCheck, Heart, BellRing];
 /**
  * Login, registration, password reset: no site header/footer, brand panel on the left (desktop).
  */
-export default async function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function AuthLayout({ children, params }: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
+  await setLocaleFrom(params);
   const { t } = await getI18n();
 
   return (

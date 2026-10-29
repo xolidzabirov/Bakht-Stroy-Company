@@ -4,7 +4,7 @@ import { getSettings } from "@/entities/settings/api/getSettings";
 import { ContactForm } from "@/features/contact-form/ui/ContactForm";
 import { env } from "@/shared/config/env";
 import { routes, site } from "@/shared/config/site";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { mapLinks } from "@/shared/lib/maps";
 import { Container } from "@/shared/ui";
@@ -15,13 +15,17 @@ const socialNames: Record<string, string> = { whatsapp: "WhatsApp", instagram: "
 /** Two Telegram accounts — told apart by the handle. */
 const socialName = (key: string, url: string) => (key.startsWith("telegram") ? `Telegram @${url.split("/").pop()}` : (socialNames[key] ?? key));
 
-export async function generateMetadata(): Promise<Metadata> {
+type Props = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await setLocaleFrom(params);
   const { t } = await getI18n();
 
   return { title: t.meta.contacts, description: t.meta.contactsDescription, alternates: { canonical: routes.contacts } };
 }
 
-export default async function ContactsPage() {
+export default async function ContactsPage({ params }: Props) {
+  await setLocaleFrom(params);
   const [settings, { t }] = await Promise.all([getSettings(), getI18n()]);
   const c = t.contacts;
   const maps = mapLinks(settings.address, settings.map);

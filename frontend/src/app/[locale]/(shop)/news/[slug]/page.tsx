@@ -8,20 +8,27 @@ import { getSettings } from "@/entities/settings/api/getSettings";
 import { env } from "@/shared/config/env";
 import { routes, site } from "@/shared/config/site";
 import { fmt, plural } from "@/shared/i18n/format";
-import { getI18n } from "@/shared/i18n/server";
+import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatDate } from "@/shared/lib/format";
 import { Badge, Container } from "@/shared/ui";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
+import { TrackView } from "@/shared/ui/TrackView";
 import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 import { NewsGallery } from "@/widgets/news-article/ui/NewsGallery";
 import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ locale: string; slug: string }> };
+
+/** Rendered on the first visit, then served from the cache and refreshed in the background (ISR). */
+export function generateStaticParams() {
+  return [];
+}
 
 const sharePill = "inline-flex h-9 items-center rounded-full border border-border px-4 font-semibold transition hover:border-foreground/40";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await setLocaleFrom(params);
   const [news, { t }] = await Promise.all([getNewsItem((await params).slug), getI18n()]);
 
   if (!news) return { title: t.meta.newsNotFound };
@@ -44,6 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function NewsArticlePage({ params }: Props) {
+  await setLocaleFrom(params);
   const { slug } = await params;
   const [news, settings, { t, locale }] = await Promise.all([getNewsItem(slug), getSettings(), getI18n()]);
 
@@ -162,6 +170,7 @@ export default async function NewsArticlePage({ params }: Props) {
       <NewsSection news={news.related ?? []} title={t.news.related} />
       <ContactCta phone={settings.phones[0]} whatsapp={settings.socials?.whatsapp} telegram={settings.socials?.telegram} telegramChat={settings.socials?.telegram_chat} />
 
+      <TrackView path={`/news/${news.slug}/view`} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
     </>
   );
