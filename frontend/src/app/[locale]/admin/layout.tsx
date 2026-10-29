@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
       <AdminSidebar isAdmin={admin} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b-2 border-brand bg-surface px-3 sm:px-5">
+        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface px-3 sm:px-5">
           <AdminMobileNav isAdmin={admin} />
           <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-brand">
             <ShieldCheck className="size-3.5" />

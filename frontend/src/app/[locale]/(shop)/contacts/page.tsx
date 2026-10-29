@@ -56,7 +56,7 @@ export default async function ContactsPage({ params }: Props) {
         <p className="mt-3 text-lg text-muted-foreground">{c.lead}</p>
       </header>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_1.15fr]">
+      <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_1.15fr] [&>*]:min-w-0">
         <div className="grid content-start gap-4">
           <section className="rounded-[var(--radius-card)] bg-ink p-6 text-white sm:p-8">
             <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-brand">
@@ -66,7 +66,7 @@ export default async function ContactsPage({ params }: Props) {
             <ul className="mt-4 space-y-2">
               {settings.phones.map((phone) => (
                 <li key={phone}>
-                  <a href={`tel:${phone}`} className="font-display text-2xl font-extrabold tracking-wide transition hover:text-brand sm:text-3xl">
+                  <a href={`tel:${phone}`} className="font-display text-xl font-extrabold tracking-wide transition hover:text-brand sm:text-3xl">
                     {formatPhone(phone)}
                   </a>
                 </li>

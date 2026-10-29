@@ -67,7 +67,7 @@ export async function CatalogListing({ category, params }: Props) {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[260px_1fr]">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[260px_1fr] [&>*]:min-w-0">
         <aside className="space-y-6">
           <nav aria-label={t.catalog.categories} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:block lg:space-y-1 lg:overflow-visible lg:px-0">
             <Link

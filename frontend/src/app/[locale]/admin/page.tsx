@@ -45,7 +45,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
     <div className="space-y-5">
       <PageHeader title={d.title} description={d.lead} actions={<TabFilter name="period" tabs={PERIODS.map((p) => ({ value: p === "30" ? null : p, label: t.admin.common.period[p] }))} />} />
 
-      <div className="grid gap-3 lg:grid-cols-[1.3fr_2fr]">
+      <div className="grid gap-3 lg:grid-cols-[1.3fr_2fr] [&>*]:min-w-0">
         {/* Hero figure: the one number the page leads with. */}
         <section className="flex flex-col justify-between rounded-2xl bg-ink p-5 text-white sm:p-6">
           <p className="text-sm font-semibold text-white/70">{d.revenue}</p>
@@ -82,7 +82,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         </dl>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-3">
+      <div className="grid gap-3 xl:grid-cols-3 [&>*]:min-w-0">
         <Panel>
           <ColumnChart
             title={d.orderCount}
@@ -112,12 +112,12 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         </Panel>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2 [&>*]:min-w-0">
         <Panel title={d.byStatus}>
           <ul className="space-y-2.5">
             {stats.orders.by_status.map((status) => (
               <li key={status.value}>
-                <Link href={`${routes.adminOrders}?status=${status.value}`} className="group grid grid-cols-[8rem_1fr_2.5rem] items-center gap-3 text-sm">
+                <Link href={`${routes.adminOrders}?status=${status.value}`} className="group grid grid-cols-[6.5rem_1fr_2.5rem] items-center sm:grid-cols-[8rem_1fr_2.5rem] gap-3 text-sm">
                   <span className="truncate font-medium group-hover:underline">{status.label}</span>
                   <span className="h-2.5 rounded-full bg-muted">
                     <span className="block h-full rounded-full bg-chart-1" style={{ width: `${(status.count / statusMax) * 100}%` }} />
@@ -152,7 +152,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         </Panel>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_2fr]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_2fr] [&>*]:min-w-0">
         <Panel title={d.catalog}>
           <dl className="grid grid-cols-2 gap-2 text-sm">
             {[

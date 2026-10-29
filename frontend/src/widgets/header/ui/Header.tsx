@@ -33,14 +33,17 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
-      <Container className="flex h-16 items-center gap-3 md:h-[76px] md:gap-4">
+      <Container className="flex h-16 items-center gap-2 sm:gap-3 md:h-[76px] md:gap-4">
         <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} />
 
         <Link href={routes.home} aria-label={t.header.homeAria} className="shrink-0">
           <Logo />
         </Link>
 
-        <CatalogMenu categories={categories} />
+        {/* On phones the catalog is in the ☰ menu, so the top bar fits 360 px. */}
+        <div className="hidden sm:block">
+          <CatalogMenu categories={categories} />
+        </div>
 
         <form action={routes.catalog} role="search" className="relative hidden min-w-0 flex-1 md:flex lg:max-w-sm xl:max-w-md">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
