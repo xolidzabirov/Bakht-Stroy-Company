@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { useChatInfo } from "@/entities/chat/api/useChatInfo";
@@ -7,7 +8,9 @@ import { chatPanel, useChatPanel } from "@/entities/chat/model/panel";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useMe } from "@/shared/api/useMe";
-import { ClientChat } from "./ClientChat";
+
+// The chat window (thread, composer, live updates) is downloaded only when a customer opens it.
+const ClientChat = dynamic(() => import("./ClientChat").then((module) => module.ClientChat), { ssr: false });
 
 /**
  * Round chat button in the corner of every shop page (signed-in customers): unread badge, a ding for new replies,

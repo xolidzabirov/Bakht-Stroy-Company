@@ -8,7 +8,8 @@ import { BannerSlider } from "./BannerSlider";
 import { HeroPhotoSlider } from "./HeroPhotoSlider";
 
 /** Photos in public/hero (see CREDITS.md there) — replace with the company's own shots. Captions come from the dictionary. */
-const photos = ["/hero/mixer.jpg", "/hero/asphalt.jpg", "/hero/cement.jpg", "/hero/rebar.jpg"];
+// public/hero/<name>-720.webp and -1280.webp
+const photos = ["/hero/mixer", "/hero/asphalt", "/hero/cement", "/hero/rebar"];
 
 /**
  * First screen: brand message on the left, photo carousel on the right, key facts along the bottom;
