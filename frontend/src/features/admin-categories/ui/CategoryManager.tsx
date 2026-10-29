@@ -70,8 +70,8 @@ export function CategoryManager({ tree }: { tree: Category[] }) {
   };
 
   const row = (category: Category, siblings: Category[], index: number, child: boolean) => (
-    <div className={cn("flex items-center gap-3 px-4 py-3", child && "pl-8 sm:pl-14")}>
-      {category.image ? (
+    <div className={cn("flex items-center gap-3 px-4 py-3", child && "pl-6")}>
+      {!child ? null : category.image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={category.image} alt="" className={cn("shrink-0 rounded-xl bg-muted object-cover", child ? "size-10" : "size-12")} />
       ) : (
@@ -124,10 +124,25 @@ export function CategoryManager({ tree }: { tree: Category[] }) {
       {tree.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{c.empty}</p>
       ) : (
-        <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {tree.map((root, index) => (
-            <li key={root.id}>
-              {row(root, tree, index, false)}
+            <li
+              key={root.id}
+              style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
+              className="group flex animate-in flex-col overflow-hidden rounded-2xl border border-border bg-surface fade-in-0 slide-in-from-bottom-2 card-hover fill-mode-both"
+            >
+              <Link href={`${routes.adminProducts}?category=${root.slug}`} className="relative block aspect-[16/9] overflow-hidden bg-muted">
+                {root.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={root.image} alt="" loading="lazy" className={cn("size-full object-cover transition duration-500 group-hover:scale-105", !root.is_active && "opacity-50 grayscale")} />
+                ) : (
+                  <span className="grid size-full place-items-center">
+                    <FolderTree className="size-8 text-muted-foreground" />
+                  </span>
+                )}
+                <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-xs font-bold text-white">{fmt(c.products, { count: String(root.products_count ?? 0) })}</span>
+              </Link>
+              <div className="flex-1">{row(root, tree, index, false)}</div>
               {root.children && root.children.length > 0 && (
                 <ul className="divide-y divide-border/60 border-t border-border/60 bg-muted/30">
                   {root.children.map((child, childIndex) => (

@@ -19,7 +19,7 @@ export default async function AdminCategoriesPage() {
   const count = tree.reduce((sum, root) => sum + 1 + (root.children?.length ?? 0), 0);
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <PageHeader title={t.admin.categories.title} description={fmt(t.admin.common.total, { count: String(count) })} />
       <CategoryManager tree={tree} />
     </div>
