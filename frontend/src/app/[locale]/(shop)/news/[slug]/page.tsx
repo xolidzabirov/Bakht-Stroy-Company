@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       publishedTime: news.published_at ?? undefined,
-      images: news.cover ? [news.cover.full] : undefined,
+      images: [news.cover ? news.cover.full : "/opengraph-image"],
     },
   };
 }

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: fmt(t.meta.product, { name: product.name, price: formatMoney(product.price, locale), unit: product.unit.label }),
     description: product.description?.slice(0, 160),
     alternates: { canonical: routes.product(product.slug) },
-    openGraph: { images: product.image ? [product.image.card] : undefined },
+    openGraph: { images: [product.image ? product.image.card : "/opengraph-image"] },
   };
 }
 

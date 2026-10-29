@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getBanners } from "@/entities/banner/api/getBanners";
 import { getCategories } from "@/entities/category/api/getCategories";
 import { getNews } from "@/entities/news/api/getNews";
@@ -12,6 +13,9 @@ import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 import { Hero } from "@/widgets/hero/ui/Hero";
 import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
+
+/** Title and description come from the root layout; the home page only states its address. */
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   await setLocaleFrom(params);

@@ -48,6 +48,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Every page; not the API routes, Next.js assets and files with an extension (icon.png, robots.txt, sitemap.xml).
-  matcher: ["/((?!api|_next/static|_next/image|.*\\..*).*)"],
+  // Every page; not the API routes, Next.js assets, the link preview image and files with an extension
+  // (icon.png, robots.txt, sitemap.xml).
+  matcher: ["/((?!api|_next/static|_next/image|opengraph-image|.*\\..*).*)"],
 };

@@ -29,7 +29,13 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     metadataBase: new URL(env.siteUrl),
     title: { default: t.meta.title, template: `%s — ${site.shortName}` },
     description: t.meta.description,
-    openGraph: { type: "website", locale: locale === "en" ? "en_US" : locale === "tg" ? "tg_TJ" : "ru_RU", siteName: site.name },
+    openGraph: {
+      type: "website",
+      locale: locale === "en" ? "en_US" : locale === "tg" ? "tg_TJ" : "ru_RU",
+      siteName: site.name,
+      // The brand card from app/opengraph-image.tsx; products and posts put their own photo instead.
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: site.name }],
+    },
   };
 }
 
