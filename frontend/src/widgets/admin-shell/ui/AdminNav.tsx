@@ -78,20 +78,20 @@ function NavList({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =>
           href={href}
           onClick={onNavigate}
           aria-current={isActive(href, exact) ? "page" : undefined}
-          className={cn(link, isActive(href, exact) ? "bg-ink text-white dark:bg-white dark:text-ink" : "text-muted-foreground hover:bg-muted hover:text-foreground")}
+          className={cn(link, isActive(href, exact) ? "bg-brand text-ink shadow-lg shadow-brand/20" : "text-white/65 hover:bg-white/10 hover:text-white")}
         >
-          <Icon className={cn("size-[18px]", isActive(href, exact) && "text-brand dark:text-ink")} />
+          <Icon className="size-[18px]" />
           <span className="flex-1">{label}</span>
-          {badge ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-ink">{badge > 99 ? "99+" : badge}</span> : null}
+          {badge ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1.5 text-[11px] font-bold text-white">{badge > 99 ? "99+" : badge}</span> : null}
         </Link>
       ))}
 
-      <div className="mt-auto space-y-1 border-t border-border pt-3">
-        <Link href={routes.accountSettings} onClick={onNavigate} className={cn(link, "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+      <div className="mt-auto space-y-1 border-t border-white/10 pt-3">
+        <Link href={routes.accountSettings} onClick={onNavigate} className={cn(link, "text-white/65 hover:bg-white/10 hover:text-white")}>
           <Settings className="size-[18px]" />
           {t.admin.nav.settings}
         </Link>
-        <Link href={routes.home} onClick={onNavigate} className={cn(link, "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+        <Link href={routes.home} onClick={onNavigate} className={cn(link, "border border-brand/40 text-brand hover:bg-brand hover:text-ink")}>
           <Store className="size-[18px]" />
           {t.admin.nav.toSite}
         </Link>
@@ -100,13 +100,23 @@ function NavList({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =>
   );
 }
 
+/** Logo with the "Admin panel" mark: the panel is dark in any theme, so it never looks like the shop. */
+function AdminBrand() {
+  const { t } = useI18n();
+
+  return (
+    <Link href={routes.admin} className="flex h-16 items-center gap-2 border-b border-white/10 px-5">
+      <Logo inverted />
+      <span className="ml-auto rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-ink">{t.admin.title}</span>
+    </Link>
+  );
+}
+
 /** Left column on desktop. */
 export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
-      <Link href={routes.admin} className="flex h-16 items-center border-b border-border px-5">
-        <Logo />
-      </Link>
+    <aside className="hidden w-64 shrink-0 flex-col bg-ink text-white lg:flex">
+      <AdminBrand />
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <NavList isAdmin={isAdmin} />
       </div>
@@ -124,9 +134,11 @@ export function AdminMobileNav({ isAdmin }: { isAdmin: boolean }) {
       <SheetTrigger aria-label={t.admin.menu} className="grid size-10 place-items-center rounded-xl hover:bg-muted lg:hidden">
         <Menu className="size-5" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
-        <SheetTitle className="flex h-16 items-center border-b border-border px-5">
-          <Logo />
+      <SheetContent side="left" className="w-72 border-0 bg-ink p-0 text-white">
+        <SheetTitle asChild>
+          <div>
+            <AdminBrand />
+          </div>
         </SheetTitle>
         <div className="h-[calc(100%-4rem)] p-3">
           <NavList isAdmin={isAdmin} onNavigate={() => setOpen(false)} />
