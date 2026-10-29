@@ -33,7 +33,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
             <ShieldCheck className="size-3.5" />
             {t.acc.profile.roles[admin ? "admin" : "manager"]}
           </span>
-          <span className="hidden truncate text-sm font-semibold text-muted-foreground sm:block">{user.name}</span>
+          {user.name !== t.acc.profile.roles[admin ? "admin" : "manager"] && <span className="hidden truncate text-sm font-semibold text-muted-foreground sm:block">{user.name}</span>}
           <div className="ml-auto flex items-center gap-2">
             <ButtonLink href={routes.home} variant="dark" size="sm" className="hidden sm:inline-flex">
               <Store className="size-4" />

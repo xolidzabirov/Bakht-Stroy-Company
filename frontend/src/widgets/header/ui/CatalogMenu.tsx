@@ -47,7 +47,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
       </button>
 
       {open && categories.length > 0 && (
-        <div className="absolute left-0 top-full mt-3 w-[min(900px,88vw)] overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-2xl shadow-black/10">
+        <div className="absolute left-0 top-full z-10 mt-3 w-[min(900px,88vw)] overflow-hidden rounded-2xl border border-border bg-surface p-4 shadow-2xl shadow-black/10">
           <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
             {categories.map((category) => (
               <li key={category.id}>

@@ -10,7 +10,7 @@ import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useRealtimeConnected } from "@/shared/lib/realtime";
-import { Logo } from "@/shared/ui";
+import { LogoMark } from "@/shared/ui";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/ui/kit/sheet";
 
 type Item = { href: string; label: string; icon: typeof Package; exact?: boolean; badge?: number };
@@ -105,9 +105,12 @@ function AdminBrand() {
   const { t } = useI18n();
 
   return (
-    <Link href={routes.admin} className="flex h-16 items-center gap-2 border-b border-white/10 px-5">
-      <Logo inverted />
-      <span className="ml-auto rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-ink">{t.admin.title}</span>
+    <Link href={routes.admin} className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
+      <LogoMark className="size-9 shrink-0" />
+      <span className="min-w-0 leading-tight">
+        <span className="block font-display text-[15px] font-extrabold tracking-tight">BAKHT STROY</span>
+        <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-brand">{t.admin.title}</span>
+      </span>
     </Link>
   );
 }
