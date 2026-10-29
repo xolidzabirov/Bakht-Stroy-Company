@@ -13,7 +13,7 @@ export async function CategoryCard({ category }: { category: Category }) {
   return (
     <Link
       href={routes.category(category.slug)}
-      className="group flex overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:-translate-y-0.5 hover:border-brand hover:shadow-xl hover:shadow-black/5"
+      className="group flex overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover hover:!border-brand"
     >
       <div className="relative w-28 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
         {category.image && (

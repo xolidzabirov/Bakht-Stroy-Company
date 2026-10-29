@@ -20,7 +20,7 @@ export async function ProductCard({ product, action, favorite }: Props) {
   const image = product.image;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:shadow-xl hover:shadow-black/5">
+    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover">
       <Link href={routes.product(product.slug)} className="relative block aspect-square overflow-hidden bg-surface-muted">
         {image && (
           <Image

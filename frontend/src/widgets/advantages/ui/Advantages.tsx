@@ -17,7 +17,7 @@ export async function Advantages({ title }: { title?: string } = {}) {
           const Icon = icons[i];
 
           return (
-          <div key={title} className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+          <div key={title} className="rounded-[var(--radius-card)] border border-border bg-surface p-5 card-hover">
             <span className="grid size-12 place-items-center rounded-2xl bg-brand text-on-brand">
               <Icon className="size-6" />
             </span>

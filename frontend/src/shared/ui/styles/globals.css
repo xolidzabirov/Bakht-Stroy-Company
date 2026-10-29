@@ -204,3 +204,21 @@ h3 {
     background: color-mix(in oklab, var(--surface-muted), var(--foreground) 8%);
   }
 }
+
+/* One hover for every card (products, categories, news, advantages): a slight lift, a soft shadow,
+   a clearer edge. Calm, the same everywhere, off for people who prefer less motion. */
+@utility card-hover {
+  transition: transform 250ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 250ms, border-color 250ms;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.25);
+    border-color: color-mix(in oklab, var(--border), var(--foreground) 18%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+}

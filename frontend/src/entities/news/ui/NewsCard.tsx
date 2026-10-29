@@ -13,7 +13,7 @@ export async function NewsCard({ news }: { news: NewsItem }) {
   return (
     <Link
       href={routes.newsItem(news.slug)}
-      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface transition hover:shadow-xl hover:shadow-black/5"
+      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-surface-muted">
         {news.cover && (

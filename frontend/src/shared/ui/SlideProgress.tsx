@@ -11,6 +11,8 @@ type Props = {
   duration: number;
   paused?: boolean;
   onSelect: (index: number) => void;
+  /** The active bar is full — show the next slide. */
+  onComplete?: () => void;
   className?: string;
 };
 
@@ -18,7 +20,7 @@ type Props = {
  * Equal bars over the picture; the current one fills with white while the slide is shown
  * (when it is full, the next slide comes). Click a bar to jump to its slide.
  */
-export function SlideProgress({ count, index, duration, paused = false, onSelect, className }: Props) {
+export function SlideProgress({ count, index, duration, paused = false, onSelect, onComplete, className }: Props) {
   const { t } = useI18n();
 
   if (count < 2) return null;
@@ -37,10 +39,11 @@ export function SlideProgress({ count, index, duration, paused = false, onSelect
           <span className="relative block h-1 overflow-hidden rounded-full bg-white/35 transition group-hover/bar:bg-white/55">
             {i === index && (
               <span
-                // a new key restarts the fill for every slide
-                key={`${index}-${paused}`}
-                className="absolute inset-0 origin-left rounded-full bg-white motion-reduce:animate-none"
-                style={{ animation: paused ? "none" : `slide-progress ${duration}ms linear forwards`, transform: paused ? "scaleX(1)" : undefined }}
+                // a new key restarts the fill for every slide; hover only pauses it, so it resumes where it stopped
+                key={index}
+                onAnimationEnd={onComplete}
+                className="absolute inset-0 origin-left rounded-full bg-white"
+                style={{ animation: `slide-progress ${duration}ms linear forwards`, animationPlayState: paused ? "paused" : "running" }}
               />
             )}
           </span>

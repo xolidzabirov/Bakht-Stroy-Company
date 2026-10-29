@@ -20,10 +20,7 @@ const srcSet = (src: string) => `${src}-720.webp 720w, ${src}-1280.webp 1280w`;
  * the others start loading a couple of seconds later, long before their turn.
  */
 export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
-  const { index, setIndex, paused, handlers } = useSlider(
-    slides.length,
-    DURATION,
-  );
+  const { index, setIndex, go, paused, handlers } = useSlider(slides.length);
   const [warm, setWarm] = useState(false);
 
   if (slides[0])
@@ -96,6 +93,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
         duration={DURATION}
         paused={paused}
         onSelect={setIndex}
+        onComplete={() => go(1)}
         className="absolute inset-x-5 top-3 z-20 sm:inset-x-8 sm:top-5"
       />
     </div>

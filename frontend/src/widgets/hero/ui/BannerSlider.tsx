@@ -19,7 +19,7 @@ const DURATION = 6000;
 export function BannerSlider({ banners }: { banners: Banner[] }) {
   const { t } = useI18n();
   const count = banners.length;
-  const { index, setIndex, go, paused, handlers } = useSlider(count, DURATION);
+  const { index, setIndex, go, paused, handlers } = useSlider(count);
 
   if (count === 0) return null;
 
@@ -72,6 +72,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
             duration={DURATION}
             paused={paused}
             onSelect={setIndex}
+        onComplete={() => go(1)}
             className="absolute inset-x-6 bottom-3 mx-auto max-w-xl sm:bottom-5"
           />
           <button

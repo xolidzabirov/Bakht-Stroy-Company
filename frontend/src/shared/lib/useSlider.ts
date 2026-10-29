@@ -1,24 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 /**
- * Carousel state: current slide, auto-play every `duration` ms (paused on hover), swipe on touch screens.
+ * Carousel state: current slide, pause on hover, swipe on touch screens.
+ * Auto-play is driven by the progress bar (SlideProgress `onComplete`): it pauses where it stopped
+ * and continues from there, so the time left is never lost or restarted.
  */
-export function useSlider(count: number, duration: number) {
+export function useSlider(count: number) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchX = useRef<number | null>(null);
 
   const go = useCallback((step: number) => setIndex((value) => (value + step + count) % count), [count]);
-
-  useEffect(() => {
-    if (count < 2 || paused) return;
-
-    const timer = setTimeout(() => go(1), duration);
-
-    return () => clearTimeout(timer);
-  }, [count, duration, paused, index, go]);
 
   const handlers = {
     onMouseEnter: () => setPaused(true),
