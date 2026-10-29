@@ -15,6 +15,7 @@ import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/textarea";
+import { type DraftMedia, NewsMediaDraft } from "./NewsMediaDraft";
 import { RichTextEditor } from "./RichTextEditor";
 
 type LinkedProduct = Pick<Product, "id" | "name"> & { image: Product["image"]; price: number };
@@ -137,6 +138,7 @@ function ProductPicker({ value, onChange }: { value: LinkedProduct[]; onChange: 
  * where the cover and the gallery can be added.
  */
 export function NewsForm({ news, aside }: { news?: AdminNews; aside?: React.ReactNode }) {
+  const [draft, setDraft] = useState<DraftMedia>({ cover: null, gallery: [] });
   const { t } = useI18n();
   const n = t.admin.news;
   const router = useRouter();
@@ -197,6 +199,17 @@ export function NewsForm({ news, aside }: { news?: AdminNews; aside?: React.Reac
         router.refresh();
       } else {
         const { data } = await bff<{ data: AdminNews }>("/api/proxy/admin/news", { body });
+        // Photos picked before saving go up right after the post exists.
+        if (draft.cover) {
+          const form = new FormData();
+          form.append("image", draft.cover);
+          await bff(`/api/proxy/admin/news/${data.id}/cover`, { body: form }).catch(() => toast.error(t.errors.generic));
+        }
+        if (draft.gallery.length > 0) {
+          const form = new FormData();
+          draft.gallery.forEach((file) => form.append("images[]", file));
+          await bff(`/api/proxy/admin/news/${data.id}/gallery`, { body: form }).catch(() => toast.error(t.errors.generic));
+        }
         toast.success(n.created);
         router.replace(routes.adminNewsEdit(data.id));
       }
@@ -310,7 +323,7 @@ export function NewsForm({ news, aside }: { news?: AdminNews; aside?: React.Reac
           />
         </Section>
 
-        {aside}
+        {news ? aside : <NewsMediaDraft value={draft} onChange={setDraft} />}
       </div>
     </form>
   );
