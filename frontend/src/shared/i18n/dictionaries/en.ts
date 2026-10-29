@@ -1112,7 +1112,7 @@ export const en: Dictionary = {
     staffOnly: "For managers and administrators",
     toSite: "Back to site",
   },
-  serverError: { title: "This page could not load", text: "The store server is not responding right now. It usually takes a minute — please try again.", retry: "Try again" },
+  serverError: { title: "This page could not load", text: "The store server is not responding right now. It usually takes a minute — please try again.", retry: "Try again", code: "Error code for the manager", call: "Call us", toAccount: "To my account", toDashboard: "To the dashboard", adminText: "This section did not load. The API usually wakes up within a minute — press Retry.", sectionNotFound: "Nothing here", sectionNotFoundText: "It may have been deleted, or the link is outdated." },
   notFound: {
     title: "Page not found",
     text: "The product may have been discontinued or the link is outdated.",

@@ -8,7 +8,7 @@ import { BannerSlider } from "./BannerSlider";
 import { HeroPhotoSlider } from "./HeroPhotoSlider";
 
 /** Photos in public/hero (see CREDITS.md there) — replace with the company's own shots. Captions come from the dictionary. */
-// public/hero/<name>-720.webp and -1280.webp
+// public/hero/<name>-860.webp and -1280.webp
 const photos = ["/hero/mixer", "/hero/asphalt", "/hero/cement", "/hero/rebar"];
 
 /**

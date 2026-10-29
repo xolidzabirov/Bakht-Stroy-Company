@@ -13,9 +13,11 @@ type Props = {
   action?: React.ReactNode;
   /** Slot over the picture, top right (features/toggle-favorite). */
   favorite?: React.ReactNode;
+  /** The first cards of a page: load the photo at once instead of lazily (it is the largest thing on screen). */
+  priority?: boolean;
 };
 
-export async function ProductCard({ product, action, favorite }: Props) {
+export async function ProductCard({ product, action, favorite, priority = false }: Props) {
   const { t, locale } = await getI18n();
   const image = product.image;
 
@@ -27,6 +29,7 @@ export async function ProductCard({ product, action, favorite }: Props) {
             src={image.card}
             alt={product.name}
             fill
+            priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition duration-500 group-hover:scale-105"
           />

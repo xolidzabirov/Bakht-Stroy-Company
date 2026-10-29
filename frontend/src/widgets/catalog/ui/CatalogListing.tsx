@@ -117,8 +117,8 @@ export async function CatalogListing({ category, params }: Props) {
 
           {products.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
-              {products.map((product) => (
-                <ShopProductCard key={product.id} product={product} />
+              {products.map((product, index) => (
+                <ShopProductCard key={product.id} product={product} priority={index < 4} />
               ))}
             </div>
           ) : (

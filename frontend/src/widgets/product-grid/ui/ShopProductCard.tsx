@@ -6,6 +6,6 @@ import type { Product } from "@/shared/api/types";
 /**
  * Product card of the shop: the entity card with the heart and the "В корзину" button.
  */
-export function ShopProductCard({ product }: { product: Product }) {
-  return <ProductCard product={product} favorite={<FavoriteButton productId={product.id} />} action={<AddToCartButton product={product} />} />;
+export function ShopProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+  return <ProductCard product={product} priority={priority} favorite={<FavoriteButton productId={product.id} />} action={<AddToCartButton product={product} />} />;
 }

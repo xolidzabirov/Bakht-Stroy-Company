@@ -6,12 +6,12 @@ import { useSlider } from "@/shared/lib/useSlider";
 import { cn } from "@/shared/lib/cn";
 import { SlideProgress } from "@/shared/ui";
 
-/** `src` is the file name without the size: /hero/mixer → /hero/mixer-720.webp, /hero/mixer-1280.webp. */
+/** `src` is the file name without the size: /hero/mixer → /hero/mixer-860.webp, /hero/mixer-1280.webp. */
 export type HeroSlide = { src: string; title: string; label: string };
 
 const DURATION = 6000;
 const SIZES = "(max-width: 1024px) 100vw, 45vw";
-const srcSet = (src: string) => `${src}-720.webp 720w, ${src}-1280.webp 1280w`;
+const srcSet = (src: string) => `${src}-860.webp 860w, ${src}-1280.webp 1280w`;
 
 /**
  * Photo carousel in the first screen: each photo stays ~6 s, slowly zooming in,
@@ -24,7 +24,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
   const [warm, setWarm] = useState(false);
 
   if (slides[0])
-    preload(`${slides[0].src}-720.webp`, {
+    preload(`${slides[0].src}-860.webp`, {
       as: "image",
       imageSrcSet: srcSet(slides[0].src),
       imageSizes: SIZES,
@@ -53,7 +53,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
           {(i === 0 || i === index || warm) && (
             // eslint-disable-next-line @next/next/no-img-element -- prepared WebP sizes, no image optimizer
             <img
-              src={`${slide.src}-720.webp`}
+              src={`${slide.src}-860.webp`}
               srcSet={srcSet(slide.src)}
               sizes={SIZES}
               alt={slide.title}
