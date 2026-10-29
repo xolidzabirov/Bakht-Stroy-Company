@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Settings, ShieldCheck, User, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, ShieldCheck, User, UserRound } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import { useMe } from "@/shared/api/useMe";
 import { routes } from "@/shared/config/site";
@@ -54,7 +54,6 @@ export function AccountAction() {
   const items = isStaff
     ? [
         { href: routes.admin, icon: ShieldCheck, label: t.nav.admin },
-        { href: routes.accountSettings, icon: Settings, label: t.acc.nav.settings },
       ]
     : [
         { href: routes.account, icon: LayoutDashboard, label: t.nav.account },
