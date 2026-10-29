@@ -609,7 +609,7 @@ export const en: Dictionary = {
     },
   },
   errors: {
-    network: "No internet connection. Check your network and try again.",
+    network: "Could not reach the site. Check your internet and try again in a minute.",
     generic: "Something went wrong. Please try again.",
     tooMany: "Too many attempts. Wait a minute and try again.",
   },

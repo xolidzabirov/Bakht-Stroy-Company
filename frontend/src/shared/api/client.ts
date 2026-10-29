@@ -17,7 +17,7 @@ export async function bff<T>(path: string, { method = "POST", body }: { method?:
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError("Нет соединения с интернетом. Проверьте сеть и попробуйте ещё раз.", 0, "NETWORK_ERROR");
+    throw new ApiError("Не удалось связаться с сайтом. Проверьте интернет и попробуйте ещё раз через минуту.", 0, "NETWORK_ERROR");
   }
 
   if (response.status === 204) return undefined as T;
