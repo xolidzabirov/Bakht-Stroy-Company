@@ -10,8 +10,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'r
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->whereNumber('user')->name('users.show');
 
-    // Admin only: blocking and roles.
+    // Admin only: new accounts, passwords, blocking and roles.
     Route::middleware('role:admin')->group(function () {
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::post('users/{user}/password', [UserController::class, 'resetPassword'])->whereNumber('user')->name('users.password');
         Route::patch('users/{user}/block', [UserController::class, 'block'])->whereNumber('user')->name('users.block');
         Route::patch('users/{user}/unblock', [UserController::class, 'unblock'])->whereNumber('user')->name('users.unblock');
         Route::patch('users/{user}/role', [UserController::class, 'changeRole'])->whereNumber('user')->name('users.role');

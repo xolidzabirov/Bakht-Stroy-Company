@@ -86,3 +86,74 @@ it('does not block admins or yourself', function () {
     $this->withToken($this->token)->patchJson("/api/v1/admin/users/{$this->admin->id}/block")
         ->assertConflict();
 });
+
+it('creates a manager with a generated password the manager can log in with', function () {
+    $response = $this->withToken($this->token)
+        ->postJson('/api/v1/admin/users', ['name' => '  Фирдавс  ', 'email' => ' Firdavs@Gmail.com ', 'phone' => '+992 93 123 45 67', 'role' => 'manager'])
+        ->assertCreated()
+        ->assertJsonPath('data.user.name', 'Фирдавс')
+        ->assertJsonPath('data.user.email', 'firdavs@gmail.com')
+        ->assertJsonPath('data.user.phone', '+992931234567')
+        ->assertJsonPath('data.user.roles', ['manager'])
+        ->assertJsonPath('data.credentials.login', 'firdavs@gmail.com');
+
+    $password = $response->json('data.credentials.password');
+
+    // 12 characters, a capital, a small letter and a digit, no look-alikes.
+    expect($password)->toMatch('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-HJ-NP-Za-km-np-z2-9]{12}$/');
+
+    $user = User::query()->where('email', 'firdavs@gmail.com')->firstOrFail();
+    expect($user->hasRole('manager'))->toBeTrue()
+        ->and($user->email_verified_at)->not->toBeNull()
+        ->and($user->password)->not->toBe($password);
+
+    app('auth')->forgetGuards();
+    $this->postJson('/api/v1/auth/login', ['email' => 'firdavs@gmail.com', 'password' => $password])->assertOk();
+});
+
+it('creates a customer with the password the admin chose and rejects taken contacts', function () {
+    $this->withToken($this->token)
+        ->postJson('/api/v1/admin/users', ['name' => 'Мадина', 'email' => 'madina@gmail.com', 'role' => 'client', 'password' => 'Stroika2026'])
+        ->assertCreated()
+        ->assertJsonPath('data.user.roles', ['client'])
+        ->assertJsonPath('data.user.phone', null)
+        ->assertJsonPath('data.credentials.password', 'Stroika2026');
+
+    $this->withToken($this->token)
+        ->postJson('/api/v1/admin/users', ['name' => 'Дубль', 'email' => 'MADINA@gmail.com', 'role' => 'admin', 'password' => '123'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['email', 'role', 'password']);
+});
+
+it('lets only the admin create accounts', function () {
+    $manager = User::factory()->manager()->create();
+
+    $this->withToken($manager->createToken('Pest')->plainTextToken)
+        ->postJson('/api/v1/admin/users', ['name' => 'Новый', 'email' => 'new@gmail.com', 'role' => 'manager'])
+        ->assertForbidden();
+
+    expect(User::query()->where('email', 'new@gmail.com')->exists())->toBeFalse();
+});
+
+it('gives a user a new password and signs them out everywhere', function () {
+    $manager = User::factory()->manager()->create(['email' => 'manager@gmail.com']);
+    $manager->createToken('phone');
+
+    $password = $this->withToken($this->token)
+        ->postJson("/api/v1/admin/users/{$manager->id}/password")
+        ->assertOk()
+        ->assertJsonPath('data.credentials.login', 'manager@gmail.com')
+        ->json('data.credentials.password');
+
+    expect($manager->tokens()->count())->toBe(0);
+
+    app('auth')->forgetGuards();
+    $this->postJson('/api/v1/auth/login', ['email' => 'manager@gmail.com', 'password' => $password])->assertOk();
+});
+
+it('does not reset the password of an admin or your own', function () {
+    $other = User::factory()->admin()->create();
+
+    $this->withToken($this->token)->postJson("/api/v1/admin/users/{$other->id}/password")->assertConflict();
+    $this->withToken($this->token)->postJson("/api/v1/admin/users/{$this->admin->id}/password")->assertConflict();
+});

@@ -149,7 +149,7 @@ export default async function AdminUserPage({ params }: Props) {
             {role === "admin" || user.id === me.id ? (
               <p className="text-sm text-muted-foreground">{u.cannotManageAdmin}</p>
             ) : (
-              <UserAdminActions userId={user.id} role={role} blocked={user.is_blocked} />
+              <UserAdminActions userId={user.id} role={role} blocked={user.is_blocked} phone={user.phone} />
             )}
           </Panel>
         </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Ban, Users } from "lucide-react";
 import { ResetFilters, SearchFilter, SelectFilter } from "@/features/admin-filters/ui/Filters";
+import { CreateUserDialog } from "@/features/admin-users/ui/CreateUserDialog";
 import { requireAdmin } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
 import type { AdminUser, Paginated } from "@/shared/api/types";
@@ -44,7 +45,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
 
   return (
     <div>
-      <PageHeader title={u.title} description={fmt(t.admin.common.total, { count: String(users.meta.total) })} />
+      <PageHeader title={u.title} description={fmt(t.admin.common.total, { count: String(users.meta.total) })} actions={<CreateUserDialog />} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <SearchFilter placeholder={u.searchPlaceholder} />

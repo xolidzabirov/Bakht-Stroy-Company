@@ -8,6 +8,7 @@ use App\Modules\Account\Http\Resources\AddressResource;
 use App\Modules\Admin\Actions\ManageUsers;
 use App\Modules\Admin\Exceptions\CannotManageUserException;
 use App\Modules\Admin\Http\Requests\AdminUserIndexRequest;
+use App\Modules\Admin\Http\Requests\CreateUserRequest;
 use App\Modules\Admin\Http\Resources\AdminUserResource;
 use App\Modules\Order\Enums\OrderStatus;
 use App\Modules\Order\Http\Resources\OrderListResource;
@@ -76,6 +77,40 @@ final class UserController extends Controller
                 Order::query()->where('user_id', $model->id)->withCount('items')->latest('id')->limit(10)->get(),
             ),
         ]]);
+    }
+
+    /**
+     * Создать пользователя
+     *
+     * Только администратор: например, новый менеджер. Email сразу подтверждён, роль назначена.
+     * Если пароль не передан, сервер придумает надёжный. В ответе `credentials` — логин и пароль
+     * для передачи человеку: они показываются один раз, в базе хранится только хэш.
+     */
+    public function store(CreateUserRequest $request): JsonResponse
+    {
+        ['user' => $user, 'password' => $password] = $this->users->create($request->payload());
+
+        return response()->json(['data' => [
+            'user' => AdminUserResource::make($this->withOrderTotals(User::query()->with('roles'))->findOrFail($user->id))->resolve(),
+            /** Показать администратору один раз. */
+            'credentials' => ['login' => $user->email, 'password' => $password],
+        ]], 201);
+    }
+
+    /**
+     * Новый пароль
+     *
+     * Только администратор: придумывает новый пароль (например, менеджер забыл свой) и выходит
+     * со всех устройств пользователя. Пароль в ответе показывается один раз. Администраторам — нельзя.
+     *
+     * @throws CannotManageUserException
+     */
+    public function resetPassword(#[CurrentUser] User $admin, int $user): JsonResponse
+    {
+        $model = $this->find($user);
+        $password = $this->users->resetPassword($model, $admin);
+
+        return response()->json(['data' => ['credentials' => ['login' => $model->email, 'password' => $password]]]);
     }
 
     /**
