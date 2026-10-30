@@ -36,7 +36,7 @@ export async function Header() {
       <Container className="flex h-16 items-center gap-2 sm:gap-3 md:h-[76px] md:gap-4">
         <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} />
 
-        <Link href={routes.home} aria-label={t.header.homeAria} className="shrink-0">
+        <Link href={routes.home} title={t.header.homeAria} className="shrink-0">
           <Logo />
         </Link>
 

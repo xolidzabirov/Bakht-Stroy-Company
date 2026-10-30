@@ -71,12 +71,11 @@ export function ColumnChart({
             <span className="h-px bg-border" />
           </div>
 
-          <div className="absolute inset-x-0 top-0 bottom-5 flex items-end gap-[2px]" role="list" aria-label={title} onMouseLeave={() => setActive(null)}>
+          <div className="absolute inset-x-0 top-0 bottom-5 flex items-end gap-[2px]" role="group" aria-label={title} onMouseLeave={() => setActive(null)}>
             {points.map((point, index) => (
               <button
                 key={point.label}
                 type="button"
-                role="listitem"
                 aria-label={`${point.label}: ${format(point.value)}`}
                 onMouseEnter={() => setActive(index)}
                 onFocus={() => setActive(index)}

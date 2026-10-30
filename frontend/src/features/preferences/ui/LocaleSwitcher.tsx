@@ -26,7 +26,7 @@ export function LocaleSwitcher({ className }: { className?: string }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger aria-label={t.header.language} className={cn("pill-button gap-2 px-3.5 outline-none focus-visible:ring-2 focus-visible:ring-ring/50", pending && "opacity-60", className)}>
+      <DropdownMenuTrigger aria-label={`${localeNames[locale].short} — ${t.header.language}`} className={cn("pill-button gap-2 px-3.5 outline-none focus-visible:ring-2 focus-visible:ring-ring/50", pending && "opacity-60", className)}>
         <Globe className="size-[18px]" />
         <span className="text-sm font-bold">{localeNames[locale].short}</span>
       </DropdownMenuTrigger>

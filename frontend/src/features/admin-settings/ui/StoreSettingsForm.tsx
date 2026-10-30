@@ -236,12 +236,34 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
         {area("payment_note", s.paymentNote)}
       </Section>
 
-      <div className="sticky bottom-0 -mx-3 border-t border-border bg-background/95 px-3 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-4">
+      <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting || !isDirty} className="w-full sm:w-auto">
           {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
           {t.admin.common.save}
         </Button>
       </div>
+
+      {/* Only while something is changed: a floating bar to save or drop the changes from anywhere on the page. */}
+      {isDirty && (
+        <div
+          role="status"
+          className="sticky bottom-3 z-20 mx-auto flex w-full max-w-2xl animate-in flex-wrap items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-2xl shadow-black/25 fade-in-0 slide-in-from-bottom-4 duration-300 dark:bg-white dark:text-ink"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold">
+            <span aria-hidden className="size-2 rounded-full bg-brand" />
+            {t.admin.common.unsaved}
+          </span>
+          <span className="flex gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => reset()} disabled={isSubmitting} className="text-white hover:bg-white/10 hover:text-white dark:text-ink dark:hover:bg-ink/10 dark:hover:text-ink">
+              {t.admin.common.cancel}
+            </Button>
+            <Button type="submit" size="sm" disabled={isSubmitting}>
+              {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
+              {t.admin.common.save}
+            </Button>
+          </span>
+        </div>
+      )}
     </form>
   );
 }

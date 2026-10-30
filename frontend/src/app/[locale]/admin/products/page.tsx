@@ -104,7 +104,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                 style={{ animationDelay: `${Math.min(index, 12) * 35}ms` }}
                 className="group flex animate-in flex-col overflow-hidden rounded-2xl border border-border bg-surface fade-in-0 slide-in-from-bottom-2 card-hover fill-mode-both"
               >
-                <Link href={routes.adminProduct(product.id)} className="relative block aspect-[4/3] overflow-hidden bg-muted">
+                <Link href={routes.adminProduct(product.id)} tabIndex={-1} aria-hidden className="relative block aspect-[4/3] overflow-hidden bg-muted">
                   {product.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={product.image.card} alt="" loading="lazy" className={cn("size-full object-cover transition duration-500 group-hover:scale-105", !product.is_active && "opacity-50 grayscale")} />

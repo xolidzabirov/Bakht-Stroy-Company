@@ -26,6 +26,7 @@ export const ru = {
     nextPage: "Следующая",
     close: "Закрыть",
     download: "Скачать",
+    skipToContent: "Перейти к содержимому",
   },
   meta: {
     title: "Bakht Stroy Company — строительные материалы в Душанбе",
@@ -639,6 +640,7 @@ export const ru = {
       save: "Сохранить",
       saved: "Сохранено",
       cancel: "Отмена",
+      unsaved: "Есть несохранённые изменения",
       delete: "Удалить",
       deleted: "Удалено",
       edit: "Изменить",

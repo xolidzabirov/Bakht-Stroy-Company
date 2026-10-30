@@ -7,7 +7,8 @@ import { getI18n } from "@/shared/i18n/server";
 import { formatDate } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui";
 
-export async function NewsCard({ news }: { news: NewsItem }) {
+/** `headingLevel`: h2 where the cards are the main list (/news), h3 under a section heading. */
+export async function NewsCard({ news, headingLevel: Heading = "h3" }: { news: NewsItem; headingLevel?: "h2" | "h3" }) {
   const { t, locale } = await getI18n();
 
   return (
@@ -30,7 +31,7 @@ export async function NewsCard({ news }: { news: NewsItem }) {
         </Badge>
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="font-display text-lg font-bold leading-snug group-hover:underline">{news.title}</h3>
+        <Heading className="font-display text-lg font-bold leading-snug group-hover:underline">{news.title}</Heading>
         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{news.excerpt}</p>
         <div className="mt-auto flex items-center gap-3 pt-4 text-xs text-muted-foreground">
           <span>{formatDate(news.published_at, locale)}</span>

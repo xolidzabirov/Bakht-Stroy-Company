@@ -13,7 +13,6 @@ function Action({ href, label, count, icon, className }: { href: string; label: 
   return (
     <Link
       href={href}
-      aria-label={count ? `${label}: ${count}` : label}
       className={cn("flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-muted md:min-w-16", className)}
     >
       <span className="relative">
@@ -24,7 +23,7 @@ function Action({ href, label, count, icon, className }: { href: string; label: 
           </span>
         )}
       </span>
-      <span className="hidden text-[11px] font-medium text-muted-foreground lg:block">{label}</span>
+      <span className="sr-only text-[11px] font-medium text-muted-foreground lg:not-sr-only lg:block">{label}</span>
     </Link>
   );
 }

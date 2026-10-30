@@ -11,6 +11,7 @@ import { routes } from "@/shared/config/site";
 import { getI18n } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { Logo } from "@/shared/ui";
+import { SkipLink } from "@/shared/ui/SkipLink";
 import { AccountNav } from "@/widgets/account-shell/ui/AccountNav";
 
 /**
@@ -32,9 +33,10 @@ export default async function AccountLayout({ children }: Readonly<{ children: R
 
   return (
     <div className="min-h-dvh bg-background">
+      <SkipLink />
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6">
-          <Link href={routes.home} aria-label={t.header.homeAria}>
+          <Link href={routes.home} title={t.header.homeAria}>
             <Logo />
           </Link>
           <div className="ml-auto flex items-center gap-2">
@@ -65,7 +67,9 @@ export default async function AccountLayout({ children }: Readonly<{ children: R
           </div>
         </aside>
 
-        <main className="min-w-0">{children}</main>
+        <main id="content" tabIndex={-1} className="min-w-0 outline-none">
+          {children}
+        </main>
       </div>
 
       <AccountNav unread={unread} staff={staff} variant="bottom" />

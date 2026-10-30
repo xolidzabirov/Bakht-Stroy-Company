@@ -25,6 +25,7 @@ export const tg: Dictionary = {
     nextPage: "Навбатӣ",
     close: "Пӯшидан",
     download: "Боргирӣ",
+    skipToContent: "Ба мундариҷа гузаштан",
   },
   meta: {
     title: "Bakht Stroy Company — масолеҳи сохтмонӣ дар Душанбе",
@@ -638,6 +639,7 @@ export const tg: Dictionary = {
       save: "Нигоҳ доштан",
       saved: "Нигоҳ дошта шуд",
       cancel: "Бекор кардан",
+      unsaved: "Тағйиротҳои нигоҳ надошта ҳастанд",
       delete: "Нест кардан",
       deleted: "Нест карда шуд",
       edit: "Тағйир додан",

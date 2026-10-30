@@ -55,9 +55,9 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
+          <h2 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
             {t.footer.catalog}
-          </h3>
+          </h2>
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             {categories.map((category) => (
               <li key={category.id}>
@@ -73,9 +73,9 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
+          <h2 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
             {t.footer.buyers}
-          </h3>
+          </h2>
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             {[
               [routes.delivery, t.nav.delivery],
@@ -94,9 +94,9 @@ export async function Footer() {
         </div>
 
         <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
+          <h2 className="font-display text-sm font-bold uppercase tracking-widest text-brand">
             {t.footer.contacts}
-          </h3>
+          </h2>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
             {settings.phones.map((phone) => (
               <li key={phone}>

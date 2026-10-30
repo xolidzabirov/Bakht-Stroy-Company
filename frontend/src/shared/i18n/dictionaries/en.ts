@@ -25,6 +25,7 @@ export const en: Dictionary = {
     nextPage: "Next",
     close: "Close",
     download: "Download",
+    skipToContent: "Skip to content",
   },
   meta: {
     title: "Bakht Stroy Company — building materials in Dushanbe",
@@ -638,6 +639,7 @@ export const en: Dictionary = {
       save: "Save",
       saved: "Saved",
       cancel: "Cancel",
+      unsaved: "You have unsaved changes",
       delete: "Delete",
       deleted: "Deleted",
       edit: "Edit",

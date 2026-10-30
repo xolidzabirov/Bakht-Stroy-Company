@@ -96,7 +96,7 @@ export default async function NewsPage({ searchParams }: Props) {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <NewsCard key={item.id} news={item} />
+            <NewsCard key={item.id} news={item} headingLevel="h2" />
           ))}
         </div>
       )}

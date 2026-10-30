@@ -282,7 +282,7 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
             <CardTitle className="text-xl font-extrabold">{t.checkout.summary}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 px-6 pb-6 pt-4">
-            <ul className="max-h-64 space-y-3 overflow-y-auto pr-1">
+            <ul tabIndex={0} aria-label={t.checkout.summary} className="max-h-64 space-y-3 overflow-y-auto rounded-lg pr-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
               {cart.items.map((item) => (
                 <li key={item.id} className="flex items-center gap-3 text-sm">
                   <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted">

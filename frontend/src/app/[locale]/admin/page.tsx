@@ -58,13 +58,13 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           </div>
         </section>
 
-        <dl className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {tiles.map(({ icon: Icon, label, value, hint, href, accent }) => {
             const body = (
               <>
                 <Icon className={accent ? "size-5 text-destructive" : "size-5 text-primary"} />
-                <dd className="mt-3 text-2xl font-extrabold">{value}</dd>
-                <dt className="text-sm text-muted-foreground">{label}</dt>
+                <p className="mt-3 text-2xl font-extrabold">{value}</p>
+                <p className="text-sm text-muted-foreground">{label}</p>
                 {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
               </>
             );
@@ -79,7 +79,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
               </div>
             );
           })}
-        </dl>
+        </div>
       </div>
 
       <div className="grid gap-3 xl:grid-cols-3 [&>*]:min-w-0">
@@ -154,7 +154,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
       <div className="grid gap-3 lg:grid-cols-[1fr_2fr] [&>*]:min-w-0">
         <Panel title={d.catalog}>
-          <dl className="grid grid-cols-2 gap-2 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-sm">
             {[
               [d.products, stats.catalog.products, routes.adminProducts],
               [d.activeProducts, stats.catalog.active_products, `${routes.adminProducts}?is_active=1`],
@@ -164,11 +164,11 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
               [d.staff, stats.users.staff, null],
             ].map(([label, value, href]) => (
               <div key={String(label)} className="rounded-xl bg-muted p-3">
-                <dd className="text-xl font-extrabold">{value}</dd>
-                <dt className="text-xs text-muted-foreground">{href ? <Link href={String(href)} className="hover:underline">{label}</Link> : label}</dt>
+                <p className="text-xl font-extrabold">{value}</p>
+                <p className="text-xs text-muted-foreground">{href ? <Link href={String(href)} className="hover:underline">{label}</Link> : label}</p>
               </div>
             ))}
-          </dl>
+          </div>
         </Panel>
 
         <Panel

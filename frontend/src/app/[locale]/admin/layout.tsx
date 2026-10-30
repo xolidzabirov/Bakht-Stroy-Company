@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { routes } from "@/shared/config/site";
 import { ButtonLink } from "@/shared/ui";
+import { SkipLink } from "@/shared/ui/SkipLink";
 import { getI18n } from "@/shared/i18n/server";
 import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
 
@@ -24,6 +25,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
 
   return (
     <div className="flex h-dvh bg-muted/50">
+      <SkipLink />
       <AdminSidebar isAdmin={admin} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -44,7 +46,9 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6">{children}</main>
+        <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto p-3 outline-none sm:p-5 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

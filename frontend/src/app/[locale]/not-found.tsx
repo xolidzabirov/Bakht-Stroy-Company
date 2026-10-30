@@ -8,7 +8,8 @@ export default async function NotFound() {
     <main className="grid min-h-dvh place-items-center px-4">
       <div className="text-center">
         <Logo withText={false} className="[&_svg]:size-16" />
-        <p className="mt-6 font-display text-7xl font-extrabold text-brand">404</p>
+        <p className="mt-6 font-display text-7xl font-extrabold">404</p>
+        <span aria-hidden className="mx-auto mt-3 block h-1.5 w-16 rounded-full bg-brand" />
         <h1 className="mt-2 text-2xl font-extrabold">{t.notFound.title}</h1>
         <p className="mt-2 text-muted-foreground">{t.notFound.text}</p>
         <div className="mt-6 flex justify-center gap-3">
