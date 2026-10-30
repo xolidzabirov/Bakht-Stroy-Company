@@ -10,7 +10,8 @@ import { cn } from "@/shared/lib/cn";
  * Article text editor. Only formats the server keeps (SafeHtml): headings, paragraphs, lists, bold / italic,
  * quotes and links — no colours or fonts, so every post looks like the rest of the site.
  */
-export function RichTextEditor({ value, onChange, id, invalid }: { value: string; onChange: (html: string) => void; id?: string; invalid?: boolean }) {
+/** `label` names the editable area for screen readers (a <label for> does not reach a contenteditable). */
+export function RichTextEditor({ value, onChange, id, invalid, label }: { value: string; onChange: (html: string) => void; id?: string; invalid?: boolean; label?: string }) {
   const { t } = useI18n();
   const e = t.admin.news.editor;
 
@@ -34,6 +35,7 @@ export function RichTextEditor({ value, onChange, id, invalid }: { value: string
         id: id ?? "",
         class: "prose-bakht min-h-72 px-4 py-2 outline-none [&>*:first-child]:mt-2",
         "aria-multiline": "true",
+        "aria-label": label ?? "",
         role: "textbox",
       },
     },

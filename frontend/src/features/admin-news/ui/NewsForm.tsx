@@ -257,7 +257,7 @@ export function NewsForm({ news, aside }: { news?: AdminNews; aside?: React.Reac
             {(id, describedBy) => <Textarea id={id} rows={2} maxLength={500} aria-describedby={describedBy} className="rounded-xl" {...register("excerpt")} />}
           </Field>
           <Field label={n.body} error={errors.body?.message}>
-            {(id) => <Controller control={control} name="body" render={({ field }) => <RichTextEditor id={id} value={field.value} onChange={field.onChange} invalid={Boolean(errors.body)} />} />}
+            {(id) => <Controller control={control} name="body" render={({ field }) => <RichTextEditor id={id} label={n.body} value={field.value} onChange={field.onChange} invalid={Boolean(errors.body)} />} />}
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={n.videoUrl} error={errors.video_url?.message} hint={n.videoHint}>
