@@ -7,8 +7,12 @@ import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import "@/shared/ui/styles/globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ["latin", "cyrillic", "cyrillic-ext"], variable: "--font-inter", display: "swap" });
-const manrope = Manrope({ subsets: ["latin", "cyrillic", "cyrillic-ext"], variable: "--font-manrope", display: "swap" });
+// `subsets` only says which files are preloaded; the other ranges (cyrillic-ext: the Tajik ҳ қ ғ ҷ ӣ ӯ) are still
+// declared and download on their own, only on pages that use those letters. Preloading all 6 files (133 KB)
+// held back the first picture on slow phones, so: the body font preloads latin + cyrillic (2 files),
+// the heading font swaps in when ready (size-adjusted fallback, no layout shift).
+const inter = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-inter", display: "swap" });
+const manrope = Manrope({ subsets: ["latin", "cyrillic"], variable: "--font-manrope", display: "swap", preload: false });
 
 type Props = Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>;
 
