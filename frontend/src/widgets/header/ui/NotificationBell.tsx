@@ -49,6 +49,8 @@ export function NotificationBell({ className }: { className?: string }) {
   const queryClient = useQueryClient();
   const signedIn = useSessionName() !== null;
   const [tab, setTab] = useState<"news" | "messages">("news");
+  // Controlled, so a click on a post or "Все новости" closes the panel while the page changes.
+  const [open, setOpen] = useState(false);
   const seen = useSyncExternalStore(subscribeSeen, readSeen, () => Number.MAX_SAFE_INTEGER);
   const n = t.header.notices;
 
@@ -87,7 +89,13 @@ export function NotificationBell({ className }: { className?: string }) {
   ];
 
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        onOpenChange(next);
+      }}
+    >
       <DropdownMenuTrigger aria-label={total ? `${n.title}: ${total}` : n.title} title={n.title} className={cn("pill-button relative size-10 px-0", className)}>
         <Bell className="size-[18px]" />
         {total > 0 && (
@@ -97,7 +105,7 @@ export function NotificationBell({ className }: { className?: string }) {
         )}
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" sideOffset={8} className="w-[min(22rem,calc(100vw-2rem))] rounded-2xl p-0">
+      <DropdownMenuContent align="end" sideOffset={10} className="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border-0 p-0 shadow-2xl shadow-black/15 ring-1 ring-black/5 duration-200 ease-out data-[state=open]:slide-in-from-top-3 data-[state=closed]:slide-out-to-top-2 dark:ring-white/10">
         <div className="flex items-center justify-between px-4 pb-2 pt-3.5">
           <b className="text-base">{n.title}</b>
         </div>
@@ -131,7 +139,7 @@ export function NotificationBell({ className }: { className?: string }) {
                 const fresh = item.published_at !== null && Date.parse(item.published_at) > seen;
 
                 return (
-                  <Link key={item.id} href={routes.newsItem(item.slug)} className="flex gap-3 rounded-xl p-2 transition hover:bg-muted">
+                  <Link onClick={() => setOpen(false)} key={item.id} href={routes.newsItem(item.slug)} className="flex gap-3 rounded-xl p-2 transition hover:bg-muted">
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.cover.thumb} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
@@ -156,7 +164,7 @@ export function NotificationBell({ className }: { className?: string }) {
             <div className="grid place-items-center px-4 py-8 text-center">
               <MessageCircle className="size-8 text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">{n.loginHint}</p>
-              <Link href={routes.login} className="mt-3 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-brand-hover">
+              <Link onClick={() => setOpen(false)} href={routes.login} className="mt-3 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-brand-hover">
                 {t.header.login}
               </Link>
             </div>
@@ -167,7 +175,10 @@ export function NotificationBell({ className }: { className?: string }) {
               <Link
                 key={item.id}
                 href={item.order_number ? routes.accountOrder(item.order_number) : routes.accountNotifications}
-                onClick={() => !item.is_read && markRead(item.id)}
+                onClick={() => {
+                  if (!item.is_read) markRead(item.id);
+                  setOpen(false);
+                }}
                 className={cn("flex gap-3 rounded-xl p-2.5 transition hover:bg-muted", !item.is_read && "bg-brand-soft/60")}
               >
                 <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", item.is_read ? "bg-border" : "bg-primary")} />
@@ -182,6 +193,7 @@ export function NotificationBell({ className }: { className?: string }) {
         </div>
 
         <Link
+          onClick={() => setOpen(false)}
           href={tab === "news" ? routes.news : signedIn ? routes.accountNotifications : routes.login}
           className="block border-t border-border px-4 py-3 text-center text-sm font-semibold transition hover:bg-muted"
         >
