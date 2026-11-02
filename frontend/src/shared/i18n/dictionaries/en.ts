@@ -65,6 +65,7 @@ export const en: Dictionary = {
     contacts: "Contacts",
     account: "My account",
     admin: "Admin panel",
+    manager: "Manager panel",
   },
   header: {
     homeAria: "Bakht Stroy — home page",
@@ -631,6 +632,7 @@ export const en: Dictionary = {
   },
   admin: {
     title: "Admin panel",
+    managerTitle: "Manager panel",
     menu: "Admin menu",
     nav: { dashboard: "Dashboard", orders: "Orders", products: "Products", categories: "Categories", chats: "Chats", users: "Users", news: "News", banners: "Banners", messages: "Messages", storeSettings: "Store settings", settings: "My settings", toSite: "Back to site" },
     common: {

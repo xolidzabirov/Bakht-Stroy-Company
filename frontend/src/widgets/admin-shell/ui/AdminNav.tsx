@@ -100,8 +100,8 @@ function NavList({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =>
   );
 }
 
-/** Logo with the "Admin panel" mark: the panel is dark in any theme, so it never looks like the shop. */
-function AdminBrand() {
+/** Logo with the "Admin panel" (or "Manager panel") mark: the panel is dark in any theme, so it never looks like the shop. */
+function AdminBrand({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useI18n();
 
   return (
@@ -109,7 +109,7 @@ function AdminBrand() {
       <LogoMark className="size-9 shrink-0" />
       <span className="min-w-0 leading-tight">
         <span className="block font-display text-[15px] font-extrabold tracking-tight">BAKHT STROY</span>
-        <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-brand">{t.admin.title}</span>
+        <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-brand">{isAdmin ? t.admin.title : t.admin.managerTitle}</span>
       </span>
     </Link>
   );
@@ -119,7 +119,7 @@ function AdminBrand() {
 export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <aside className="hidden w-64 shrink-0 flex-col bg-ink text-white lg:flex">
-      <AdminBrand />
+      <AdminBrand isAdmin={isAdmin} />
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <NavList isAdmin={isAdmin} />
       </div>
@@ -140,7 +140,7 @@ export function AdminMobileNav({ isAdmin }: { isAdmin: boolean }) {
       <SheetContent side="left" className="w-72 border-0 bg-ink p-0 text-white">
         <SheetTitle asChild>
           <div>
-            <AdminBrand />
+            <AdminBrand isAdmin={isAdmin} />
           </div>
         </SheetTitle>
         <div className="h-[calc(100%-4rem)] p-3">

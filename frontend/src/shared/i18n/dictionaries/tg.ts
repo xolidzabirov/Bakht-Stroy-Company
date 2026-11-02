@@ -65,6 +65,7 @@ export const tg: Dictionary = {
     contacts: "Тамос",
     account: "Кабинети шахсӣ",
     admin: "Панели идоракунӣ",
+    manager: "Панели менеҷер",
   },
   header: {
     homeAria: "Bakht Stroy — ба саҳифаи асосӣ",
@@ -631,6 +632,7 @@ export const tg: Dictionary = {
   },
   admin: {
     title: "Панели идоракунӣ",
+    managerTitle: "Панели менеҷер",
     menu: "Менюи панели идоракунӣ",
     nav: { dashboard: "Дашборд", orders: "Фармоишҳо", products: "Молҳо", categories: "Категорияҳо", chats: "Чатҳо", users: "Корбарон", news: "Хабарҳо", banners: "Баннерҳо", messages: "Паёмҳо", storeSettings: "Танзимоти мағоза", settings: "Танзимоти ман", toSite: "Ба сайт" },
     common: {

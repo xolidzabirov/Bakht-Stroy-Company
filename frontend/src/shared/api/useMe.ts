@@ -18,5 +18,12 @@ export function useMe() {
     staleTime: 5 * 60_000,
   });
 
-  return { ...query, data: signedIn ? query.data : undefined, signedIn, isStaff: Boolean(signedIn && query.data?.is_staff) };
+  return {
+    ...query,
+    data: signedIn ? query.data : undefined,
+    signedIn,
+    isStaff: Boolean(signedIn && query.data?.is_staff),
+    // Managers get the same panel, named "Manager panel" and without users and store settings.
+    isAdmin: Boolean(signedIn && query.data?.roles?.includes("admin")),
+  };
 }

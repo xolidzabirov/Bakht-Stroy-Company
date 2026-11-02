@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { AUTH_COOKIE } from "@/shared/config/auth";
 import { apiFetch, ApiError } from "./http";
 import type { components } from "./schema";
@@ -7,9 +8,9 @@ export type CurrentUser = components["schemas"]["UserResource"];
 
 /**
  * Signed-in user for Server Components (account, checkout). Null for guests and expired tokens.
- * Always fresh — never cached between users.
+ * Always fresh — never cached between users; within one request (layout, metadata, page) it is asked once.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const token = (await cookies()).get(AUTH_COOKIE)?.value;
 
   if (!token) return null;
@@ -22,7 +23,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return null;
     throw error;
   }
-}
+});
 
 /** API token of the visitor for server-side requests (account, cart, favorites pages). */
 export async function getToken(): Promise<string | undefined> {

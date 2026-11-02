@@ -32,7 +32,7 @@ export function AccountAction() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const name = useSessionName();
-  const { data: me, isStaff } = useMe();
+  const { data: me, isStaff, isAdmin } = useMe();
 
   if (!name) {
     return (
@@ -53,7 +53,7 @@ export function AccountAction() {
 
   const items = isStaff
     ? [
-        { href: routes.admin, icon: ShieldCheck, label: t.nav.admin },
+        { href: routes.admin, icon: ShieldCheck, label: isAdmin ? t.nav.admin : t.nav.manager },
       ]
     : [
         { href: routes.account, icon: LayoutDashboard, label: t.nav.account },

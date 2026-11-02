@@ -66,6 +66,7 @@ export const ru = {
     contacts: "Контакты",
     account: "Личный кабинет",
     admin: "Админ-панель",
+    manager: "Панель менеджера",
   },
   header: {
     homeAria: "Bakht Stroy — на главную",
@@ -632,6 +633,7 @@ export const ru = {
   },
   admin: {
     title: "Админ-панель",
+    managerTitle: "Панель менеджера",
     menu: "Меню админ-панели",
     nav: { dashboard: "Дашборд", orders: "Заказы", products: "Товары", categories: "Категории", chats: "Чаты", users: "Пользователи", news: "Новости", banners: "Баннеры", messages: "Сообщения", storeSettings: "Настройки магазина", settings: "Мои настройки", toSite: "На сайт" },
     common: {

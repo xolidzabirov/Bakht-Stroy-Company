@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Heart, LayoutDashboard, MapPin, MessageCircle, Package, Settings, ShieldCheck, UserRound } from "lucide-react";
 import { useChatInfo } from "@/entities/chat/api/useChatInfo";
+import { useMe } from "@/shared/api/useMe";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
@@ -14,12 +15,13 @@ import { cn } from "@/shared/lib/cn";
 export function AccountNav({ unread, staff = false, variant }: { unread: number; staff?: boolean; variant: "side" | "bottom" }) {
   const { t } = useI18n();
   const pathname = usePathname();
+  const { isAdmin } = useMe();
   const { data: chat } = useChatInfo(!staff, { silent: pathname === routes.accountChat });
 
   // The shop team has no purchases here — only the way to the admin panel and their settings.
   const items: { href: string; label: string; icon: typeof Settings; exact?: boolean; badge?: number }[] = staff
     ? [
-        { href: routes.admin, label: t.nav.admin, icon: ShieldCheck },
+        { href: routes.admin, label: isAdmin ? t.nav.admin : t.nav.manager, icon: ShieldCheck },
         { href: routes.accountSettings, label: t.acc.nav.settings, icon: Settings },
       ]
     : [

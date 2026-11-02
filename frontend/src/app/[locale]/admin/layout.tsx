@@ -3,6 +3,7 @@ import { ShieldCheck, Store } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
+import { getCurrentUser } from "@/shared/api/session";
 import { routes } from "@/shared/config/site";
 import { ButtonLink } from "@/shared/ui";
 import { SkipLink } from "@/shared/ui/SkipLink";
@@ -10,9 +11,10 @@ import { getI18n } from "@/shared/i18n/server";
 import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getI18n();
+  const [{ t }, user] = await Promise.all([getI18n(), getCurrentUser()]);
+  const title = user && !isAdmin(user) ? t.admin.managerTitle : t.admin.title;
 
-  return { title: { template: `%s — ${t.admin.title}`, default: t.admin.title }, robots: { index: false, follow: false } };
+  return { title: { template: `%s — ${title}`, default: title }, robots: { index: false, follow: false } };
 }
 
 /**
