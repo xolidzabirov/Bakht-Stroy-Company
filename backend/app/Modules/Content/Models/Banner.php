@@ -18,9 +18,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Slide of the home page carousel.
+ * Slide of a home page carousel: the photo carousel of the first screen ("hero")
+ * or the banners strip under it ("promo").
  *
  * @property int $id
+ * @property string $placement
  * @property string $title
  * @property string|null $subtitle
  * @property string|null $button_text
@@ -35,11 +37,17 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static> showing()
  */
 #[UseFactory(BannerFactory::class)]
-#[Fillable(['title', 'subtitle', 'button_text', 'link', 'sort_order', 'is_active', 'starts_at', 'ends_at'])]
+#[Fillable(['placement', 'title', 'subtitle', 'button_text', 'link', 'sort_order', 'is_active', 'starts_at', 'ends_at'])]
 class Banner extends Model implements HasMedia
 {
     /** @use HasFactory<BannerFactory> */
     use HasFactory, InteractsWithMedia;
+
+    public const PLACEMENT_HERO = 'hero';
+
+    public const PLACEMENT_PROMO = 'promo';
+
+    public const PLACEMENTS = [self::PLACEMENT_HERO, self::PLACEMENT_PROMO];
 
     public const IMAGE_COLLECTION = 'image';
 
@@ -79,8 +87,45 @@ class Banner extends Model implements HasMedia
         $this->addMediaCollection(self::MOBILE_IMAGE_COLLECTION)->singleFile()->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
+    /** @var array<string, mixed> */
+    protected $attributes = ['placement' => self::PLACEMENT_PROMO];
+
+    /**
+     * Banners of one place on the page.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function placedIn(Builder $query, string $placement): void
+    {
+        $query->where('placement', $placement);
+    }
+
+    public function isHero(): bool
+    {
+        return $this->placement === self::PLACEMENT_HERO;
+    }
+
     public function registerMediaConversions(?Media $media = null): void
     {
+        // The first screen photo frame is 5:4: two sizes for the browser to choose from (phone / desktop).
+        // Media Library may call this on a blank model, so the banner itself is taken from the media record.
+        $banner = $media?->model instanceof self ? $media->model : $this;
+
+        if ($banner->isHero()) {
+            $this->addMediaConversion('hero_860')->nonOptimized()
+                ->performOnCollections(self::IMAGE_COLLECTION)
+                ->fit(Fit::Crop, 860, 688)
+                ->format('webp');
+
+            $this->addMediaConversion('hero_1280')->nonOptimized()
+                ->performOnCollections(self::IMAGE_COLLECTION)
+                ->fit(Fit::Crop, 1280, 1024)
+                ->format('webp');
+
+            return;
+        }
+
         $this->addMediaConversion('desktop')->nonOptimized()
             ->performOnCollections(self::IMAGE_COLLECTION)
             ->fit(Fit::Crop, 1920, 600)

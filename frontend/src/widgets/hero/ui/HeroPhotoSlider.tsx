@@ -1,17 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { preload } from "react-dom";
 import { useSlider } from "@/shared/lib/useSlider";
 import { cn } from "@/shared/lib/cn";
 import { SlideProgress } from "@/shared/ui";
 
-/** `src` is the file name without the size: /hero/mixer → /hero/mixer-860.webp, /hero/mixer-1280.webp. */
-export type HeroSlide = { src: string; title: string; label: string };
+/** A photo in two widths (860 and 1280 px), the caption and, for the shop's own slides, an optional link. */
+export type HeroSlide = { small: string; large: string; title: string; label: string; href?: string | null };
 
 const DURATION = 6000;
 const SIZES = "(max-width: 1024px) 100vw, 45vw";
-const srcSet = (src: string) => `${src}-860.webp 860w, ${src}-1280.webp 1280w`;
+const srcSet = (slide: HeroSlide) => `${slide.small} 860w, ${slide.large} 1280w`;
 
 /**
  * Photo carousel in the first screen: each photo stays ~6 s, slowly zooming in,
@@ -24,9 +25,9 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
   const [warm, setWarm] = useState(false);
 
   if (slides[0])
-    preload(`${slides[0].src}-860.webp`, {
+    preload(slides[0].small, {
       as: "image",
-      imageSrcSet: srcSet(slides[0].src),
+      imageSrcSet: srcSet(slides[0]),
       imageSizes: SIZES,
       fetchPriority: "high",
     });
@@ -43,7 +44,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
     >
       {slides.map((slide, i) => (
         <div
-          key={slide.src}
+          key={slide.large}
           aria-hidden={i !== index}
           className={cn(
             "absolute inset-0 transition-opacity duration-[1400ms] ease-in-out motion-reduce:transition-none",
@@ -53,8 +54,8 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
           {(i === 0 || i === index || warm) && (
             // eslint-disable-next-line @next/next/no-img-element -- prepared WebP sizes, no image optimizer
             <img
-              src={`${slide.src}-860.webp`}
-              srcSet={srcSet(slide.src)}
+              src={slide.small}
+              srcSet={srcSet(slide)}
               sizes={SIZES}
               alt={slide.title}
               fetchPriority={i === 0 ? "high" : "low"}
@@ -77,11 +78,20 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
                 : "translate-y-4 opacity-0",
             )}
           >
-            <span className="inline-flex rounded-full bg-brand px-3 py-1 text-xs font-bold text-on-brand">
-              {slide.label}
-            </span>
+            {slide.label && (
+              <span className="inline-flex rounded-full bg-brand px-3 py-1 text-xs font-bold text-on-brand">
+                {slide.label}
+              </span>
+            )}
             <p className="mt-3 max-w-md font-display text-2xl font-extrabold leading-tight sm:text-3xl">
-              {slide.title}
+              {/* The shop's own slide may lead somewhere (a category, a post); only the visible one is focusable. */}
+              {slide.href ? (
+                <Link href={slide.href} tabIndex={i === index ? 0 : -1} className="after:absolute after:inset-0 hover:underline">
+                  {slide.title}
+                </Link>
+              ) : (
+                slide.title
+              )}
             </p>
           </div>
         </div>

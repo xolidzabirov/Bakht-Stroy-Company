@@ -20,20 +20,21 @@ final class BannerController extends Controller
      * Баннеры главной страницы
      *
      * Активные баннеры, у которых сейчас период показа, по порядку. Доступно гостям.
+     * placement: promo (по умолчанию) — полоса баннеров, hero — фото-карусель первого экрана.
      */
     #[Group('Магазин', weight: 8)]
-    public function public(): AnonymousResourceCollection
+    public function public(Request $request): AnonymousResourceCollection
     {
-        return BannerResource::collection(Banner::query()->showing()->with('media')->get());
+        return BannerResource::collection(Banner::query()->placedIn($this->placement($request))->showing()->with('media')->get());
     }
 
     /**
      * Все баннеры
      */
     #[Group('Админ: настройки и контент', weight: 15)]
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return BannerResource::collection(Banner::query()->with('media')->orderBy('sort_order')->latest('id')->get());
+        return BannerResource::collection(Banner::query()->placedIn($this->placement($request))->with('media')->orderBy('sort_order')->latest('id')->get());
     }
 
     /**
@@ -51,7 +52,8 @@ final class BannerController extends Controller
     #[Group('Админ: настройки и контент', weight: 15)]
     public function update(SaveBannerRequest $request, Banner $banner): BannerResource
     {
-        $banner->update($request->validated());
+        // The place is chosen once: the photos are cut for it when uploaded.
+        $banner->update($request->safe()->except('placement'));
 
         return BannerResource::make($banner->load('media'));
     }
@@ -86,5 +88,13 @@ final class BannerController extends Controller
         $banner->addMediaFromRequest('image')->usingName($banner->title)->toMediaCollection($collection);
 
         return BannerResource::make($banner->load('media'));
+    }
+
+    /** ?placement=hero|promo (promo when missing). */
+    private function placement(Request $request): string
+    {
+        $request->validate(['placement' => ['nullable', 'in:'.implode(',', Banner::PLACEMENTS)]]);
+
+        return $request->filled('placement') ? $request->string('placement')->toString() : Banner::PLACEMENT_PROMO;
     }
 }

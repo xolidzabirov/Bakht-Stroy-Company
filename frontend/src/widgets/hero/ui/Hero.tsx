@@ -5,9 +5,9 @@ import { getI18n } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { ButtonLink, Container } from "@/shared/ui";
 import { BannerSlider } from "./BannerSlider";
-import { HeroPhotoSlider } from "./HeroPhotoSlider";
+import { type HeroSlide, HeroPhotoSlider } from "./HeroPhotoSlider";
 
-/** Photos in public/hero (see CREDITS.md there) — replace with the company's own shots. Captions come from the dictionary. */
+/** Stock photos in public/hero (see CREDITS.md there), shown until the shop adds its own slides in Админ → Баннеры → Главный слайдер. */
 // public/hero/<name>-860.webp and -1280.webp
 const photos = ["/hero/mixer", "/hero/asphalt", "/hero/cement", "/hero/rebar"];
 
@@ -15,9 +15,12 @@ const photos = ["/hero/mixer", "/hero/asphalt", "/hero/cement", "/hero/rebar"];
  * First screen: brand message on the left, photo carousel on the right, key facts along the bottom;
  * then the admin banners carousel.
  */
-export async function Hero({ banners, phone }: { banners: Banner[]; phone?: string }) {
+export async function Hero({ banners, heroSlides, phone }: { banners: Banner[]; heroSlides: Banner[]; phone?: string }) {
   const { t } = await getI18n();
-  const slides = t.hero.slides.map((slide, i) => ({ ...slide, src: photos[i % photos.length] }));
+  // The shop's own slides (with a photo) win; without them — the stock photos with dictionary captions.
+  const own: HeroSlide[] = heroSlides.flatMap((slide) => (slide.image_hero ? [{ small: slide.image_hero.small, large: slide.image_hero.large, title: slide.title, label: slide.subtitle ?? "", href: slide.link }] : []));
+  const slides: HeroSlide[] =
+    own.length > 0 ? own : t.hero.slides.map((slide, i) => ({ ...slide, small: `${photos[i % photos.length]}-860.webp`, large: `${photos[i % photos.length]}-1280.webp` }));
 
   return (
     <>

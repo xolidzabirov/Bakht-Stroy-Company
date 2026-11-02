@@ -260,11 +260,32 @@ export interface paths {
         };
         /**
          * Товар
-         * @description Страница товара по slug: фото, характеристики, категория. Каждый просмотр увеличивает счётчик популярности.
+         * @description Страница товара по slug: фото, характеристики, категория. Просмотр считает отдельный запрос `POST /products/{slug}/view`,
+         *     поэтому страницу можно кэшировать.
          */
         get: operations["products.show"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/{product}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Засчитать просмотр товара
+         * @description Сайт отправляет его из браузера, когда страница товара открыта. Счётчик влияет на сортировку «популярные».
+         */
+        post: operations["products.view"];
         delete?: never;
         options?: never;
         head?: never;
@@ -787,11 +808,31 @@ export interface paths {
         /**
          * Новость
          * @description Полный текст, галерея, видео, товары из новости, предыдущая / следующая и похожие новости.
-         *     Каждый просмотр увеличивает счётчик.
+         *     Просмотр считает отдельный запрос `POST /news/{slug}/view`, поэтому страницу можно кэшировать.
          */
         get: operations["news.show"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/news/{slug}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Засчитать просмотр новости
+         * @description Сайт отправляет его из браузера, когда новость открыта.
+         */
+        post: operations["news.view"];
         delete?: never;
         options?: never;
         head?: never;
@@ -918,6 +959,7 @@ export interface paths {
         /**
          * Баннеры главной страницы
          * @description Активные баннеры, у которых сейчас период показа, по порядку. Доступно гостям.
+         *     placement: promo (по умолчанию) — полоса баннеров, hero — фото-карусель первого экрана.
          */
         get: operations["banners.index"];
         put?: never;
@@ -1413,7 +1455,13 @@ export interface paths {
          */
         get: operations["admin.users.index"];
         put?: never;
-        post?: never;
+        /**
+         * Создать пользователя
+         * @description Только администратор: например, новый менеджер. Email сразу подтверждён, роль назначена.
+         *     Если пароль не передан, сервер придумает надёжный. В ответе `credentials` — логин и пароль
+         *     для передачи человеку: они показываются один раз, в базе хранится только хэш.
+         */
+        post: operations["admin.users.store"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1434,6 +1482,27 @@ export interface paths {
         get: operations["admin.users.show"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Новый пароль
+         * @description Только администратор: придумывает новый пароль (например, менеджер забыл свой) и выходит
+         *     со всех устройств пользователя. Пароль в ответе показывается один раз. Администраторам — нельзя.
+         */
+        post: operations["admin.users.password"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2094,6 +2163,8 @@ export interface components {
         /** BannerResource */
         BannerResource: {
             id: number;
+            /** @description hero — фото-карусель первого экрана, promo — полоса баннеров под ним. */
+            placement: string;
             title: string;
             subtitle: string | null;
             button_text: string | null;
@@ -2102,6 +2173,11 @@ export interface components {
             image: string | null;
             /** @description 800×800 WebP (своя мобильная картинка или обрезанная основная) или null. */
             image_mobile: string | null;
+            /** @description Только у слайдов первого экрана: 860×688 и 1280×1024 WebP. */
+            image_hero: {
+                small: string;
+                large: string;
+            } | null;
             sort_order: number;
             is_active: boolean;
             starts_at: string | null;
@@ -2311,6 +2387,25 @@ export interface components {
             /** @description Непрочитанные сообщения покупателя. */
             unread_count: number;
             last_message_at: string | null;
+        };
+        /** CreateUserRequest */
+        CreateUserRequest: {
+            /** @example Фирдавс Каримов */
+            name: string;
+            /**
+             * Format: email
+             * @description Логин для входа. @example manager@bakhtstroy.tj
+             */
+            email: string;
+            /** @description Необязательно. @example +992931234567 */
+            phone?: string | null;
+            /**
+             * @description client — покупатель, manager — менеджер.
+             * @enum {string}
+             */
+            role: "client" | "manager";
+            /** @description Пусто — сервер придумает надёжный пароль и вернёт его один раз. */
+            password?: string | null;
         };
         /**
          * DeliveryType
@@ -2805,6 +2900,12 @@ export interface components {
         };
         /** SaveBannerRequest */
         SaveBannerRequest: {
+            /**
+             * @description Место: promo (полоса баннеров, по умолчанию) или hero (фото-карусель первого экрана). Задаётся при создании.
+             * @example hero
+             * @enum {string}
+             */
+            placement?: "hero" | "promo";
             /** @example Сезонная скидка на кровлю до −15% */
             title: string;
             /** @example Профнастил и металлочерепица со склада в Душанбе */
@@ -3945,6 +4046,55 @@ export interface operations {
                         /** @example Ресурс не найден. */
                         message: string;
                         /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "products.view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product slug */
+                product: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
                         code: string;
                     };
                 };
@@ -6131,6 +6281,54 @@ export interface operations {
                         /** @example Ресурс не найден. */
                         message: string;
                         /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "news.view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
                         code: string;
                     };
                 };
@@ -9441,6 +9639,98 @@ export interface operations {
             };
         };
     };
+    "admin.users.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            user: unknown[];
+                            /** @description Показать администратору один раз. */
+                            credentials: {
+                                login: string;
+                                password: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
     "admin.users.show": {
         parameters: {
             query?: never;
@@ -9505,6 +9795,76 @@ export interface operations {
                         /** @example Ресурс не найден. */
                         message: string;
                         /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.users.password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            credentials: {
+                                login: string;
+                                password: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Нельзя изменить этого пользователя. (CANNOT_MANAGE_USER) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Нельзя изменить этого пользователя. */
+                        message: string;
+                        /** @example CANNOT_MANAGE_USER */
                         code: string;
                     };
                 };

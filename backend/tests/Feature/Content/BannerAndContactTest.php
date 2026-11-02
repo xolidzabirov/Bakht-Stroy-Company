@@ -46,6 +46,31 @@ it('manages banners with images', function () {
     expect(Banner::query()->count())->toBe(0);
 });
 
+it('keeps the first screen photos apart from the banners strip', function () {
+    Storage::fake('public');
+    Banner::factory()->create(['title' => 'Баннер']);
+
+    $id = $this->withToken($this->token)->postJson('/api/v1/admin/banners', ['title' => 'Бетон своими миксерами', 'subtitle' => 'Бетон', 'placement' => 'hero'])
+        ->assertCreated()
+        ->assertJsonPath('data.placement', 'hero')
+        ->json('data.id');
+
+    // A first screen photo is cut to the 5:4 frame in two sizes.
+    $this->withToken($this->token)
+        ->post("/api/v1/admin/banners/{$id}/image", ['image' => UploadedFile::fake()->image('mixer.jpg', 1600, 1200)])
+        ->assertOk()
+        ->assertJsonPath('data.image_hero.small', fn (string $url) => str_contains($url, 'hero_860') && str_ends_with($url, '.webp'))
+        ->assertJsonPath('data.image_hero.large', fn (string $url) => str_contains($url, 'hero_1280'));
+
+    expect(collect($this->getJson('/api/v1/banners')->json('data'))->pluck('title')->all())->toBe(['Баннер'])
+        ->and(collect($this->getJson('/api/v1/banners?placement=hero')->json('data'))->pluck('title')->all())->toBe(['Бетон своими миксерами'])
+        ->and(collect($this->withToken($this->token)->getJson('/api/v1/admin/banners?placement=hero')->json('data'))->pluck('id')->all())->toBe([$id]);
+
+    // The place is fixed once created; unknown places are refused.
+    $this->withToken($this->token)->patchJson("/api/v1/admin/banners/{$id}", ['placement' => 'promo'])->assertOk()->assertJsonPath('data.placement', 'hero');
+    $this->getJson('/api/v1/banners?placement=footer')->assertUnprocessable();
+});
+
 it('accepts contact messages from guests and notifies staff', function () {
     Notification::fake();
 

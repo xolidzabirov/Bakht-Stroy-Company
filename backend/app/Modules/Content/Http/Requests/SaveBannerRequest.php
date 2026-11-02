@@ -17,6 +17,12 @@ final class SaveBannerRequest extends FormRequest
         $required = $this->isMethod('post') ? 'required' : 'sometimes';
 
         return [
+            /**
+             * Место: promo (полоса баннеров, по умолчанию) или hero (фото-карусель первого экрана). Задаётся при создании.
+             *
+             * @example hero
+             */
+            'placement' => ['sometimes', 'in:hero,promo'],
             /** @example Сезонная скидка на кровлю до −15% */
             'title' => [$required, 'string', 'max:150'],
             /** @example Профнастил и металлочерепица со склада в Душанбе */

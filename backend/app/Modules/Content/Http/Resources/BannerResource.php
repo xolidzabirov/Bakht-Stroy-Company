@@ -21,8 +21,12 @@ final class BannerResource extends JsonResource
         $image = $this->relationLoaded('media') ? $this->getFirstMedia(Banner::IMAGE_COLLECTION) : null;
         $mobile = $this->relationLoaded('media') ? $this->getFirstMedia(Banner::MOBILE_IMAGE_COLLECTION) : null;
 
+        $url = fn (string $conversion) => $image?->hasGeneratedConversion($conversion) ? $image->getUrl($conversion) : $image?->getUrl();
+
         return [
             'id' => $this->id,
+            /** hero — фото-карусель первого экрана, promo — полоса баннеров под ним. */
+            'placement' => $this->placement,
             'title' => $this->title,
             'subtitle' => $this->subtitle,
             'button_text' => $this->button_text,
@@ -35,6 +39,12 @@ final class BannerResource extends JsonResource
                 $image !== null => $image->hasGeneratedConversion('mobile') ? $image->getUrl('mobile') : $image->getUrl(),
                 default => null,
             },
+            /**
+             * Только у слайдов первого экрана: 860×688 и 1280×1024 WebP.
+             *
+             * @var array{small: string, large: string}|null
+             */
+            'image_hero' => $this->isHero() && $image !== null ? ['small' => $url('hero_860'), 'large' => $url('hero_1280')] : null,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
             'starts_at' => $this->starts_at?->toIso8601String(),

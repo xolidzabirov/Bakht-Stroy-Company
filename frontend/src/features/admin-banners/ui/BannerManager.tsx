@@ -26,10 +26,17 @@ function toLocalInput(iso: string | null | undefined): string {
 /** datetime-local value → ISO with the time zone, so the server stores the moment the admin meant. */
 const fromLocalInput = (value: string) => (value ? new Date(value).toISOString() : null);
 
+type Placement = "hero" | "promo";
+
+/** Preview of a slide: the first screen photo (5:4) or the wide banner picture. */
+const previewOf = (banner: Banner) => (banner.placement === "hero" ? (banner.image_hero?.large ?? banner.image) : banner.image);
+
 /**
- * Home page slides: preview, on/off, order with arrows, edit in a dialog (texts, link, schedule, desktop and phone images).
+ * Home page slides of one carousel — the main slider of the first screen ("hero") or the banners strip ("promo"):
+ * preview, on/off, order with arrows, edit in a dialog (texts, link, schedule, pictures).
  */
-export function BannerManager({ banners }: { banners: Banner[] }) {
+export function BannerManager({ banners, placement }: { banners: Banner[]; placement: Placement }) {
+  const hero = placement === "hero";
   const { t, locale } = useI18n();
   const b = t.admin.banners;
   const router = useRouter();
@@ -89,22 +96,22 @@ export function BannerManager({ banners }: { banners: Banner[] }) {
       <div className="mb-4 flex justify-end">
         <Button onClick={() => setEditing("new")}>
           <Plus className="size-4" />
-          {b.add}
+          {hero ? b.heroAdd : b.add}
         </Button>
       </div>
 
       {banners.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{b.empty}</p>
+        <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{hero ? b.heroEmpty : b.empty}</p>
       ) : (
         <ul className="space-y-3">
           {banners.map((banner, index) => {
             const scheduled = Boolean(banner.starts_at || banner.ends_at);
             return (
               <li key={banner.id} className={cn("overflow-hidden rounded-2xl border border-border bg-surface sm:flex", !banner.is_active && "opacity-70")}>
-                <div className="relative aspect-[16/5] shrink-0 bg-muted sm:aspect-auto sm:w-80">
-                  {banner.image ? (
+                <div className={cn("relative shrink-0 bg-muted", hero ? "aspect-[5/4] sm:w-48" : "aspect-[16/5] sm:aspect-auto sm:w-80")}>
+                  {previewOf(banner) ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={banner.image} alt="" className="size-full object-cover" />
+                    <img src={previewOf(banner) ?? undefined} alt="" className="size-full object-cover" />
                   ) : (
                     <span className="grid size-full min-h-24 place-items-center text-muted-foreground">
                       <ImageOff className="size-6" />
@@ -114,8 +121,10 @@ export function BannerManager({ banners }: { banners: Banner[] }) {
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
+                      {hero && banner.subtitle && <span className="mb-1 inline-flex rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-on-brand">{banner.subtitle}</span>}
                       <b className="block">{banner.title}</b>
-                      {banner.subtitle && <span className="mt-0.5 block text-sm text-muted-foreground">{banner.subtitle}</span>}
+                      {!hero && banner.subtitle && <span className="mt-0.5 block text-sm text-muted-foreground">{banner.subtitle}</span>}
+                      {hero && !banner.image && <span className="mt-1 block text-xs font-medium text-destructive">{b.heroNoImage}</span>}
                     </div>
                     <Switch checked={banner.is_active} onCheckedChange={(next) => void patch(banner, { is_active: next })} disabled={busy === banner.id} aria-label={b.isActive} />
                   </div>
@@ -162,6 +171,7 @@ export function BannerManager({ banners }: { banners: Banner[] }) {
             <BannerForm
               key={editing === "new" ? "new" : editing.id}
               banner={editing === "new" ? null : editing}
+              placement={placement}
               nextSort={(banners.at(-1)?.sort_order ?? 0) + 10}
               onSaved={(saved, created) => {
                 router.refresh();
@@ -213,9 +223,22 @@ function IconButton({ label, onClick, disabled, danger, children }: { label: str
 
 type Values = { title: string; subtitle: string; button_text: string; link: string; starts_at: string; ends_at: string; is_active: boolean };
 
-function BannerForm({ banner, nextSort, onSaved, onClose }: { banner: Banner | null; nextSort: number; onSaved: (banner: Banner, created: boolean) => void; onClose: () => void }) {
+function BannerForm({
+  banner,
+  placement,
+  nextSort,
+  onSaved,
+  onClose,
+}: {
+  banner: Banner | null;
+  placement: Placement;
+  nextSort: number;
+  onSaved: (banner: Banner, created: boolean) => void;
+  onClose: () => void;
+}) {
   const { t } = useI18n();
   const b = t.admin.banners;
+  const hero = placement === "hero";
   const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
@@ -245,7 +268,7 @@ function BannerForm({ banner, nextSort, onSaved, onClose }: { banner: Banner | n
       starts_at: fromLocalInput(values.starts_at),
       ends_at: fromLocalInput(values.ends_at),
       is_active: values.is_active,
-      ...(banner ? {} : { sort_order: nextSort }),
+      ...(banner ? {} : { sort_order: nextSort, placement }),
     };
 
     try {
@@ -261,20 +284,32 @@ function BannerForm({ banner, nextSort, onSaved, onClose }: { banner: Banner | n
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <DialogTitle className="text-xl font-extrabold">{banner ? b.editTitle : b.newTitle}</DialogTitle>
+      <DialogTitle className="text-xl font-extrabold">{hero ? (banner ? b.heroEdit : b.heroNew) : banner ? b.editTitle : b.newTitle}</DialogTitle>
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <Field label={b.bannerTitle} error={errors.title?.message}>
-        {(id, describedBy) => <TextInput id={id} aria-invalid={Boolean(errors.title)} aria-describedby={describedBy} {...register("title", { required: t.admin.common.required })} />}
-      </Field>
-      <Field label={b.subtitle} error={errors.subtitle?.message}>
-        {(id, describedBy) => <TextInput id={id} aria-describedby={describedBy} {...register("subtitle")} />}
-      </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={b.buttonText} error={errors.button_text?.message}>
-          {(id, describedBy) => <TextInput id={id} placeholder={b.buttonPlaceholder} aria-describedby={describedBy} {...register("button_text")} />}
+      {/* On the first screen the label is the yellow badge above the title. */}
+      {hero && (
+        <Field label={b.heroLabel} error={errors.subtitle?.message}>
+          {(id, describedBy) => <TextInput id={id} placeholder={b.heroLabelPlaceholder} maxLength={40} aria-describedby={describedBy} {...register("subtitle")} />}
         </Field>
-        <Field label={b.link} error={errors.link?.message} hint={b.linkHint}>
+      )}
+      <Field label={b.bannerTitle} error={errors.title?.message}>
+        {(id, describedBy) => (
+          <TextInput id={id} placeholder={hero ? b.heroTitlePlaceholder : undefined} aria-invalid={Boolean(errors.title)} aria-describedby={describedBy} {...register("title", { required: t.admin.common.required })} />
+        )}
+      </Field>
+      {!hero && (
+        <Field label={b.subtitle} error={errors.subtitle?.message}>
+          {(id, describedBy) => <TextInput id={id} aria-describedby={describedBy} {...register("subtitle")} />}
+        </Field>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {!hero && (
+          <Field label={b.buttonText} error={errors.button_text?.message}>
+            {(id, describedBy) => <TextInput id={id} placeholder={b.buttonPlaceholder} aria-describedby={describedBy} {...register("button_text")} />}
+          </Field>
+        )}
+        <Field label={b.link} error={errors.link?.message} hint={hero ? b.heroLinkHint : b.linkHint}>
           {(id, describedBy) => <TextInput id={id} placeholder="/catalog" aria-describedby={describedBy} {...register("link")} />}
         </Field>
         <Field label={b.startsAt} error={errors.starts_at?.message} hint={b.scheduleHint}>
@@ -295,12 +330,15 @@ function BannerForm({ banner, nextSort, onSaved, onClose }: { banner: Banner | n
         )}
       />
 
-      {banner && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <BannerImage banner={banner} variant="desktop" />
-          <BannerImage banner={banner} variant="mobile" />
-        </div>
-      )}
+      {banner &&
+        (hero ? (
+          <BannerImage banner={banner} variant="hero" />
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <BannerImage banner={banner} variant="desktop" />
+            <BannerImage banner={banner} variant="mobile" />
+          </div>
+        ))}
 
       <DialogFooter className="gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
@@ -315,22 +353,24 @@ function BannerForm({ banner, nextSort, onSaved, onClose }: { banner: Banner | n
   );
 }
 
-function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" | "mobile" }) {
+/** desktop / mobile — the banner pictures; hero — the first screen photo (uploaded as the main picture, cut to 5:4). */
+function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" | "mobile" | "hero" }) {
   const { t } = useI18n();
   const b = t.admin.banners;
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
-  const [image, setImage] = useState(variant === "desktop" ? banner.image : banner.image_mobile);
+  const pick = (data: Banner) => (variant === "hero" ? previewOf(data) : variant === "desktop" ? data.image : data.image_mobile);
+  const [image, setImage] = useState(pick(banner));
   const [busy, setBusy] = useState(false);
 
   const upload = async (file: File) => {
     const form = new FormData();
     form.append("image", file);
-    form.append("variant", variant);
+    form.append("variant", variant === "mobile" ? "mobile" : "desktop");
     setBusy(true);
     try {
       const { data } = await bff<{ data: Banner }>(`/api/proxy/admin/banners/${banner.id}/image`, { body: form });
-      setImage(variant === "desktop" ? data.image : data.image_mobile);
+      setImage(pick(data));
       router.refresh();
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.errors.generic);
@@ -341,13 +381,13 @@ function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" |
 
   return (
     <div>
-      <p className="text-sm font-semibold">{variant === "desktop" ? b.image : b.imageMobile}</p>
-      <p className="mb-2 text-xs text-muted-foreground">{variant === "desktop" ? b.imageHint : b.imageMobileHint}</p>
+      <p className="text-sm font-semibold">{variant === "hero" ? b.heroImage : variant === "desktop" ? b.image : b.imageMobile}</p>
+      <p className="mb-2 text-xs text-muted-foreground">{variant === "hero" ? b.heroImageHint : variant === "desktop" ? b.imageHint : b.imageMobileHint}</p>
       <button
         type="button"
         onClick={() => input.current?.click()}
         disabled={busy}
-        className={cn("relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted transition hover:border-primary", variant === "desktop" ? "aspect-[16/5]" : "aspect-square max-w-40")}
+        className={cn("relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted transition hover:border-primary", variant === "hero" ? "aspect-[5/4] max-w-sm" : variant === "desktop" ? "aspect-[16/5]" : "aspect-square max-w-40")}
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element

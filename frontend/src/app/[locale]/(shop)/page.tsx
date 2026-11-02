@@ -19,9 +19,10 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   await setLocaleFrom(params);
-  const [banners, categories, featured, discounted, news, settings] =
+  const [banners, heroSlides, categories, featured, discounted, news, settings] =
     await Promise.all([
       getBanners(),
+      getBanners("hero"),
       getCategories(),
       getProducts({ featured: true, per_page: 8 }),
       getProducts({ sort: "popular", per_page: 60 }),
@@ -36,7 +37,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <Hero banners={banners} phone={settings.phones[0]} />
+      <Hero banners={banners} heroSlides={heroSlides} phone={settings.phones[0]} />
       <CategoryStrip categories={categories} />
       <Advantages />
       <CategoryGrid categories={categories} />
