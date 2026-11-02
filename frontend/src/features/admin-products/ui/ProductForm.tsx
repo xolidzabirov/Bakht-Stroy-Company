@@ -262,6 +262,8 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
             {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
             {product ? t.admin.common.save : t.admin.common.create}
           </Button>
+          {/* The button waits for a change in the fields; photos are saved on their own. */}
+          {product && <p className={isDirty ? "mt-2 text-center text-xs font-semibold text-foreground" : "mt-2 text-center text-xs text-muted-foreground"}>{isDirty ? p.hasChanges : p.noChanges}</p>}
         </div>
 
         {aside}

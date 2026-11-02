@@ -37,6 +37,7 @@ export function ProductImages({ productId, images }: { productId: number; images
     setUploading(true);
     try {
       await bff(`/api/proxy/admin/products/${productId}/images`, { body: form });
+      toast.success(p.photosSaved);
       router.refresh();
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.errors.generic);
