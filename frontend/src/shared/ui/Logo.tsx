@@ -8,6 +8,13 @@ type LogoProps = {
   inverted?: boolean;
 };
 
+// Joined into one line: a line break inside the attribute differs between the server HTML and the browser (hydration error).
+const B_SHAPE = [
+  "M38 30 H54 C62 30 66 34 66 40 C66 44 64 47 60.5 48.5 C65 50 68 53.5 68 58.5 C68 65.5 63 70 54.5 70 H38 Z",
+  "M47 37.5 V46 H53 C56 46 57.5 44.5 57.5 41.8 C57.5 39 56 37.5 53 37.5 Z",
+  "M47 52.5 V62.5 H54 C57.5 62.5 59 60.8 59 57.6 C59 54.3 57.5 52.5 54 52.5 Z",
+].join(" ");
+
 /**
  * Bakht Stroy sign: a bold "B" inside an open ring on the brand yellow (vector version of the logo).
  */
@@ -22,9 +29,7 @@ export function LogoMark({ className }: { className?: string }) {
       <path d="M70 59 H86" stroke="#0A0A0A" strokeWidth="7" />
       {/* B */}
       <path
-        d="M38 30 H54 C62 30 66 34 66 40 C66 44 64 47 60.5 48.5 C65 50 68 53.5 68 58.5 C68 65.5 63 70 54.5 70 H38 Z
-           M47 37.5 V46 H53 C56 46 57.5 44.5 57.5 41.8 C57.5 39 56 37.5 53 37.5 Z
-           M47 52.5 V62.5 H54 C57.5 62.5 59 60.8 59 57.6 C59 54.3 57.5 52.5 54 52.5 Z"
+        d={B_SHAPE}
         fill="#0A0A0A"
         fillRule="evenodd"
       />

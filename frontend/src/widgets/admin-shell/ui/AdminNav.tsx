@@ -118,7 +118,7 @@ function AdminBrand() {
 /** Left column on desktop. */
 export function AdminSidebar({ isAdmin }: { isAdmin: boolean }) {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col bg-admin-nav text-white lg:flex">
+    <aside className="hidden w-64 shrink-0 flex-col bg-ink text-white lg:flex">
       <AdminBrand />
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <NavList isAdmin={isAdmin} />
@@ -137,7 +137,7 @@ export function AdminMobileNav({ isAdmin }: { isAdmin: boolean }) {
       <SheetTrigger aria-label={t.admin.menu} className="grid size-10 place-items-center rounded-xl hover:bg-muted lg:hidden">
         <Menu className="size-5" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 border-0 bg-admin-nav p-0 text-white">
+      <SheetContent side="left" className="w-72 border-0 bg-ink p-0 text-white">
         <SheetTitle asChild>
           <div>
             <AdminBrand />

@@ -35,7 +35,7 @@ final class NewOrderForStaffNotification extends Notification implements ShouldQ
             'type' => 'new_order',
             'title' => "Новый заказ {$this->order->number}",
             'text' => "{$this->order->customer_name}, {$this->order->customer_phone} — "
-                .number_format($this->order->total, 0, '', ' ').' сум',
+                .number_format($this->order->total, 0, '', ' ').' сом.',
             'order_id' => $this->order->id,
             'order_number' => $this->order->number,
         ];

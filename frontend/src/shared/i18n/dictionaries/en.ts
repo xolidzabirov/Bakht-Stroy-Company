@@ -728,7 +728,7 @@ export const en: Dictionary = {
       confirmCancel: "Items return to stock, the customer gets a notification.",
       confirmText: "The customer gets a notification about the new status.",
       statusChanged: "Status changed",
-      unpaidHint: "An unpaid order cannot go “On the way”. Mark the payment first.",
+      unpaidHint: "An unpaid order cannot go “On the way” or be completed. Mark the payment first.",
       payment: "Payment",
       paymentMethod: "Method",
       markPaid: "Mark as paid",

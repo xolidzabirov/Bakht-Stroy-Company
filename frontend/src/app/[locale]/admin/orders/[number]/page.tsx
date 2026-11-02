@@ -21,9 +21,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: fmt((await getI18n()).t.admin.order.title, { number: decodeURIComponent(number) }) };
 }
 
+/** By number (/admin/orders/BS-000012) or by id (/admin/orders/12). */
 async function loadOrder(number: string): Promise<AdminOrder> {
+  const path = /^\d+$/.test(number) ? `/admin/orders/${number}` : `/admin/orders/number/${encodeURIComponent(number)}`;
+
   try {
-    return (await userFetch<{ data: AdminOrder }>(`/admin/orders/number/${encodeURIComponent(number)}`)).data;
+    return (await userFetch<{ data: AdminOrder }>(path)).data;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;

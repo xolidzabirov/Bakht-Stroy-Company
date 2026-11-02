@@ -32,7 +32,7 @@ final class OrderPlacedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("Заказ {$this->order->number} принят — Bakht Stroy")
             ->greeting("Здравствуйте, {$this->order->customer_name}!")
-            ->line("Ваш заказ {$this->order->number} на сумму ".number_format($this->order->total, 0, '', ' ').' сум принят.')
+            ->line("Ваш заказ {$this->order->number} на сумму ".number_format($this->order->total, 0, '', ' ').' сом. принят.')
             ->line('Менеджер свяжется с вами по телефону '.$this->order->customer_phone.' для подтверждения.');
     }
 

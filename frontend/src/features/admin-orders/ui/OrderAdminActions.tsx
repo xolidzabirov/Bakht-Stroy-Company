@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowRight, CircleAlert, LoaderCircle, MessageCircle, XCircle } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
@@ -17,19 +18,26 @@ type Status = { value: string; label: string };
 
 /**
  * Next status buttons (only the allowed transitions, from the API), each confirmed in a dialog
- * with an optional comment for the customer. "On the way" stays locked until the order is paid.
+ * with an optional comment for the customer. "On the way" and "Completed" stay locked until the order is paid
+ * (the API refuses them too).
  */
 export function OrderStatusActions({ orderId, next, paid }: { orderId: number; next: Status[]; paid: boolean }) {
   const { t } = useI18n();
   const o = t.admin.order;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [target, setTarget] = useState<Status | null>(null);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
 
   const forward = next.filter((status) => status.value !== "cancelled");
   const cancel = next.find((status) => status.value === "cancelled");
-  const locked = (status: Status) => status.value === "delivering" && !paid;
+  const locked = (status: Status) => ["delivering", "completed"].includes(status.value) && !paid;
+
+  const close = () => {
+    setTarget(null);
+    setComment("");
+  };
 
   const submit = async () => {
     if (!target) return;
@@ -37,9 +45,10 @@ export function OrderStatusActions({ orderId, next, paid }: { orderId: number; n
     try {
       await bff(`/api/proxy/admin/orders/${orderId}/status`, { method: "PATCH", body: { status: target.value, comment: comment.trim() || null } });
       toast.success(o.statusChanged);
-      setTarget(null);
-      setComment("");
+      close();
       router.refresh();
+      // The "new orders" badge in the menu.
+      void queryClient.invalidateQueries({ queryKey: ["admin-badge-orders"] });
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.errors.generic);
     } finally {
@@ -70,7 +79,7 @@ export function OrderStatusActions({ orderId, next, paid }: { orderId: number; n
         </Button>
       )}
 
-      <Dialog open={target !== null} onOpenChange={(open) => !open && setTarget(null)}>
+      <Dialog open={target !== null} onOpenChange={(open) => !open && !busy && close()}>
         <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogTitle className="text-xl font-extrabold">{target && fmt(o.confirmTitle, { status: target.label })}</DialogTitle>
           <DialogDescription>{target?.value === "cancelled" ? o.confirmCancel : o.confirmText}</DialogDescription>
@@ -79,7 +88,7 @@ export function OrderStatusActions({ orderId, next, paid }: { orderId: number; n
             <Textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder={o.commentPlaceholder} maxLength={500} rows={3} className="font-normal" />
           </label>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setTarget(null)}>
+            <Button variant="outline" onClick={close} disabled={busy}>
               {t.admin.common.cancel}
             </Button>
             <Button onClick={() => void submit()} disabled={busy} className={target?.value === "cancelled" ? "bg-destructive text-white hover:bg-destructive/90" : undefined}>
