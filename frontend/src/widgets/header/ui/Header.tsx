@@ -45,7 +45,7 @@ export async function Header() {
           <CatalogMenu categories={categories} />
         </div>
 
-        <form action={routes.catalog} role="search" className="relative hidden min-w-0 flex-1 md:flex lg:max-w-sm xl:max-w-md">
+        <form action={routes.catalog} role="search" className="relative hidden min-w-0 flex-1 md:flex">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
             name="search"
