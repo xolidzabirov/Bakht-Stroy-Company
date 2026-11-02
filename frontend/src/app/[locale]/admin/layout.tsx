@@ -8,6 +8,7 @@ import { routes } from "@/shared/config/site";
 import { SkipLink } from "@/shared/ui/SkipLink";
 import { getI18n } from "@/shared/i18n/server";
 import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
+import { AdminScope } from "@/widgets/admin-shell/ui/AdminScope";
 import { QuickCreate } from "@/widgets/admin-shell/ui/QuickCreate";
 import { NotificationBell } from "@/widgets/header/ui/NotificationBell";
 
@@ -29,7 +30,8 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   const shell = { name: user.name, isAdmin: admin };
 
   return (
-    <div className="flex h-dvh bg-background">
+    <div className="admin-ui flex h-dvh bg-background">
+      <AdminScope />
       <SkipLink />
       <AdminSidebar user={shell} />
 

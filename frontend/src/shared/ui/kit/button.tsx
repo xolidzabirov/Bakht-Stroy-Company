@@ -8,7 +8,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/30",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/25",
         // Bakht Stroy: black button (white in the dark theme)
         dark: "bg-ink text-white hover:bg-ink/85 hover:shadow-lg hover:shadow-black/20 dark:bg-white dark:text-ink dark:hover:bg-white/85",
         destructive:

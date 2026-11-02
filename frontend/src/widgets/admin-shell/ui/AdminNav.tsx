@@ -96,10 +96,10 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
 
   return (
     <nav aria-label={t.admin.menu} className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
+      <div className="admin-nav-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-1.5 px-3 text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/35">{group.label}</p>
+            <p className="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35">{group.label}</p>
             <ul className="space-y-0.5">
               {group.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = isActive(href, exact);
@@ -110,7 +110,7 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                        "group relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
                         active ? "bg-white/[0.09] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white",
                       )}
                     >
@@ -130,8 +130,8 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
 
       {/* Who is signed in, with their settings and the way back to the shop. */}
       <div className="border-t border-white/10 p-3">
-        <div className="flex items-center gap-3 rounded-xl bg-white/[0.05] p-2.5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand font-display text-sm font-extrabold text-ink">{user.name.charAt(0).toUpperCase()}</span>
+        <div className="flex items-center gap-3 rounded-xl bg-white/[0.05] p-2">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
           <span className="min-w-0 flex-1 leading-tight">
             <b className="block truncate text-sm text-white">{user.name}</b>
             {/* The seeded account is called just "Администратор" — no need to say it twice. */}
@@ -162,8 +162,8 @@ function AdminBrand({ isAdmin }: { isAdmin: boolean }) {
     <Link href={routes.admin} className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
       <LogoMark className="size-9 shrink-0" />
       <span className="min-w-0 leading-tight">
-        <span className="block font-display text-[15px] font-extrabold tracking-tight text-white">BAKHT STROY</span>
-        <span className="block text-[10.5px] font-bold uppercase tracking-[0.14em] text-brand">{isAdmin ? t.admin.title : t.admin.managerTitle}</span>
+        <span className="block text-[15px] font-bold tracking-tight text-white">BAKHT STROY</span>
+        <span className="block text-[10.5px] font-semibold uppercase tracking-[0.12em] text-brand">{isAdmin ? t.admin.title : t.admin.managerTitle}</span>
       </span>
     </Link>
   );

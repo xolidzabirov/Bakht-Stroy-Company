@@ -17,6 +17,10 @@
   /* text on the accent color (buttons, badges) */
   --on-brand: #0a0a0a;
   --ink: #0a0a0a;
+  /* Main buttons, links and switches: the brand yellow in the shop; the admin panel redefines them (see .admin-ui). */
+  --primary: var(--brand);
+  --primary-hover: var(--brand-hover);
+  --primary-foreground: var(--on-brand);
 
   --background: #fafaf7;
   --surface: #ffffff;
@@ -75,8 +79,9 @@
   /* shadcn/ui names mapped to the Bakht Stroy palette (accent color = primary). */
   --color-muted: var(--surface-muted);
   --color-muted-foreground: var(--muted);
-  --color-primary: var(--brand);
-  --color-primary-foreground: var(--on-brand);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--surface-muted);
   --color-secondary-foreground: var(--foreground);
   --color-accent: var(--surface-muted);
@@ -247,4 +252,63 @@ h3 {
   to {
     background-position: -50% 0;
   }
+}
+
+/*
+ * Admin panel: one typeface and calm weights, dark main buttons (like Vercel / Linear dashboards),
+ * the brand yellow stays for accents (active menu item, badges, charts), thin scrollbars.
+ * Scoped to the panel — the shop keeps its look.
+ */
+.admin-ui {
+  --font-manrope: var(--font-inter);
+  --primary: #18181b;
+  --primary-hover: #2e2e33;
+  --primary-foreground: #ffffff;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
+  scrollbar-width: thin;
+}
+:root[data-theme="dark"] .admin-ui {
+  --primary: #f4f4f5;
+  --primary-hover: #d4d4d8;
+  --primary-foreground: #0a0a0a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .admin-ui {
+    --primary: #f4f4f5;
+    --primary-hover: #d4d4d8;
+    --primary-foreground: #0a0a0a;
+  }
+}
+.admin-ui :where(h1, h2, h3) {
+  letter-spacing: -0.015em;
+}
+/* 800 reads heavy in Inter: titles and figures use 700 across the panel. */
+.admin-ui .font-extrabold {
+  font-weight: 700;
+}
+.admin-ui * {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
+}
+.admin-ui ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.admin-ui ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-ui ::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 22%, transparent) padding-box;
+}
+.admin-ui ::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--foreground) 38%, transparent);
+}
+/* On the dark menu the scrollbar is light and almost invisible until you need it. */
+.admin-ui .admin-nav-scroll {
+  scrollbar-color: rgb(255 255 255 / 0.14) transparent;
+}
+.admin-ui .admin-nav-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(255 255 255 / 0.14);
 }
