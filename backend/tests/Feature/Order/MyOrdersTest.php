@@ -109,15 +109,15 @@ it('moves orders only along allowed statuses and keeps history', function () {
     $change->handle($order, OrderStatus::Confirmed, comment: 'Подтвердили по телефону');
     $change->handle($order, OrderStatus::Assembling);
     $order->update(['payment_status' => PaymentStatus::Paid]);
-    $change->handle($order, OrderStatus::Delivering);
+    // A pickup order is completed right after assembly — it never goes "on the way".
     $order = $change->handle($order, OrderStatus::Completed);
 
     expect($order->status)->toBe(OrderStatus::Completed)
         ->and($order->completed_at)->not->toBeNull()
         ->and($order->history()->pluck('status')->map->value->all())
-        ->toBe(['new', 'confirmed', 'assembling', 'delivering', 'completed']);
+        ->toBe(['new', 'confirmed', 'assembling', 'completed']);
 
-    Notification::assertSentToTimes($this->user, OrderStatusChangedNotification::class, 4);
+    Notification::assertSentToTimes($this->user, OrderStatusChangedNotification::class, 3);
 
     expect(fn () => $change->handle($order, OrderStatus::Cancelled))->toThrow(InvalidStatusTransitionException::class);
 });

@@ -42,10 +42,10 @@ final class AdminOrderResource extends OrderResource
             ])->all();
         }
 
-        /** Куда можно перевести заказ сейчас. */
+        /** Куда можно перевести заказ сейчас (доставка — «В пути», самовывоз — сразу «Выполнен»). */
         $data['next_statuses'] = array_map(
             fn (OrderStatus $status) => ['value' => $status->value, 'label' => $status->label()],
-            $this->status->nextStatuses(),
+            $this->status->nextStatusesFor($this->delivery_type),
         );
 
         return $data;

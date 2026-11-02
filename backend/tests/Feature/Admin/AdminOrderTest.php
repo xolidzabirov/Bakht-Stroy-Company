@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Order\Enums\DeliveryType;
 use App\Modules\Order\Enums\OrderStatus;
 use App\Modules\Order\Enums\PaymentStatus;
 use App\Modules\Order\Models\Order;
@@ -87,7 +88,7 @@ it('rejects skipping statuses', function () {
 });
 
 it('does not send an unpaid order to the customer', function () {
-    $order = Order::factory()->for($this->client)->status(OrderStatus::Assembling)->create();
+    $order = Order::factory()->for($this->client)->status(OrderStatus::Assembling)->create(['delivery_type' => DeliveryType::Delivery]);
 
     $this->withToken($this->token)->patchJson("/api/v1/admin/orders/{$order->id}/status", ['status' => 'delivering'])
         ->assertConflict()

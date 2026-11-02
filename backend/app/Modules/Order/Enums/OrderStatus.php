@@ -44,9 +44,28 @@ enum OrderStatus: string
         };
     }
 
-    public function canTransitionTo(self $status): bool
+    /**
+     * The statuses for this order: a delivery goes "on the way" before it is completed,
+     * a pickup order is completed right after assembly (the customer takes it at the warehouse).
+     *
+     * @return list<self>
+     */
+    public function nextStatusesFor(DeliveryType $deliveryType): array
     {
-        return in_array($status, $this->nextStatuses(), true);
+        if ($this !== self::Assembling) {
+            return $this->nextStatuses();
+        }
+
+        return $deliveryType === DeliveryType::Pickup
+            ? [self::Completed, self::Cancelled]
+            : [self::Delivering, self::Cancelled];
+    }
+
+    public function canTransitionTo(self $status, ?DeliveryType $deliveryType = null): bool
+    {
+        $next = $deliveryType === null ? $this->nextStatuses() : $this->nextStatusesFor($deliveryType);
+
+        return in_array($status, $next, true);
     }
 
     public function isFinal(): bool

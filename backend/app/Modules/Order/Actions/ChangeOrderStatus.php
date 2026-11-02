@@ -26,8 +26,8 @@ final class ChangeOrderStatus
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
             $from = $order->status;
 
-            if (! $from->canTransitionTo($to)) {
-                throw new InvalidStatusTransitionException($from, $to);
+            if (! $from->canTransitionTo($to, $order->delivery_type)) {
+                throw new InvalidStatusTransitionException($from, $to, $order->delivery_type);
             }
 
             // Payment comes before delivery: nothing leaves the warehouse unpaid.
