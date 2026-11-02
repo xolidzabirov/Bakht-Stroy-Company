@@ -187,6 +187,10 @@ function CartLine({ item }: { item: CartItem }) {
           <p className="mt-1 text-sm text-muted-foreground">
             {formatMoney(item.price, locale)} {fmt(t.common.perUnit, { unit })}
           </p>
+          {/* Why "−" stops: the product is sold from a minimum quantity. */}
+          {!problem && product && product.min_order_qty > 1 && (
+            <p className="mt-1 text-xs font-medium text-muted-foreground">{fmt(t.cart.problems.below_min_order, { min: product.min_order_qty, unit })}</p>
+          )}
           {problem && (
             <p className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-destructive">
               <AlertTriangle className="size-4 shrink-0" />
