@@ -17,6 +17,8 @@
   /* text on the accent color (buttons, badges) */
   --on-brand: #0a0a0a;
   --ink: #0a0a0a;
+  /* Admin panel menu: deep navy, so the panel never looks like the shop. */
+  --admin-nav: #0f1f3d;
 
   --background: #fafaf7;
   --surface: #ffffff;
@@ -40,6 +42,8 @@
   --foreground: #f2f2f0;
   --muted: #a1a1aa;
   --border: #2a2a2f;
+  /* Darker navy: still apart from the near-black page, without glowing at night. */
+  --admin-nav: #0b162c;
   --success: #22c55e;
   --danger: #f87171;
 
@@ -57,6 +61,7 @@
     --foreground: #f2f2f0;
     --muted: #a1a1aa;
     --border: #2a2a2f;
+    --admin-nav: #0b162c;
     color-scheme: dark;
   }
 }
@@ -68,6 +73,7 @@
   --color-chart-1: var(--chart-1);
   --color-on-brand: var(--on-brand);
   --color-ink: var(--ink);
+  --color-admin-nav: var(--admin-nav);
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
