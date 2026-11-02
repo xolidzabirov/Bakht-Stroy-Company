@@ -643,8 +643,11 @@ export const ru = {
     title: "Админ-панель",
     managerTitle: "Панель менеджера",
     menu: "Меню админ-панели",
-    nav: { dashboard: "Дашборд", orders: "Заказы", products: "Товары", categories: "Категории", chats: "Чаты", users: "Пользователи", news: "Новости", banners: "Баннеры", messages: "Сообщения", storeSettings: "Настройки магазина", settings: "Мои настройки", toSite: "На сайт" },
+    nav: { dashboard: "Дашборд", orders: "Заказы", products: "Товары", categories: "Категории", chats: "Чаты", users: "Пользователи", news: "Новости", banners: "Баннеры", messages: "Сообщения", storeSettings: "Настройки магазина", settings: "Мои настройки", toSite: "На сайт" },
+    groups: { overview: "Обзор", sales: "Продажи", catalog: "Каталог", content: "Контент", manage: "Управление" },
+    create: { title: "Создать", product: "Товар", news: "Новость", user: "Пользователя" },
     common: {
+      more: "Ещё",
       search: "Поиск",
       all: "Все",
       save: "Сохранить",
@@ -839,6 +842,8 @@ export const ru = {
       oldPriceInvalid: "Старая цена должна быть больше цены",
     },
     categories: {
+      subcategories: "{count} подкатегорий",
+      showProducts: "Показать товары",
       title: "Категории",
       add: "Добавить категорию",
       addChild: "Подкатегория",

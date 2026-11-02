@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StoreSettingsForm } from "@/features/admin-settings/ui/StoreSettingsForm";
+import { SlidersHorizontal } from "lucide-react";
 import { requireAdmin } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
 import type { StoreSettings } from "@/shared/api/types";
@@ -18,7 +19,7 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <PageHeader title={t.admin.settings.title} description={t.admin.settings.lead} />
+      <PageHeader icon={SlidersHorizontal} title={t.admin.settings.title} description={t.admin.settings.lead} />
       <StoreSettingsForm settings={settings} />
     </div>
   );

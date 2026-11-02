@@ -43,15 +43,19 @@ export function SearchFilter({ placeholder, name = "search" }: { placeholder: st
 export function SelectFilter({ name, label, options, allLabel }: { name: string; label: string; options: { value: string; label: string }[]; allLabel?: string }) {
   const { t } = useI18n();
   const { params, set } = useQueryParams();
+  const value = params.get(name) ?? ALL;
+  const allText = `${label}: ${allLabel ?? t.admin.common.all}`;
+  // The text is given explicitly: Radix shows the chosen item only after the list has been opened once.
+  const current = value === ALL ? allText : (options.find((option) => option.value === value)?.label ?? allText);
 
   return (
-    <Select value={params.get(name) ?? ALL} onValueChange={(value) => set({ [name]: value === ALL ? null : value })}>
+    <Select value={value} onValueChange={(next) => set({ [name]: next === ALL ? null : next })}>
       <SelectTrigger aria-label={label} className="h-10 min-w-40 rounded-xl bg-surface">
-        <SelectValue placeholder={label} />
+        <SelectValue placeholder={label}>{current}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>
-          {label}: {allLabel ?? t.admin.common.all}
+          {allText}
         </SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>

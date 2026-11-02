@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { ShieldCheck, Store } from "lucide-react";
+import { Search } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { getCurrentUser } from "@/shared/api/session";
 import { routes } from "@/shared/config/site";
-import { ButtonLink } from "@/shared/ui";
 import { SkipLink } from "@/shared/ui/SkipLink";
 import { getI18n } from "@/shared/i18n/server";
 import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
+import { QuickCreate } from "@/widgets/admin-shell/ui/QuickCreate";
+import { NotificationBell } from "@/widgets/header/ui/NotificationBell";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [{ t }, user] = await Promise.all([getI18n(), getCurrentUser()]);
@@ -18,38 +19,46 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Admin panel for managers and administrators: menu on the left (a drawer on phones), page on the right.
+ * Admin panel for managers and administrators: the grouped menu on the left (a drawer on phones),
+ * a top bar with order search, "Создать" and notifications, the page on the right.
  * Customers who open /admin go to their account.
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, { t }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
   const admin = isAdmin(user);
+  const shell = { name: user.name, isAdmin: admin };
 
   return (
-    <div className="flex h-dvh bg-muted/50">
+    <div className="flex h-dvh bg-background">
       <SkipLink />
-      <AdminSidebar isAdmin={admin} />
+      <AdminSidebar user={shell} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface px-3 sm:px-5">
-          <AdminMobileNav isAdmin={admin} />
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-brand">
-            <ShieldCheck className="size-3.5" />
-            {t.acc.profile.roles[admin ? "admin" : "manager"]}
-          </span>
-          {user.name !== t.acc.profile.roles[admin ? "admin" : "manager"] && <span className="hidden truncate text-sm font-semibold text-muted-foreground sm:block">{user.name}</span>}
-          <div className="ml-auto flex items-center gap-2">
-            <ButtonLink href={routes.home} variant="dark" size="sm" className="hidden sm:inline-flex">
-              <Store className="size-4" />
-              {t.admin.nav.toSite}
-            </ButtonLink>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-surface/80 px-3 backdrop-blur sm:gap-3 sm:px-5 lg:px-8">
+          <AdminMobileNav user={shell} />
+
+          {/* Find an order from any page: number, phone, name or email. */}
+          <form action={routes.adminOrders} role="search" className="relative hidden max-w-md flex-1 md:block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              name="search"
+              type="search"
+              placeholder={t.admin.orders.searchPlaceholder}
+              aria-label={`${t.admin.common.search}: ${t.admin.nav.orders}`}
+              className="h-10 w-full rounded-lg border border-border bg-muted/60 pl-9 pr-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/20"
+            />
+          </form>
+
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            <QuickCreate isAdmin={admin} />
+            <NotificationBell />
             <LocaleSwitcher />
             <ThemeToggle />
           </div>
         </header>
 
-        <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto p-3 outline-none sm:p-5 lg:p-6">
-          {children}
+        <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto outline-none">
+          <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5 lg:p-8">{children}</div>
         </main>
       </div>
     </div>

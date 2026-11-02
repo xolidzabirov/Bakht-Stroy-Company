@@ -50,7 +50,7 @@ export default async function AdminNewsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div>
-      <PageHeader title={n.title} description={fmt(t.admin.common.total, { count: String(news.meta.total) })} actions={addButton} />
+      <PageHeader icon={Newspaper} title={n.title} description={fmt(t.admin.common.total, { count: String(news.meta.total) })} actions={addButton} />
 
       <div className="mb-4 space-y-3">
         <TabFilter name="status" tabs={[{ value: null, label: t.admin.common.all }, ...Object.entries(n.statuses).map(([value, label]) => ({ value, label }))]} />

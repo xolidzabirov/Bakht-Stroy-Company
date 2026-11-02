@@ -30,7 +30,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
 
   return (
     <div>
-      <PageHeader title={m.title} description={m.lead} />
+      <PageHeader icon={Inbox} title={m.title} description={m.lead} />
       <div className="mb-4">
         <TabFilter
           name="unread"

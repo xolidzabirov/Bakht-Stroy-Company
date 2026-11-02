@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PackageSearch, Phone } from "lucide-react";
+import { Package, PackageSearch, Phone } from "lucide-react";
 import { OrderStatusBadge, PaymentBadge } from "@/entities/order/ui/OrderStatus";
 import { DateFilter, ResetFilters, SearchFilter, SelectFilter, TabFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
@@ -38,7 +38,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
 
   return (
     <div>
-      <PageHeader title={o.title} description={fmt(t.admin.common.total, { count: String(orders.meta.total) })} />
+      <PageHeader icon={Package} title={o.title} description={fmt(t.admin.common.total, { count: String(orders.meta.total) })} />
 
       <div className="mb-4 space-y-3">
         <TabFilter name="status" tabs={[{ value: null, label: t.admin.common.all }, ...Object.entries(o.statuses).map(([value, label]) => ({ value, label }))]} />

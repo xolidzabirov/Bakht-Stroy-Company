@@ -6,7 +6,6 @@ import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
 import { getI18n } from "@/shared/i18n/server";
-import { PageHeader } from "@/widgets/admin-shell/ui/PageHeader";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getI18n()).t.admin.categories.title };
@@ -20,8 +19,7 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <PageHeader title={t.admin.categories.title} description={fmt(t.admin.common.total, { count: String(count) })} />
-      <CategoryManager tree={tree} />
+      <CategoryManager tree={tree} header={{ title: t.admin.categories.title, description: fmt(t.admin.common.total, { count: String(count) }) }} />
     </div>
   );
 }

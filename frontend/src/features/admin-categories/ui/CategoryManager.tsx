@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, FolderPlus, FolderTree, ImagePlus, LoaderCircle, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Boxes, CornerDownRight, EyeOff, FolderPlus, FolderTree, ImagePlus, LoaderCircle, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Category } from "@/shared/api/types";
@@ -15,9 +15,11 @@ import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/kit/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/textarea";
+import { EmptyState, PageHeader } from "@/shared/ui/admin/PageHeader";
 
 type Editing = { category: Category | null; parentId: number | null };
 const ROOT = "root";
@@ -26,7 +28,7 @@ const ROOT = "root";
  * The two-level catalog tree: order with arrows, add a subcategory, edit in a dialog (with the image),
  * delete only empty categories (the API explains why otherwise).
  */
-export function CategoryManager({ tree }: { tree: Category[] }) {
+export function CategoryManager({ tree, header }: { tree: Category[]; header: { title: string; description: string } }) {
   const { t } = useI18n();
   const c = t.admin.categories;
   const router = useRouter();
@@ -69,87 +71,147 @@ export function CategoryManager({ tree }: { tree: Category[] }) {
     }
   };
 
+  /** One category line: picture, name and facts, then order arrows, "edit" and the "⋯" menu. */
   const row = (category: Category, siblings: Category[], index: number, child: boolean) => (
-    <div className={cn("flex items-center gap-3 px-4 py-3", child && "pl-6")}>
-      {!child ? null : category.image ? (
+    <div className={cn("flex items-center gap-3", child ? "py-2.5 pl-4 pr-3 sm:pl-6" : "p-4")}>
+      {child && <CornerDownRight aria-hidden className="size-4 shrink-0 text-border" />}
+      {category.image ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={category.image} alt="" className={cn("shrink-0 rounded-xl bg-muted object-cover", child ? "size-10" : "size-12")} />
+        <img src={category.image} alt="" loading="lazy" className={cn("shrink-0 rounded-xl bg-muted object-cover ring-1 ring-border", child ? "size-9" : "size-14", !category.is_active && "opacity-50 grayscale")} />
       ) : (
-        <span className={cn("grid shrink-0 place-items-center rounded-xl bg-muted", child ? "size-10" : "size-12")}>
-          <FolderTree className="size-5 text-muted-foreground" />
+        <span className={cn("grid shrink-0 place-items-center rounded-xl bg-muted ring-1 ring-border", child ? "size-9" : "size-14")}>
+          <FolderTree className={cn("text-muted-foreground", child ? "size-4" : "size-5")} />
         </span>
       )}
+
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-2">
-          <Link href={`${routes.adminProducts}?category=${category.slug}`} className={cn("hover:underline", child ? "font-semibold" : "font-bold", !category.is_active && "text-muted-foreground")}>
+          <Link
+            href={`${routes.adminProducts}?category=${category.slug}`}
+            className={cn("truncate hover:underline", child ? "text-sm font-semibold" : "font-display text-base font-bold", !category.is_active && "text-muted-foreground")}
+          >
             {category.name}
           </Link>
-          {!category.is_active && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-muted-foreground">{t.admin.common.hidden}</span>}
+          {!category.is_active && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              <EyeOff className="size-3" />
+              {t.admin.common.hidden}
+            </span>
+          )}
         </span>
-        <span className="block truncate text-xs text-muted-foreground">
-          /{category.slug} · {fmt(c.products, { count: String(category.products_count ?? 0) })}
+        <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+          <span className="font-mono">/{category.slug}</span>
+          {!child && Boolean(category.children?.length) && (
+            <>
+              <span aria-hidden>·</span>
+              {fmt(c.subcategories, { count: String(category.children!.length) })}
+            </>
+          )}
         </span>
       </span>
-      <span className="flex shrink-0 items-center gap-0.5">
-        <IconButton label={c.moveUp} disabled={busy || index === 0} onClick={() => void move(siblings, index, -1)}>
-          <ArrowUp className="size-4" />
-        </IconButton>
-        <IconButton label={c.moveDown} disabled={busy || index === siblings.length - 1} onClick={() => void move(siblings, index, 1)}>
-          <ArrowDown className="size-4" />
-        </IconButton>
-        {!child && (
-          <IconButton label={c.addChild} onClick={() => setEditing({ category: null, parentId: category.id })}>
-            <FolderPlus className="size-4" />
+
+      <span className="hidden shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold tabular-nums sm:inline">{fmt(c.products, { count: String(category.products_count ?? 0) })}</span>
+
+      <span className="flex shrink-0 items-center gap-1">
+        {/* Order: a small segmented control, like in design tools. */}
+        <span className="hidden items-center rounded-lg border border-border sm:flex">
+          <IconButton label={c.moveUp} disabled={busy || index === 0} onClick={() => void move(siblings, index, -1)} className="rounded-r-none">
+            <ArrowUp className="size-4" />
           </IconButton>
-        )}
+          <span aria-hidden className="h-5 w-px bg-border" />
+          <IconButton label={c.moveDown} disabled={busy || index === siblings.length - 1} onClick={() => void move(siblings, index, 1)} className="rounded-l-none">
+            <ArrowDown className="size-4" />
+          </IconButton>
+        </span>
         <IconButton label={t.admin.common.edit} onClick={() => setEditing({ category, parentId: category.parent_id })}>
           <Pencil className="size-4" />
         </IconButton>
-        <IconButton label={t.admin.common.delete} danger onClick={() => setDeleting(category)}>
-          <Trash2 className="size-4" />
-        </IconButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger aria-label={t.admin.common.more} title={t.admin.common.more} className="grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
+            {/* On phones the order arrows live here. */}
+            <DropdownMenuItem className="gap-2.5 rounded-lg sm:hidden" disabled={busy || index === 0} onSelect={() => void move(siblings, index, -1)}>
+              <ArrowUp className="size-4" />
+              {c.moveUp}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-2.5 rounded-lg sm:hidden" disabled={busy || index === siblings.length - 1} onSelect={() => void move(siblings, index, 1)}>
+              <ArrowDown className="size-4" />
+              {c.moveDown}
+            </DropdownMenuItem>
+            {!child && (
+              <DropdownMenuItem className="gap-2.5 rounded-lg" onSelect={() => setEditing({ category: null, parentId: category.id })}>
+                <FolderPlus className="size-4" />
+                {c.addChild}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
+              <Link href={`${routes.adminProducts}?category=${category.slug}`}>
+                <Boxes className="size-4" />
+                {c.showProducts}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-2.5 rounded-lg text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => setDeleting(category)}>
+              <Trash2 className="size-4" />
+              {t.admin.common.delete}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </span>
     </div>
   );
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setEditing({ category: null, parentId: null })}>
-          <Plus className="size-4" />
-          {c.add}
-        </Button>
-      </div>
+      <PageHeader
+        icon={FolderTree}
+        title={header.title}
+        description={header.description}
+        actions={
+          <Button onClick={() => setEditing({ category: null, parentId: null })}>
+            <Plus className="size-4" />
+            {c.add}
+          </Button>
+        }
+      />
 
       {tree.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{c.empty}</p>
+        <EmptyState
+          icon={FolderTree}
+          title={c.empty}
+          action={
+            <Button onClick={() => setEditing({ category: null, parentId: null })}>
+              <Plus className="size-4" />
+              {c.add}
+            </Button>
+          }
+        />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid items-start gap-4 xl:grid-cols-2">
           {tree.map((root, index) => (
             <li
               key={root.id}
               style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
-              className="group flex animate-in flex-col overflow-hidden rounded-2xl border border-border bg-surface fade-in-0 slide-in-from-bottom-2 card-hover fill-mode-both"
+              className="animate-in overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-shadow fade-in-0 slide-in-from-bottom-2 fill-mode-both hover:shadow-md"
             >
-              <Link href={`${routes.adminProducts}?category=${root.slug}`} className="relative block aspect-[16/9] overflow-hidden bg-muted">
-                {root.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={root.image} alt="" loading="lazy" className={cn("size-full object-cover transition duration-500 group-hover:scale-105", !root.is_active && "opacity-50 grayscale")} />
-                ) : (
-                  <span className="grid size-full place-items-center">
-                    <FolderTree className="size-8 text-muted-foreground" />
-                  </span>
-                )}
-                <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-xs font-bold text-white">{fmt(c.products, { count: String(root.products_count ?? 0) })}</span>
-              </Link>
-              <div className="flex-1">{row(root, tree, index, false)}</div>
+              {row(root, tree, index, false)}
               {root.children && root.children.length > 0 && (
-                <ul className="divide-y divide-border/60 border-t border-border/60 bg-muted/30">
+                <ul className="divide-y divide-border/70 border-t border-border bg-muted/40">
                   {root.children.map((child, childIndex) => (
                     <li key={child.id}>{row(child, root.children!, childIndex, true)}</li>
                   ))}
                 </ul>
               )}
+              <button
+                type="button"
+                onClick={() => setEditing({ category: null, parentId: root.id })}
+                className="flex w-full items-center gap-2 border-t border-dashed border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted/60 hover:text-foreground sm:px-6"
+              >
+                <Plus className="size-3.5" />
+                {c.addChild}
+              </button>
             </li>
           ))}
         </ul>
@@ -194,7 +256,7 @@ export function CategoryManager({ tree }: { tree: Category[] }) {
   );
 }
 
-function IconButton({ label, onClick, disabled, danger, children }: { label: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode }) {
+function IconButton({ label, onClick, disabled, className, children }: { label: string; onClick: () => void; disabled?: boolean; className?: string; children: React.ReactNode }) {
   return (
     <button
       type="button"
@@ -202,10 +264,7 @@ function IconButton({ label, onClick, disabled, danger, children }: { label: str
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={cn(
-        "grid size-9 place-items-center rounded-lg text-muted-foreground transition disabled:pointer-events-none disabled:opacity-30",
-        danger ? "hover:bg-destructive/10 hover:text-destructive" : "hover:bg-muted hover:text-foreground",
-      )}
+      className={cn("grid size-9 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30", className)}
     >
       {children}
     </button>

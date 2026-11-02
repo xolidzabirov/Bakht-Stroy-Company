@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Boxes, Clock, Package, Users, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowRight, Boxes, Clock, LayoutDashboard, Package, Users, Wallet } from "lucide-react";
 import { TabFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
@@ -34,23 +34,38 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   const dayLabel = (iso: string) => new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "ru-RU", { day: "2-digit", month: "2-digit" }).format(new Date(iso));
   const statusMax = Math.max(...stats.orders.by_status.map((s) => s.count), 1);
 
+  // Each figure has its own tint, so the row reads at a glance; "awaiting" turns red while orders wait.
   const tiles = [
-    { icon: Package, label: d.orders, value: String(stats.orders.in_period), hint: fmt(d.allTime, { amount: String(stats.orders.total) }), href: routes.adminOrders },
-    { icon: Clock, label: d.awaiting, value: String(stats.orders.awaiting), href: `${routes.adminOrders}?status=new`, accent: stats.orders.awaiting > 0 },
-    { icon: Wallet, label: d.averageCheck, value: money(stats.revenue.average_check) },
-    { icon: Users, label: d.clients, value: String(stats.users.total), hint: fmt(d.today, { count: String(stats.users.new_today) }), href: routes.adminUsers },
+    { icon: Package, label: d.orders, value: String(stats.orders.in_period), hint: fmt(d.allTime, { amount: String(stats.orders.total) }), href: routes.adminOrders, tint: "bg-sky-500/10 text-sky-600 dark:text-sky-400" },
+    {
+      icon: Clock,
+      label: d.awaiting,
+      value: String(stats.orders.awaiting),
+      href: `${routes.adminOrders}?status=new`,
+      accent: stats.orders.awaiting > 0,
+      tint: stats.orders.awaiting > 0 ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    },
+    { icon: Wallet, label: d.averageCheck, value: money(stats.revenue.average_check), tint: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
+    { icon: Users, label: d.clients, value: String(stats.users.total), hint: fmt(d.today, { count: String(stats.users.new_today) }), href: routes.adminUsers, tint: "bg-violet-500/10 text-violet-600 dark:text-violet-400" },
   ];
 
   return (
     <div className="space-y-5">
-      <PageHeader title={d.title} description={d.lead} actions={<TabFilter name="period" tabs={PERIODS.map((p) => ({ value: p === "30" ? null : p, label: t.admin.common.period[p] }))} />} />
+      <PageHeader icon={LayoutDashboard} title={d.title} description={d.lead} actions={<TabFilter name="period" tabs={PERIODS.map((p) => ({ value: p === "30" ? null : p, label: t.admin.common.period[p] }))} />} />
 
       <div className="grid gap-3 lg:grid-cols-[1.3fr_2fr] [&>*]:min-w-0">
         {/* Hero figure: the one number the page leads with. */}
-        <section className="flex flex-col justify-between rounded-2xl bg-ink p-5 text-white sm:p-6">
-          <p className="text-sm font-semibold text-white/70">{d.revenue}</p>
-          <p className="mt-3 text-5xl font-extrabold tracking-tight">{money(stats.revenue.completed_in_period)}</p>
-          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/70">
+        <section className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-ink p-5 text-white shadow-lg shadow-black/10 sm:p-6">
+          {/* A soft brand glow in the corner. */}
+          <span aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-brand/25 blur-3xl" />
+          <p className="relative flex items-center gap-2.5 text-sm font-semibold text-white/70">
+            <span className="grid size-8 place-items-center rounded-lg bg-brand text-ink">
+              <Wallet className="size-4" />
+            </span>
+            {d.revenue}
+          </p>
+          <p className="relative mt-5 font-display text-4xl font-extrabold tracking-tight tabular-nums sm:text-5xl">{money(stats.revenue.completed_in_period)}</p>
+          <div className="relative mt-5 flex flex-wrap gap-x-5 gap-y-1 border-t border-white/10 pt-4 text-sm text-white/70">
             <span>
               {d.ordersAmount}: <b className="text-white">{money(stats.revenue.orders_amount_in_period)}</b>
             </span>
@@ -59,18 +74,25 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         </section>
 
         <div className="grid grid-cols-2 gap-3">
-          {tiles.map(({ icon: Icon, label, value, hint, href, accent }) => {
+          {tiles.map(({ icon: Icon, label, value, hint, href, accent, tint }) => {
             const body = (
               <>
-                <Icon className={accent ? "size-5 text-destructive" : "size-5 text-primary"} />
-                <p className="mt-3 text-2xl font-extrabold">{value}</p>
-                <p className="text-sm text-muted-foreground">{label}</p>
-                {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+                <span className="flex items-start justify-between gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">{label}</span>
+                  <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${tint}`}>
+                    <Icon className="size-[18px]" />
+                  </span>
+                </span>
+                <span className="mt-2 flex items-center gap-2">
+                  <b className="font-display text-2xl font-extrabold tracking-tight tabular-nums sm:text-[28px]">{value}</b>
+                  {accent && <span aria-hidden className="size-2 animate-pulse rounded-full bg-destructive" />}
+                </span>
+                {hint && <span className="mt-1 block text-xs text-muted-foreground">{hint}</span>}
               </>
             );
-            const box = "block rounded-2xl border bg-surface p-4 transition";
+            const box = "block rounded-2xl border bg-surface p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition sm:p-5";
             return href ? (
-              <Link key={label} href={href} className={`${box} ${accent ? "border-destructive/40" : "border-border"} hover:border-primary`}>
+              <Link key={label} href={href} className={`${box} ${accent ? "border-destructive/40" : "border-border"} hover:-translate-y-0.5 hover:shadow-md`}>
                 {body}
               </Link>
             ) : (

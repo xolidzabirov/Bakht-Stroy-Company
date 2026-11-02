@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BannerManager } from "@/features/admin-banners/ui/BannerManager";
+import { GalleryHorizontalEnd } from "lucide-react";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
 import type { Banner } from "@/shared/api/types";
@@ -18,7 +19,7 @@ export default async function AdminBannersPage() {
 
   return (
     <div>
-      <PageHeader title={t.admin.banners.title} description={t.admin.banners.lead} />
+      <PageHeader icon={GalleryHorizontalEnd} title={t.admin.banners.title} description={t.admin.banners.lead} />
       <BannerManager banners={banners} />
     </div>
   );

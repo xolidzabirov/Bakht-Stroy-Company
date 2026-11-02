@@ -642,8 +642,11 @@ export const tg: Dictionary = {
     title: "Панели идоракунӣ",
     managerTitle: "Панели менеҷер",
     menu: "Менюи панели идоракунӣ",
-    nav: { dashboard: "Дашборд", orders: "Фармоишҳо", products: "Молҳо", categories: "Категорияҳо", chats: "Чатҳо", users: "Корбарон", news: "Хабарҳо", banners: "Баннерҳо", messages: "Паёмҳо", storeSettings: "Танзимоти мағоза", settings: "Танзимоти ман", toSite: "Ба сайт" },
+    nav: { dashboard: "Дашборд", orders: "Фармоишҳо", products: "Молҳо", categories: "Категорияҳо", chats: "Чатҳо", users: "Корбарон", news: "Хабарҳо", banners: "Баннерҳо", messages: "Паёмҳо", storeSettings: "Танзимоти мағоза", settings: "Танзимоти ман", toSite: "Ба сайт" },
+    groups: { overview: "Шарҳ", sales: "Фурӯш", catalog: "Каталог", content: "Мундариҷа", manage: "Идоракунӣ" },
+    create: { title: "Сохтан", product: "Мол", news: "Хабар", user: "Корбар" },
     common: {
+      more: "Боз",
       search: "Ҷустуҷӯ",
       all: "Ҳама",
       save: "Нигоҳ доштан",
@@ -838,6 +841,8 @@ export const tg: Dictionary = {
       oldPriceInvalid: "Нархи кӯҳна бояд аз нарх зиёд бошад",
     },
     categories: {
+      subcategories: "{count} зеркатегория",
+      showProducts: "Нишон додани молҳо",
       title: "Категорияҳо",
       add: "Илова кардани категория",
       addChild: "Зеркатегория",

@@ -642,8 +642,11 @@ export const en: Dictionary = {
     title: "Admin panel",
     managerTitle: "Manager panel",
     menu: "Admin menu",
-    nav: { dashboard: "Dashboard", orders: "Orders", products: "Products", categories: "Categories", chats: "Chats", users: "Users", news: "News", banners: "Banners", messages: "Messages", storeSettings: "Store settings", settings: "My settings", toSite: "Back to site" },
+    nav: { dashboard: "Dashboard", orders: "Orders", products: "Products", categories: "Categories", chats: "Chats", users: "Users", news: "News", banners: "Banners", messages: "Messages", storeSettings: "Store settings", settings: "My settings", toSite: "Back to site" },
+    groups: { overview: "Overview", sales: "Sales", catalog: "Catalog", content: "Content", manage: "Management" },
+    create: { title: "Create", product: "Product", news: "News post", user: "User" },
     common: {
+      more: "More",
       search: "Search",
       all: "All",
       save: "Save",
@@ -838,6 +841,8 @@ export const en: Dictionary = {
       oldPriceInvalid: "The old price must be higher than the price",
     },
     categories: {
+      subcategories: "{count} subcategories",
+      showProducts: "Show products",
       title: "Categories",
       add: "Add category",
       addChild: "Subcategory",

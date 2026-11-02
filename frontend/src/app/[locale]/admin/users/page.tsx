@@ -45,7 +45,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
 
   return (
     <div>
-      <PageHeader title={u.title} description={fmt(t.admin.common.total, { count: String(users.meta.total) })} actions={<CreateUserDialog />} />
+      <PageHeader icon={Users} title={u.title} description={fmt(t.admin.common.total, { count: String(users.meta.total) })} actions={<CreateUserDialog />} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <SearchFilter placeholder={u.searchPlaceholder} />

@@ -51,7 +51,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
   return (
     <div>
-      <PageHeader title={p.title} description={fmt(t.admin.common.total, { count: String(products.meta.total) })} actions={addButton} />
+      <PageHeader icon={Boxes} title={p.title} description={fmt(t.admin.common.total, { count: String(products.meta.total) })} actions={addButton} />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <SearchFilter placeholder={p.searchPlaceholder} />
