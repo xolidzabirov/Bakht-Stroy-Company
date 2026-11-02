@@ -469,6 +469,14 @@ export const en: Dictionary = {
       "The manager checks the payment, the warehouse packs the order",
       "We deliver and unload at your site",
     ],
+    /** The same steps for an order picked up at the warehouse. */
+    pickupSteps: [
+      "The manager calls within 15–30 minutes and confirms the order",
+      "You pay: cash at the office or a card transfer",
+      "The manager checks the payment, the warehouse packs the order and lets you know it is ready",
+      "You pick the order up at the warehouse",
+    ],
+    pickupTotalNote: "Pickup is free. Collect the order once the manager says it is packed.",
     validation: {
       name: "Enter a name — at least 2 letters",
       phone: "Enter 9 digits after +992",

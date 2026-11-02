@@ -314,7 +314,7 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
               <span className="font-semibold">{t.checkout.total}</span>
               <span className="font-display text-2xl font-extrabold">{money(cart.subtotal + deliveryPrice)}</span>
             </div>
-            <p className="text-xs text-muted-foreground">{t.checkout.totalNote}</p>
+            <p className="text-xs text-muted-foreground">{deliveryType === "pickup" ? t.checkout.pickupTotalNote : t.checkout.totalNote}</p>
             <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : <PackageCheck className="size-5" />}
               {t.checkout.place}
@@ -326,7 +326,7 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
         <div className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
           <p className="font-bold">{t.checkout.howItWorks}</p>
           <ol className="mt-3 space-y-3">
-            {t.checkout.steps.map((step, index) => (
+            {(deliveryType === "pickup" ? t.checkout.pickupSteps : t.checkout.steps).map((step, index) => (
               <li key={step} className="flex gap-3 text-sm">
                 <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{index + 1}</span>
                 <span className="text-muted-foreground">{step}</span>
