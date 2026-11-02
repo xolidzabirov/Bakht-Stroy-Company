@@ -17,7 +17,7 @@ export default async function AdminBannersPage() {
   const [{ t }, { data: banners }] = await Promise.all([getI18n(), userFetch<{ data: Banner[] }>("/admin/banners")]);
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <PageHeader title={t.admin.banners.title} description={t.admin.banners.lead} />
       <BannerManager banners={banners} />
     </div>

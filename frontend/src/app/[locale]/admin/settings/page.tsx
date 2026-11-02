@@ -17,7 +17,7 @@ export default async function AdminSettingsPage() {
   const [{ t }, { data: settings }] = await Promise.all([getI18n(), userFetch<{ data: StoreSettings }>("/admin/settings")]);
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <PageHeader title={t.admin.settings.title} description={t.admin.settings.lead} />
       <StoreSettingsForm settings={settings} />
     </div>

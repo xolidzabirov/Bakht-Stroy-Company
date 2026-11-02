@@ -128,16 +128,16 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   <Link href={routes.adminProduct(product.id)} className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-snug hover:underline">
                     {product.name}
                   </Link>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <b className="text-lg tabular-nums">{formatMoney(product.price, locale)}</b>
-                    {product.old_price && <s className="text-xs text-muted-foreground">{formatMoney(product.old_price, locale)}</s>}
+                  <div className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-3">
+                    <b className="font-display text-xl font-extrabold tabular-nums">{formatMoney(product.price, locale)}</b>
+                    {product.old_price && <s className="text-sm text-muted-foreground">{formatMoney(product.old_price, locale)}</s>}
                   </div>
 
                   <div className="mt-3">
                     <StockEditor productId={product.id} stock={product.stock} unit={units[product.unit.value] ?? product.unit.label} low={product.is_low_stock} />
                   </div>
 
-                  <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+                  <div className="-mx-4 mt-4 flex items-center justify-between gap-2 border-t border-border px-4 pt-3">
                     <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                       <ProductFlag productId={product.id} field="is_active" value={product.is_active} label={p.status} />
                       {p.status}

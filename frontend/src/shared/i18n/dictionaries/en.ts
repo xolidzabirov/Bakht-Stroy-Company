@@ -826,7 +826,7 @@ export const en: Dictionary = {
       movePhotoBack: "Move photo left",
       movePhotoForward: "Move photo right",
       photoOrderSaved: "Photo order saved",
-      photosAfterSave: "Photos can be added after the product is saved.",
+      skuAuto: "Given automatically on saving",
       upload: "Upload photos",
       dropHere: "Drop photos here or click",
       uploading: "Uploading…",

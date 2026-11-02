@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { LoaderCircle, Plus, X } from "lucide-react";
+import { Hash, LoaderCircle, Plus, X } from "lucide-react";
 import { applyApiErrors, bff } from "@/shared/api/client";
+import { ApiError } from "@/shared/api/http";
 import type { AdminProduct } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
@@ -14,13 +15,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/textarea";
 import { type CategoryOption, diramsToSomoni, somoniToDirams } from "../lib/categories";
+import { ProductPhotosDraft } from "./ProductPhotosDraft";
 
 const UNITS = ["piece", "bag", "kg", "ton", "m", "m2", "m3", "pack", "roll", "sheet"] as const;
 
 type Values = {
   name: string;
   slug: string;
-  sku: string;
   category_id: string;
   description: string;
   price: string;
@@ -33,7 +34,7 @@ type Values = {
   is_featured: boolean;
 };
 
-const FIELDS = ["name", "slug", "sku", "category_id", "description", "price", "old_price", "unit", "stock", "min_order_qty", "is_active", "is_featured"] as const;
+const FIELDS = ["name", "slug", "category_id", "description", "price", "old_price", "unit", "stock", "min_order_qty", "is_active", "is_featured"] as const;
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -46,13 +47,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 /**
  * Create / edit a product. Prices are typed in somoni (75 or 75,50) and sent in dirams.
- * A new product opens its edit page after saving, where photos can be added.
+ * The article (SKU) is given automatically. Photos of a new product are picked right here and uploaded after "Создать".
  */
 export function ProductForm({ product, categories, aside }: { product?: AdminProduct; categories: CategoryOption[]; aside?: React.ReactNode }) {
   const { t } = useI18n();
   const p = t.admin.product;
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   const {
     register,
@@ -65,7 +67,6 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
     defaultValues: {
       name: product?.name ?? "",
       slug: product?.slug ?? "",
-      sku: product?.sku ?? "",
       category_id: product ? String(product.category_id) : "",
       description: product?.description ?? "",
       price: diramsToSomoni(product?.price),
@@ -91,7 +92,6 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
     const body = {
       name: values.name.trim(),
       ...(values.slug.trim() ? { slug: values.slug.trim().toLowerCase() } : {}),
-      sku: values.sku.trim() || null,
       category_id: Number(values.category_id),
       description: values.description.trim() || null,
       price,
@@ -112,6 +112,12 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
         router.refresh();
       } else {
         const { data } = await bff<{ data: AdminProduct }>("/api/proxy/admin/products", { body });
+        // Photos picked before saving go up right after the product exists (the first is the main one).
+        if (photos.length > 0) {
+          const form = new FormData();
+          photos.forEach((file) => form.append("images[]", file));
+          await bff(`/api/proxy/admin/products/${data.id}/images`, { body: form }).catch((error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic));
+        }
         toast.success(p.created);
         router.replace(routes.adminProduct(data.id));
       }
@@ -161,9 +167,14 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
                 />
               )}
             </Field>
-            <Field label={p.sku} error={errors.sku?.message}>
-              {(id, describedBy) => <TextInput id={id} placeholder="BS-000123" aria-describedby={describedBy} {...register("sku")} />}
-            </Field>
+            {/* The article is given by the shop itself (BS-000123 from the product number) — nobody types it. */}
+            <div className="space-y-1.5">
+              <span className="block text-sm font-semibold">{p.sku}</span>
+              <p className="flex h-12 items-center gap-2 rounded-xl border border-dashed border-border bg-muted/60 px-4 text-sm">
+                <Hash className="size-4 shrink-0 text-muted-foreground" />
+                {product?.sku ? <b className="font-mono tabular-nums">{product.sku}</b> : <span className="text-muted-foreground">{p.skuAuto}</span>}
+              </p>
+            </div>
             <div className="sm:col-span-2">
               <Field label={p.slug} error={errors.slug?.message} hint={p.slugHint}>
                 {(id, describedBy) => <TextInput id={id} placeholder="tsement-m500-d0-50-kg" aria-describedby={describedBy} {...register("slug")} />}
@@ -266,7 +277,7 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
           {product && <p className={isDirty ? "mt-2 text-center text-xs font-semibold text-foreground" : "mt-2 text-center text-xs text-muted-foreground"}>{isDirty ? p.hasChanges : p.noChanges}</p>}
         </div>
 
-        {aside}
+        {product ? aside : <ProductPhotosDraft value={photos} onChange={setPhotos} />}
       </div>
     </form>
   );

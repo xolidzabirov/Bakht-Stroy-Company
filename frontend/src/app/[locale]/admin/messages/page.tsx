@@ -29,7 +29,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
   const pageHref = (n: number) => `${routes.adminMessages}?${new URLSearchParams({ ...(unread ? { unread: "1" } : {}), page: String(n) })}`;
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <PageHeader title={m.title} description={m.lead} />
       <div className="mb-4">
         <TabFilter

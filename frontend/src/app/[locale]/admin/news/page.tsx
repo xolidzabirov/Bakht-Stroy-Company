@@ -49,7 +49,7 @@ export default async function AdminNewsPage({ searchParams }: { searchParams: Pr
   );
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <PageHeader title={n.title} description={fmt(t.admin.common.total, { count: String(news.meta.total) })} actions={addButton} />
 
       <div className="mb-4 space-y-3">

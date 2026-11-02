@@ -18,7 +18,7 @@ function useApiError() {
   return (error: unknown) => toast.error(error instanceof ApiError ? error.message : t.errors.generic);
 }
 
-/** Stock right in the table: type a number, Enter or ✓ saves it. */
+/** Stock right on the card: a "Stock … pcs" strip; type a number, Enter or ✓ saves it, Esc puts it back. */
 export function StockEditor({ productId, stock, unit, low }: { productId: number; stock: number; unit: string; low: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -43,26 +43,41 @@ export function StockEditor({ productId, stock, unit, low }: { productId: number
   };
 
   return (
-    <span className="inline-flex items-center gap-1">
+    <label
+      className={cn(
+        "flex h-10 items-center gap-2 rounded-xl border pl-3 pr-1 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
+        low ? "border-destructive/30 bg-destructive/5" : "border-transparent bg-muted",
+      )}
+    >
+      <span className={cn("text-xs font-semibold", low ? "text-destructive" : "text-muted-foreground")}>
+        {t.admin.products.stock}
+        {low && ` · ${t.admin.products.lowStock}`}
+      </span>
       <input
         type="text"
         inputMode="numeric"
         value={value}
+        placeholder="0"
         aria-label={t.admin.products.stock}
         onChange={(event) => setValue(event.target.value.replace(/\D/g, ""))}
-        onKeyDown={(event) => event.key === "Enter" && void save()}
-        className={cn(
-          "h-9 w-20 rounded-lg border bg-surface px-2 text-right text-sm tabular-nums outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
-          low ? "border-destructive/50 text-destructive" : "border-border",
-        )}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") void save();
+          if (event.key === "Escape") setValue(String(stock));
+        }}
+        onBlur={() => value === "" && setValue(String(stock))}
+        className={cn("ml-auto h-8 w-16 min-w-0 bg-transparent text-right text-sm font-bold tabular-nums outline-none", low && "text-destructive")}
       />
-      <span className="w-10 text-xs text-muted-foreground">{unit}</span>
-      {changed && (
-        <button type="button" onClick={() => void save()} disabled={saving} aria-label={t.admin.common.save} className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-          {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}
-        </button>
-      )}
-    </span>
+      <span className="min-w-6 text-xs text-muted-foreground">{unit}</span>
+      <button
+        type="button"
+        onClick={() => void save()}
+        disabled={!changed || saving}
+        aria-label={t.admin.common.save}
+        className={cn("grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition", changed ? "opacity-100" : "pointer-events-none opacity-0")}
+      >
+        {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}
+      </button>
+    </label>
   );
 }
 
