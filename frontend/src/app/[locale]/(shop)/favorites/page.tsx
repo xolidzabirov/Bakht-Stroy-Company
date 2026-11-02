@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Heart } from "lucide-react";
 import { apiFetch } from "@/shared/api/http";
-import { requireUser } from "@/shared/api/requireUser";
+import { requireCustomer } from "@/shared/api/requireUser";
 import { getToken } from "@/shared/api/session";
 import type { Paginated, Product } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * Saved products. Removing a heart here hides the card on the next visit (the list is the server's).
  */
 export default async function FavoritesPage() {
-  await requireUser(routes.favorites);
+  await requireCustomer(routes.favorites);
   const [{ t, locale }, token] = await Promise.all([getI18n(), getToken()]);
   const { data: products } = await apiFetch<Paginated<Product>>("/favorites?per_page=60", { token, cache: "no-store" });
 

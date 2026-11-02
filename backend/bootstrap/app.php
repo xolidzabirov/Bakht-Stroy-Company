@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\User\Http\Middleware\EnsureUserIsActive;
+use App\Modules\User\Http\Middleware\EnsureUserIsCustomer;
 use App\Shared\Exceptions\ApiExceptionRenderer;
 use App\Shared\Http\Middleware\JsonApi;
 use App\Shared\Http\Middleware\RequestContext;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
+            'customer' => EnsureUserIsCustomer::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
         ]);

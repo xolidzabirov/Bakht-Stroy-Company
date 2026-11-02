@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { apiFetch } from "@/shared/api/http";
-import { requireUser } from "@/shared/api/requireUser";
+import { requireCustomer } from "@/shared/api/requireUser";
 import { getToken } from "@/shared/api/session";
 import type { Address, Cart } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * an empty cart or one with problem lines goes back to /cart.
  */
 export default async function CheckoutPage() {
-  const user = await requireUser(routes.checkout);
+  const user = await requireCustomer(routes.checkout);
   const [{ t }, token, settings] = await Promise.all([getI18n(), getToken(), getSettings()]);
   const [{ data: cart }, { data: addresses }] = await Promise.all([
     apiFetch<{ data: Cart }>("/cart", { token, cache: "no-store" }),

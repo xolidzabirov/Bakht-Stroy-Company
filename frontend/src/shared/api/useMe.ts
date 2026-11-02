@@ -25,5 +25,7 @@ export function useMe() {
     isStaff: Boolean(signedIn && query.data?.is_staff),
     // Managers get the same panel, named "Manager panel" and without users and store settings.
     isAdmin: Boolean(signedIn && query.data?.roles?.includes("admin")),
+    // A signed-in customer (known once the profile has loaded): only customers have a cart and favorites.
+    isCustomer: Boolean(signedIn && query.data && !query.data.is_staff),
   };
 }

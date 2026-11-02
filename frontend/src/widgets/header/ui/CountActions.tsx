@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useCart } from "@/entities/cart/api/useCart";
 import { useFavoriteIds } from "@/entities/favorite/api/useFavorites";
+import { useMe } from "@/shared/api/useMe";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
@@ -28,20 +29,25 @@ function Action({ href, label, count, icon, className }: { href: string; label: 
   );
 }
 
-/** Favorites with the number of saved products (hidden on the smallest phones). */
+/** Favorites with the number of saved products (hidden on the smallest phones and for the shop team). */
 export function FavoritesAction() {
   const { t } = useI18n();
   const signedIn = useSessionName() !== null;
-  const { data: ids } = useFavoriteIds(signedIn);
+  const { isStaff, isCustomer } = useMe();
+  const { data: ids } = useFavoriteIds(signedIn && isCustomer);
+
+  if (isStaff) return null;
 
   return <Action href={routes.favorites} label={t.header.favorites} count={ids?.length ?? 0} icon={<Heart className="size-[22px]" />} className="hidden sm:flex" />;
 }
 
-/** Cart with the number of lines in it. */
+/** Cart with the number of lines in it (not for the shop team — they do not place orders). */
 export function CartAction() {
   const { t } = useI18n();
-  const signedIn = useSessionName() !== null;
-  const { data: cart } = useCart({ enabled: signedIn });
+  const { isStaff, isCustomer } = useMe();
+  const { data: cart } = useCart({ enabled: isCustomer });
+
+  if (isStaff) return null;
 
   return <Action href={routes.cart} label={t.header.cart} count={cart?.items_count ?? 0} icon={<ShoppingCart className="size-[22px]" />} />;
 }

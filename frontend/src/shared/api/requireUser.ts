@@ -22,6 +22,15 @@ export async function requireStaff(path: string): Promise<CurrentUser> {
   return user;
 }
 
+/** Cart, checkout and favorites: customers only; the shop team goes to the admin panel. */
+export async function requireCustomer(path: string): Promise<CurrentUser> {
+  const user = await requireUser(path);
+
+  if (user.is_staff) redirect(routes.admin);
+
+  return user;
+}
+
 /** Administrator-only pages (users, roles, store settings); managers go back to the dashboard. */
 export async function requireAdmin(path: string): Promise<CurrentUser> {
   const user = await requireStaff(path);

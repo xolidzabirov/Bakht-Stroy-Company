@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { apiFetch } from "@/shared/api/http";
-import { requireUser } from "@/shared/api/requireUser";
+import { requireCustomer } from "@/shared/api/requireUser";
 import { getToken } from "@/shared/api/session";
 import type { Cart } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * then the client keeps it up to date.
  */
 export default async function CartPage() {
-  await requireUser(routes.cart);
+  await requireCustomer(routes.cart);
   const [{ t }, token, settings] = await Promise.all([getI18n(), getToken(), getSettings()]);
   const { data: cart } = await apiFetch<{ data: Cart }>("/cart", { token, cache: "no-store" });
 

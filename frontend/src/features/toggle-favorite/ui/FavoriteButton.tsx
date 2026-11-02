@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Heart } from "lucide-react";
 import { useFavoriteIds, useToggleFavorite } from "@/entities/favorite/api/useFavorites";
 import { routes } from "@/shared/config/site";
+import { useMe } from "@/shared/api/useMe";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useSessionName } from "@/shared/lib/useSession";
@@ -18,7 +19,8 @@ export function FavoriteButton({ productId, className, withLabel = false }: { pr
   const router = useRouter();
   const pathname = usePathname();
   const signedIn = useSessionName() !== null;
-  const { data: ids } = useFavoriteIds(signedIn);
+  const { isStaff, isCustomer } = useMe();
+  const { data: ids } = useFavoriteIds(isCustomer);
   const toggle = useToggleFavorite();
   const active = Boolean(ids?.includes(productId));
   const label = active ? t.favorites.remove : t.favorites.add;
@@ -41,6 +43,9 @@ export function FavoriteButton({ productId, className, withLabel = false }: { pr
       },
     );
   };
+
+  // The shop team has no favorites.
+  if (isStaff) return null;
 
   return (
     <button
