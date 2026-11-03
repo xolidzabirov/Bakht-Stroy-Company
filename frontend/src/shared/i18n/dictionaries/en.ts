@@ -471,7 +471,7 @@ export const en: Dictionary = {
       "The manager calls within 15–30 minutes and confirms the order",
       "You pay: cash at the office or a card transfer",
       "The manager checks the payment, the warehouse packs the order",
-      "We deliver and unload at your site",
+      "We deliver or unload at your site",
     ],
     /** The same steps for an order picked up at the warehouse. */
     pickupSteps: [
