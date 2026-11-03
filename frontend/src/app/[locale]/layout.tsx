@@ -54,6 +54,10 @@ export const viewport: Viewport = {
 // Read in the browser, so the page itself stays the same for everyone and can be cached.
 const themeScript = `(function(){try{var d=document.documentElement,m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=(light|dark)/);d.dataset.theme=m?m[1]:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}})()`;
 
+// Development only: form-filling browser extensions write fdprocessedid into the HTML before React starts,
+// and the dev overlay reports it as a hydration error of the site. The attribute goes before React compares.
+const extensionNoiseScript = `new MutationObserver(function(r){r.forEach(function(m){m.target.removeAttribute('fdprocessedid')})}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['fdprocessedid']})`;
+
 export default async function RootLayout({ children, params }: Props) {
   await setLocaleFrom(params);
   const { locale, t } = await getI18n();
@@ -62,6 +66,7 @@ export default async function RootLayout({ children, params }: Props) {
     <html lang={locale} className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {process.env.NODE_ENV === "development" && <script dangerouslySetInnerHTML={{ __html: extensionNoiseScript }} />}
       </head>
       <body className="min-h-dvh">
         <Providers locale={locale} dictionary={t}>
