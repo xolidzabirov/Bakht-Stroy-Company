@@ -31,7 +31,7 @@ export async function ProductCard({ product, action, favorite, priority = false 
             fill
             priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
           />
         )}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
@@ -43,7 +43,7 @@ export async function ProductCard({ product, action, favorite, priority = false 
 
       <div className="flex flex-1 flex-col p-4">
         {product.category?.name && (
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.category.name}</p>
+          <p className="mb-1 text-xs text-muted-foreground">{product.category.name}</p>
         )}
         <Link href={routes.product(product.slug)} className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug hover:underline">
           {product.name}
@@ -51,14 +51,15 @@ export async function ProductCard({ product, action, favorite, priority = false 
 
         <div className="mt-auto pt-4">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-xl font-extrabold">{formatMoney(product.price, locale)}</span>
+            <span className="font-display text-xl font-bold tabular-nums">{formatMoney(product.price, locale)}</span>
             {product.old_price ? <span className="text-sm text-muted-foreground line-through">{formatMoney(product.old_price, locale)}</span> : null}
           </div>
           <p className="text-xs text-muted-foreground">
             {fmt(t.common.perUnit, { unit: product.unit.label })}
             {product.min_order_qty > 1 && ` · ${fmt(t.common.fromQty, { qty: product.min_order_qty, unit: product.unit.label })}`}
           </p>
-          <p className={product.in_stock ? "mt-1 text-xs font-medium text-success" : "mt-1 text-xs font-medium text-danger"}>
+          <p className={`mt-1.5 flex items-center gap-1.5 text-xs font-medium ${product.in_stock ? "text-success" : "text-danger"}`}>
+            <span aria-hidden className={`size-1.5 rounded-full ${product.in_stock ? "bg-success" : "bg-danger"}`} />
             {product.in_stock ? t.common.inStock : t.common.outOfStock}
           </p>
           {action && <div className="mt-3">{action}</div>}

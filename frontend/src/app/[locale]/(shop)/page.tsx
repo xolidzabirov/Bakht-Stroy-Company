@@ -39,14 +39,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <>
       <Hero banners={banners} heroSlides={heroSlides} phone={settings.phones[0]} />
       <CategoryStrip categories={categories} />
-      <Advantages />
-      <CategoryGrid categories={categories} />
-      <ProductGrid
-        title={t.home.hitsTitle}
-        subtitle={t.home.hitsSubtitle}
-        href={`${routes.catalog}?featured=1`}
-        products={featured?.data ?? []}
-      />
+      <div className="reveal">
+        <Advantages />
+      </div>
+      <div className="reveal">
+        <CategoryGrid categories={categories} />
+      </div>
+      <div className="reveal">
+        <ProductGrid
+          title={t.home.hitsTitle}
+          subtitle={t.home.hitsSubtitle}
+          href={`${routes.catalog}?featured=1`}
+          products={featured?.data ?? []}
+        />
+      </div>
       {sale.length >= 4 && (
         <ProductGrid
           title={t.home.saleTitle}
@@ -55,7 +61,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           products={sale.slice(0, 4)}
         />
       )}
-      <NewsSection news={news?.data ?? []} />
+      <div className="reveal">
+        <NewsSection news={news?.data ?? []} />
+      </div>
       <ContactCta
         phone={settings.phones[0]}
         whatsapp={settings.socials?.whatsapp}

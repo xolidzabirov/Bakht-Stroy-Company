@@ -107,7 +107,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                 <Link href={routes.adminProduct(product.id)} tabIndex={-1} aria-hidden className="relative block aspect-[4/3] overflow-hidden bg-muted">
                   {product.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={product.image.card} alt="" loading="lazy" className={cn("size-full object-cover transition duration-500 group-hover:scale-105", !product.is_active && "opacity-50 grayscale")} />
+                    <img src={product.image.card} alt="" loading="lazy" className={cn("size-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]", !product.is_active && "opacity-50 grayscale")} />
                   ) : (
                     <span className="grid size-full place-items-center">
                       <Boxes className="size-8 text-muted-foreground" />
@@ -118,35 +118,35 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                     {product.is_featured && <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-ink">{p.featured}</span>}
                     {product.old_price && <span className="rounded-full bg-destructive px-2 py-0.5 text-[11px] font-bold text-white">%</span>}
                   </span>
-                  <span className="absolute right-2.5 top-2.5 grid size-9 place-items-center rounded-full bg-surface/90 text-foreground opacity-0 shadow transition group-hover:opacity-100">
-                    <Pencil className="size-4" />
+                  <span className="absolute bottom-2.5 right-2.5 inline-flex translate-y-1 items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-foreground opacity-0 shadow-md transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+                    <Pencil className="size-3.5" />
+                    {t.admin.common.edit}
                   </span>
                 </Link>
 
-                <div className="flex flex-1 flex-col p-4">
-                  <span className="truncate text-xs text-muted-foreground">{[product.sku, product.category?.name].filter(Boolean).join(" · ")}</span>
-                  <Link href={routes.adminProduct(product.id)} className="mt-1 line-clamp-2 min-h-10 text-sm font-bold leading-snug hover:underline">
+                <div className="flex flex-1 flex-col p-4 pb-3">
+                  <Link href={routes.adminProduct(product.id)} className="line-clamp-2 min-h-10 text-sm font-semibold leading-snug hover:underline">
                     {product.name}
                   </Link>
+                  <p className="mt-1 flex min-w-0 gap-2 text-xs text-muted-foreground">
+                    <span className="shrink-0 tabular-nums">{product.sku}</span>
+                    <span className="truncate">{product.category?.name}</span>
+                  </p>
                   <div className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-3">
-                    <b className="font-display text-xl font-extrabold tabular-nums">{formatMoney(product.price, locale)}</b>
-                    {product.old_price && <s className="text-sm text-muted-foreground">{formatMoney(product.old_price, locale)}</s>}
+                    <b className="text-lg font-bold tabular-nums">{formatMoney(product.price, locale)}</b>
+                    {product.old_price && <s className="text-xs text-muted-foreground">{formatMoney(product.old_price, locale)}</s>}
                   </div>
 
-                  <div className="mt-3">
+                  <div className="mt-1.5">
                     <StockEditor productId={product.id} stock={product.stock} unit={units[product.unit.value] ?? product.unit.label} low={product.is_low_stock} />
                   </div>
 
-                  <div className="-mx-4 mt-4 flex items-center justify-between gap-2 border-t border-border px-4 pt-3">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                      <ProductFlag productId={product.id} field="is_active" value={product.is_active} label={p.status} />
-                      {p.status}
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                      <ProductFlag productId={product.id} field="is_featured" value={product.is_featured} label={p.featured} />
-                      {p.featured}
-                    </label>
-                    <DeleteProduct productId={product.id} name={product.name} />
+                  <div className="mt-2 flex items-center gap-1.5 border-t border-border pt-3">
+                    <ProductFlag productId={product.id} field="is_active" value={product.is_active} label={p.visibleOn} offLabel={p.visibleOff} hint={p.visibleHint} />
+                    <ProductFlag productId={product.id} field="is_featured" value={product.is_featured} label={p.featured} offLabel={p.featured} hint={p.featuredHint} />
+                    <span className="ml-auto">
+                      <DeleteProduct productId={product.id} name={product.name} />
+                    </span>
                   </div>
                 </div>
               </li>

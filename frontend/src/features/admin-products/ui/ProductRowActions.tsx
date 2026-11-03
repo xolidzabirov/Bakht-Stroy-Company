@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, LoaderCircle, Trash2 } from "lucide-react";
+import { Check, Eye, EyeOff, LoaderCircle, Star, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import { useI18n } from "@/shared/i18n/client";
@@ -11,14 +11,13 @@ import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
-import { Switch } from "@/shared/ui/kit/switch";
 
 function useApiError() {
   const { t } = useI18n();
   return (error: unknown) => toast.error(error instanceof ApiError ? error.message : t.errors.generic);
 }
 
-/** Stock right on the card: a "Stock … pcs" strip; type a number, Enter or ✓ saves it, Esc puts it back. */
+/** Stock right on the card: a quiet line with a coloured dot; type a number, Enter or ✓ saves it, Esc puts it back. */
 export function StockEditor({ productId, stock, unit, low }: { productId: number; stock: number; unit: string; low: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -43,13 +42,9 @@ export function StockEditor({ productId, stock, unit, low }: { productId: number
   };
 
   return (
-    <label
-      className={cn(
-        "flex h-10 items-center gap-2 rounded-xl border pl-3 pr-1 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
-        low ? "border-destructive/30 bg-destructive/5" : "border-transparent bg-muted",
-      )}
-    >
-      <span className={cn("text-xs font-semibold", low ? "text-destructive" : "text-muted-foreground")}>
+    <label className="-mx-2 flex h-9 cursor-text items-center gap-2 rounded-lg px-2 transition hover:bg-muted focus-within:bg-muted focus-within:ring-2 focus-within:ring-ring/40">
+      <span aria-hidden className={cn("size-2 shrink-0 rounded-full", stock === 0 ? "bg-destructive" : low ? "bg-amber-500" : "bg-success")} />
+      <span className={cn("text-xs font-medium", low || stock === 0 ? "text-destructive" : "text-muted-foreground")}>
         {t.admin.products.stock}
         {low && ` · ${t.admin.products.lowStock}`}
       </span>
@@ -65,7 +60,7 @@ export function StockEditor({ productId, stock, unit, low }: { productId: number
           if (event.key === "Escape") setValue(String(stock));
         }}
         onBlur={() => value === "" && setValue(String(stock))}
-        className={cn("ml-auto h-8 w-16 min-w-0 bg-transparent text-right text-sm font-bold tabular-nums outline-none", low && "text-destructive")}
+        className="ml-auto h-8 w-16 min-w-0 bg-transparent text-right text-sm font-semibold tabular-nums outline-none"
       />
       <span className="min-w-6 text-xs text-muted-foreground">{unit}</span>
       <button
@@ -73,7 +68,7 @@ export function StockEditor({ productId, stock, unit, low }: { productId: number
         onClick={() => void save()}
         disabled={!changed || saving}
         aria-label={t.admin.common.save}
-        className={cn("grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition", changed ? "opacity-100" : "pointer-events-none opacity-0")}
+        className={cn("grid shrink-0 place-items-center overflow-hidden rounded-lg bg-primary text-primary-foreground transition-all", changed ? "size-7 opacity-100" : "pointer-events-none size-0 opacity-0")}
       >
         {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}
       </button>
@@ -81,14 +76,18 @@ export function StockEditor({ productId, stock, unit, low }: { productId: number
   );
 }
 
-/** Visible / hit switches in the table (saved immediately). */
-export function ProductFlag({ productId, field, value, label }: { productId: number; field: "is_active" | "is_featured"; value: boolean; label: string }) {
+/**
+ * "На сайте" and "Хит" on the card: a chip that says what it does (saved immediately, the tooltip explains it).
+ * is_active — customers see the product; is_featured — it goes to the "Хиты" block on the home page.
+ */
+export function ProductFlag({ productId, field, value, label, offLabel, hint }: { productId: number; field: "is_active" | "is_featured"; value: boolean; label: string; offLabel: string; hint: string }) {
   const router = useRouter();
   const onError = useApiError();
   const [checked, setChecked] = useState(value);
   const [saving, setSaving] = useState(false);
 
-  const toggle = async (next: boolean) => {
+  const toggle = async () => {
+    const next = !checked;
     setChecked(next);
     setSaving(true);
     try {
@@ -102,7 +101,26 @@ export function ProductFlag({ productId, field, value, label }: { productId: num
     }
   };
 
-  return <Switch checked={checked} onCheckedChange={(next) => void toggle(next)} disabled={saving} aria-label={label} />;
+  const Icon = field === "is_featured" ? Star : checked ? Eye : EyeOff;
+
+  return (
+    <button
+      type="button"
+      onClick={() => void toggle()}
+      disabled={saving}
+      aria-pressed={checked}
+      title={hint}
+      className={cn(
+        "inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition active:scale-95 disabled:opacity-60",
+        !checked && "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+        checked && field === "is_active" && "border-transparent bg-success/10 text-success",
+        checked && field === "is_featured" && "border-transparent bg-brand/20 text-foreground",
+      )}
+    >
+      <Icon className={cn("size-3.5", checked && field === "is_featured" && "fill-brand text-brand")} />
+      {checked ? label : offLabel}
+    </button>
+  );
 }
 
 /** Delete with a confirmation; the product leaves the catalog, orders keep their copy. */
