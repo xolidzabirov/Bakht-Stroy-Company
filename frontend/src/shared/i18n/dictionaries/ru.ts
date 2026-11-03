@@ -848,6 +848,11 @@ export const ru = {
       oldPriceInvalid: "Старая цена должна быть больше цены",
     },
     categories: {
+      showOnSite: "Показать на сайте",
+      hideFromSite: "Скрыть с сайта",
+      openOnSite: "Открыть на сайте",
+      shownOnSite: "Категория показана на сайте",
+      hiddenFromSite: "Категория скрыта с сайта",
       subcategories: "{count} подкатегорий",
       showProducts: "Показать товары",
       title: "Категории",

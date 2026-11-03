@@ -847,6 +847,11 @@ export const en: Dictionary = {
       oldPriceInvalid: "The old price must be higher than the price",
     },
     categories: {
+      showOnSite: "Show on the site",
+      hideFromSite: "Hide from the site",
+      openOnSite: "Open on the site",
+      shownOnSite: "The category is shown on the site",
+      hiddenFromSite: "The category is hidden from the site",
       subcategories: "{count} subcategories",
       showProducts: "Show products",
       title: "Categories",

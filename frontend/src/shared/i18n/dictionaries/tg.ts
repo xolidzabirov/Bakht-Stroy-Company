@@ -847,6 +847,11 @@ export const tg: Dictionary = {
       oldPriceInvalid: "Нархи кӯҳна бояд аз нарх зиёд бошад",
     },
     categories: {
+      showOnSite: "Дар сайт нишон додан",
+      hideFromSite: "Аз сайт пинҳон кардан",
+      openOnSite: "Дар сайт кушодан",
+      shownOnSite: "Категория дар сайт нишон дода шуд",
+      hiddenFromSite: "Категория аз сайт пинҳон шуд",
       subcategories: "{count} зеркатегория",
       showProducts: "Нишон додани молҳо",
       title: "Категорияҳо",

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, Boxes, CornerDownRight, EyeOff, FolderPlus, FolderTree, ImagePlus, LoaderCircle, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Boxes, CornerDownRight, ExternalLink, Eye, EyeOff, FolderPlus, FolderTree, ImagePlus, LoaderCircle, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Category } from "@/shared/api/types";
@@ -48,6 +48,20 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
     try {
       await bff("/api/proxy/admin/categories/reorder", { method: "PATCH", body: { items: ordered.map((item, i) => ({ id: item.id, sort_order: (i + 1) * 10 })) } });
       toast.success(c.orderSaved);
+      router.refresh();
+    } catch (error) {
+      fail(error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Show on the site or hide from it right away. */
+  const toggleActive = async (category: Category) => {
+    setBusy(true);
+    try {
+      await bff(`/api/proxy/admin/categories/${category.id}`, { method: "PATCH", body: { is_active: !category.is_active } });
+      toast.success(category.is_active ? c.hiddenFromSite : c.shownOnSite);
       router.refresh();
     } catch (error) {
       fail(error);
@@ -146,6 +160,10 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
                 {c.addChild}
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem className="gap-2.5 rounded-lg" disabled={busy} onSelect={() => void toggleActive(category)}>
+              {category.is_active ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {category.is_active ? c.hideFromSite : c.showOnSite}
+            </DropdownMenuItem>
             <DropdownMenuItem asChild className="gap-2.5 rounded-lg">
               <Link href={`${routes.adminProducts}?category=${category.slug}`}>
                 <Boxes className="size-4" />
@@ -194,7 +212,7 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
             <li
               key={root.id}
               style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
-              className="animate-in overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-shadow fade-in-0 slide-in-from-bottom-2 fill-mode-both hover:shadow-md"
+              className="group/card animate-in overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-shadow fade-in-0 slide-in-from-bottom-2 fill-mode-both hover:shadow-md"
             >
               {row(root, tree, index, false)}
               {root.children && root.children.length > 0 && (
@@ -204,14 +222,37 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
                   ))}
                 </ul>
               )}
-              <button
-                type="button"
-                onClick={() => setEditing({ category: null, parentId: root.id })}
-                className="flex w-full items-center gap-2 border-t border-dashed border-border px-4 py-2.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted/60 hover:text-foreground sm:px-6"
-              >
-                <Plus className="size-3.5" />
-                {c.addChild}
-              </button>
+              <div className="flex flex-wrap items-center justify-between gap-x-3 border-t border-dashed border-border pr-2 sm:pr-3">
+                <button
+                  type="button"
+                  onClick={() => setEditing({ category: null, parentId: root.id })}
+                  className="flex items-center gap-2 py-2.5 pl-4 pr-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground sm:pl-6"
+                >
+                  <Plus className="size-3.5" />
+                  {c.addChild}
+                </button>
+                {/* Appear on hover (always visible on touch screens, where there is no hover). */}
+                <span className="flex items-center gap-1 transition-opacity duration-200 sm:opacity-0 sm:focus-within:opacity-100 sm:group-hover/card:opacity-100">
+                  {root.is_active && (
+                    <a href={routes.category(root.slug)} target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground">
+                      <ExternalLink className="size-3.5" />
+                      {c.openOnSite}
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void toggleActive(root)}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition disabled:opacity-50",
+                      root.is_active ? "text-muted-foreground hover:bg-muted hover:text-foreground" : "bg-primary text-primary-foreground hover:bg-primary-hover",
+                    )}
+                  >
+                    {root.is_active ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                    {root.is_active ? c.hideFromSite : c.showOnSite}
+                  </button>
+                </span>
+              </div>
             </li>
           ))}
         </ul>
