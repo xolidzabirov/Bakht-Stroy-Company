@@ -8,6 +8,7 @@ import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import { formatPhone } from "@/shared/lib/format";
 import { mapLinks } from "@/shared/lib/maps";
 import { Container } from "@/shared/ui";
+import { StoreMap } from "@/widgets/store-map/ui/StoreMap";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 
 const socialNames: Record<string, string> = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook", youtube: "YouTube" };
@@ -29,6 +30,12 @@ export default async function ContactsPage({ params }: Props) {
   const [settings, { t }] = await Promise.all([getSettings(), getI18n()]);
   const c = t.contacts;
   const maps = mapLinks(settings.address, settings.map);
+  // Until the warehouses are listed in the admin panel, the map shows the point of the store itself.
+  const points = settings.warehouses?.length
+    ? settings.warehouses
+    : settings.map.lat != null && settings.map.lng != null
+      ? [{ name: settings.name, address: settings.address, lat: settings.map.lat, lng: settings.map.lng }]
+      : [];
   const socials = Object.entries(settings.socials ?? {}).filter((entry): entry is [string, string] => Boolean(entry[1]));
   // WhatsApp and Telegram first: that is where customers write most.
   socials.sort(([a], [b]) => Number(!/whatsapp|telegram/.test(a)) - Number(!/whatsapp|telegram/.test(b)));
@@ -141,7 +148,9 @@ export default async function ContactsPage({ params }: Props) {
         </section>
       </div>
 
-      {maps && (
+      {points.length > 0 ? (
+        <StoreMap points={points} workHours={settings.work_hours} label={c.mapTitle} className="mt-4 h-[420px] sm:h-[560px]" />
+      ) : maps && (
         <section className="mt-4 overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface-muted">
           <iframe src={maps.embed} title={c.mapTitle} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="block h-[360px] w-full sm:h-[440px]" />
         </section>

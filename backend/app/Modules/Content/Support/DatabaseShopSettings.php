@@ -75,6 +75,8 @@ final class DatabaseShopSettings implements ShopSettings
                 'address' => null,
                 'work_hours' => 'Пн–Сб 08:00–19:00, Вс — выходной',
                 'map' => ['lat' => null, 'lng' => null],
+                // The marks on the map of the contacts page: [{ name, address, lat, lng }].
+                'warehouses' => [],
                 'socials' => ['telegram' => null, 'telegram_chat' => null, 'instagram' => null, 'whatsapp' => null, 'facebook' => null, 'youtube' => null],
             ],
             'delivery' => [

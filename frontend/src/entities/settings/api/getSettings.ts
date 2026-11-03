@@ -18,6 +18,7 @@ export async function getSettings(): Promise<StoreSettings["store"] & { delivery
       address: site.address,
       work_hours: site.workHours,
       map: { lat: null, lng: null },
+      warehouses: [],
       socials: { ...site.socials },
     };
   }

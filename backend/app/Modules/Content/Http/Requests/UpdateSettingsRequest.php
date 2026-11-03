@@ -54,6 +54,19 @@ final class UpdateSettingsRequest extends FormRequest
             'store.map.lat' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             /** @example 69.2190 */
             'store.map.lng' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
+            /**
+             * Склады на карте страницы «Контакты». Список заменяется целиком.
+             */
+            'store.warehouses' => ['sometimes', 'array', 'max:50'],
+            /** @example Склад в Душанбе */
+            'store.warehouses.*.name' => ['required', 'string', 'max:100'],
+            /** @example Душанбе, ул. Джабор Расулов */
+            'store.warehouses.*.address' => ['nullable', 'string', 'max:300'],
+            // The map shows Tajikistan and the land around it: a point outside is a typo (or lat and lng swapped).
+            /** @example 38.5737 */
+            'store.warehouses.*.lat' => ['required', 'numeric', 'between:35.2,42.6'],
+            /** @example 68.7738 */
+            'store.warehouses.*.lng' => ['required', 'numeric', 'between:64.5,78'],
             'store.socials' => ['sometimes', 'array'],
             'store.socials.telegram' => ['sometimes', 'nullable', 'url:https', 'max:300'],
             'store.socials.telegram_chat' => ['sometimes', 'nullable', 'url:https', 'max:300'],

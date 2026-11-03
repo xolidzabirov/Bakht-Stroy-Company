@@ -31,6 +31,7 @@ type Values = {
   phones: { value: string }[];
   lat: string;
   lng: string;
+  warehouses: { name: string; address: string; coords: string }[];
   socials: Record<Social, string>;
   price: string;
   free_from: string;
@@ -46,6 +47,7 @@ type Values = {
 const SECTIONS = {
   store: ["name", "description", "work_hours"],
   contacts: ["email", "address", "phones", "lat", "lng"],
+  warehouses: ["warehouses"],
   socials: ["socials"],
   delivery: ["price", "free_from", "pickup_address", "delivery_note"],
   payment: ["card_number", "card_holder", "bank", "payment_note"],
@@ -83,6 +85,7 @@ const toValues = ({ store, delivery, payment }: StoreSettings): Values => ({
   phones: store.phones.map((phone) => ({ value: formatPhone(phone) })),
   lat: store.map.lat?.toString() ?? "",
   lng: store.map.lng?.toString() ?? "",
+  warehouses: (store.warehouses ?? []).map((item) => ({ name: item.name, address: item.address ?? "", coords: `${item.lat}, ${item.lng}` })),
   socials: Object.fromEntries(SOCIALS.map((key) => [key, store.socials[key] ?? ""])) as Record<Social, string>,
   price: diramsToSomoni(delivery.price),
   free_from: diramsToSomoni(delivery.free_from),
@@ -96,6 +99,15 @@ const toValues = ({ store, delivery, payment }: StoreSettings): Values => ({
 
 const nullable = (value: string) => value.trim() || null;
 const coordinate = (value: string) => (value.trim() ? Number(value.replace(",", ".")) : null);
+
+/** "38.5737, 68.7738" as Google Maps copies it (a comma as the decimal mark also works). Only points the map can show. */
+function parsePoint(value: string): { lat: number; lng: number } | null {
+  const match = value.trim().match(/^(-?\d+(?:[.,]\d+)?)[\s,;]+(-?\d+(?:[.,]\d+)?)$/);
+  if (!match) return null;
+  const lat = Number(match[1].replace(",", "."));
+  const lng = Number(match[2].replace(",", "."));
+  return lat >= 35.2 && lat <= 42.6 && lng >= 64.5 && lng <= 78 ? { lat, lng } : null;
+}
 
 /** A social link as people say it: instagram.com/bakht_stroy → @bakht_stroy, wa.me/992907666609 → +992 90 766 66 09. */
 function handleOf(url: string): string {
@@ -140,13 +152,14 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
     formState: { errors, isSubmitting, isDirty },
   } = useForm<Values>({ defaultValues: toValues(settings) });
   const phones = useFieldArray({ control, name: "phones" });
+  const warehouses = useFieldArray({ control, name: "warehouses" });
   const values = useWatch({ control }) as Values;
 
   // Opening a section puts the cursor in its first field (or the one "Добавить" was pressed for);
   // closing it returns the focus to its "Изменить" button.
   useEffect(() => {
     if (editing) {
-      const target = focusField.current ?? (editing === "socials" ? "socials.instagram" : editing === "contacts" ? "email" : SECTIONS[editing][0]);
+      const target = focusField.current ?? (editing === "socials" ? "socials.instagram" : editing === "contacts" ? "email" : editing === "warehouses" ? "warehouses.0.name" : SECTIONS[editing][0]);
       focusField.current = null;
       setFocus(target as Path<Values>);
     } else if (previous.current) {
@@ -186,6 +199,20 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
     if (price === null) return setError("price", { message: t.admin.product.priceInvalid });
     if (freeFrom === null) return setError("free_from", { message: t.admin.product.priceInvalid });
 
+    const points: StoreSettings["store"]["warehouses"] = [];
+    let invalid = false;
+    form.warehouses.forEach((item, index) => {
+      const name = item.name.trim();
+      // A line left empty is simply not a warehouse.
+      if (!name && !item.address.trim() && !item.coords.trim()) return;
+      const point = parsePoint(item.coords);
+      if (!name) setError(`warehouses.${index}.name`, { message: s.warehouseNameRequired });
+      if (!point) setError(`warehouses.${index}.coords`, { message: s.warehouseCoordsInvalid });
+      if (!name || !point) invalid = true;
+      else points.push({ name, address: nullable(item.address), ...point });
+    });
+    if (invalid) return;
+
     const body = {
       store: {
         name: form.name.trim(),
@@ -195,6 +222,7 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
         work_hours: nullable(form.work_hours),
         phones: form.phones.map((phone) => phone.value.replace(/[^\d+]/g, "")).filter(Boolean),
         map: { lat: coordinate(form.lat), lng: coordinate(form.lng) },
+        warehouses: points,
         socials: Object.fromEntries(SOCIALS.map((key) => [key, nullable(form.socials[key])])),
       },
       delivery: { price, free_from: freeFrom, pickup_address: nullable(form.pickup_address), note: nullable(form.delivery_note) },
@@ -214,7 +242,8 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
         for (const [field, messages] of Object.entries(error.errors)) {
           const [, index] = field.match(/^store\.phones\.(\d+)$/) ?? [];
           const [, social] = field.match(/^store\.socials\.(\w+)$/) ?? [];
-          const target = ERROR_FIELDS[field] ?? (index !== undefined ? `phones.${index}.value` : social ? `socials.${social}` : null);
+          const [, place, part] = field.match(/^store\.warehouses\.(\d+)\.(\w+)$/) ?? [];
+          const target = ERROR_FIELDS[field] ?? (index !== undefined ? `phones.${index}.value` : social ? `socials.${social}` : place !== undefined ? `warehouses.${place}.${part === "name" || part === "address" ? part : "coords"}` : null);
           if (target && sectionOf(target) === editing) setError(target as Path<Values>, { type: "server", message: messages[0] });
           else elsewhere.push(messages[0]);
         }
@@ -289,6 +318,12 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
   const addPhone = () => {
     if (phones.fields.length === 0) phones.append({ value: "+992 " }, { shouldFocus: false });
     open("contacts", "phones.0.value");
+  };
+
+  /** "Добавить" next to the empty list: open the section with one warehouse ready. */
+  const addWarehouse = () => {
+    if (warehouses.fields.length === 0) warehouses.append({ name: "", address: "", coords: "" }, { shouldFocus: false });
+    open("warehouses");
   };
 
   const money = (somoni: string) => formatMoney(somoniToDirams(somoni || "0") ?? 0, locale);
@@ -401,6 +436,71 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
                 </SettingRow>
               )}
             </SettingsList>
+          </SettingsSection>
+
+          <SettingsSection title={s.warehouses} description={s.warehousesText} {...sectionProps("warehouses")}>
+            {editing === "warehouses" ? (
+              <div className="space-y-3 pb-3">
+                {warehouses.fields.map((item, index) => {
+                  const name = input(`warehouses.${index}.name`, { placeholder: s.warehouseNamePlaceholder });
+                  const address = input(`warehouses.${index}.address`, { placeholder: "Душанбе, ул. Джабор Расулов" });
+                  const coords = input(`warehouses.${index}.coords`, { inputMode: "decimal", placeholder: "38.5737, 68.7738" });
+                  return (
+                    <fieldset key={item.id} className="space-y-3 rounded-xl border border-border p-3 sm:p-4">
+                      <legend className="sr-only">{`${s.warehouseN} ${index + 1}`}</legend>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold">{`${s.warehouseN} ${index + 1}`}</p>
+                        <button type="button" onClick={() => warehouses.remove(index)} aria-label={`${c.delete}: ${s.warehouseN} ${index + 1}`} className="grid size-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive">
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                      <div>
+                        <label htmlFor={name.id} className="mb-1.5 block text-sm text-muted-foreground">{s.warehouseName}</label>
+                        {name.node}
+                      </div>
+                      <div>
+                        <label htmlFor={address.id} className="mb-1.5 block text-sm text-muted-foreground">{s.warehouseAddress}</label>
+                        {address.node}
+                      </div>
+                      <div>
+                        <label htmlFor={coords.id} className="mb-1.5 block text-sm text-muted-foreground">{s.warehouseCoords}</label>
+                        {coords.node}
+                      </div>
+                    </fieldset>
+                  );
+                })}
+                <p className="text-xs leading-relaxed text-muted-foreground">{s.warehouseCoordsHint}</p>
+                <button type="button" onClick={() => warehouses.append({ name: "", address: "", coords: "" })} className="inline-flex items-center gap-1.5 rounded-md text-sm font-medium underline decoration-border underline-offset-4 hover:decoration-foreground">
+                  <Plus className="size-3.5" />
+                  {s.addWarehouse}
+                </button>
+              </div>
+            ) : values.warehouses.length > 0 ? (
+              <ul className="divide-y divide-border">
+                {values.warehouses.map((item, index) => {
+                  const route = mapLinks(null, parsePoint(item.coords) ?? undefined)?.route;
+                  return (
+                    <li key={`${item.name}-${index}`} className="py-3 text-sm">
+                      <p className="font-medium">{item.name}</p>
+                      {item.address && <p className="mt-0.5 text-muted-foreground">{item.address}</p>}
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
+                        <span className="tabular-nums">{item.coords}</span>
+                        {route && (
+                          <a href={route} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground">
+                            {s.openMap}
+                            <ExternalLink className="size-3.5" />
+                          </a>
+                        )}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="pb-3 text-sm">
+                <EmptyValue text={s.warehousesEmpty} addLabel={s.addWarehouse} onAdd={editing ? undefined : addWarehouse} />
+              </p>
+            )}
           </SettingsSection>
         </div>
 

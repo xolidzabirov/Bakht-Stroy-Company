@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DeliveryPage({ params }: Props) {
   await setLocaleFrom(params);
   const [settings, { t, locale }] = await Promise.all([getSettings(), getI18n()]);
-  const { delivery, payment } = settings;
+  const { delivery } = settings;
   const pickupAddress = delivery?.pickup_address || settings.address;
   const maps = mapLinks(pickupAddress, settings.map);
   const money = (dirams: number) => formatMoney(dirams, locale);
@@ -134,7 +134,6 @@ export default async function DeliveryPage({ params }: Props) {
               );
             })}
           </div>
-          {payment?.note && <p className="mt-4 rounded-xl bg-brand-soft px-4 py-3 text-sm">{payment.note}</p>}
         </section>
 
         <div className="mt-12 grid gap-4 lg:grid-cols-2">

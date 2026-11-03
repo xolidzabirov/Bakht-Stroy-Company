@@ -42,6 +42,7 @@ export type StoreSettings = {
     address: string | null;
     work_hours: string | null;
     map: { lat: number | null; lng: number | null };
+    warehouses: { name: string; address: string | null; lat: number; lng: number }[];
     socials: Partial<Record<"instagram" | "telegram" | "telegram_chat" | "whatsapp" | "facebook" | "youtube", string | null>>;
   };
   delivery: { price: number; free_from: number; pickup_address: string | null; note: string | null };

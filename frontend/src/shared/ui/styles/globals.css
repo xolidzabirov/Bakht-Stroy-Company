@@ -331,3 +331,137 @@ h3 {
 .admin-ui .admin-nav-scroll::-webkit-scrollbar-thumb {
   background-color: rgb(255 255 255 / 0.14);
 }
+
+/* The map of the warehouses (widgets/store-map) */
+.store-pin {
+  display: block;
+  padding: 0 0 8px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.store-pin__mark {
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 8px 18px -4px rgb(0 0 0 / 0.45);
+  transition: transform 180ms ease, background-color 180ms ease;
+  transform-origin: 50% 110%;
+}
+.store-pin__mark::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -6px;
+  border: solid transparent;
+  border-width: 8px 6px 0;
+  border-top-color: #fff;
+}
+.store-pin:hover .store-pin__mark {
+  background: var(--brand-hover);
+  transform: scale(1.1);
+}
+.store-pin:focus-visible {
+  outline: none;
+}
+.store-pin:focus-visible .store-pin__mark {
+  outline: 3px solid var(--foreground);
+  outline-offset: 2px;
+}
+.store-popup .maplibregl-popup-content {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.28);
+  font-family: inherit;
+}
+.store-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--surface);
+}
+.store-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--surface);
+}
+.store-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--surface);
+}
+.store-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--surface);
+}
+.store-popup .maplibregl-popup-close-button {
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+}
+.store-popup__card {
+  padding: 16px;
+}
+.store-popup__name {
+  padding-right: 24px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.store-popup__text {
+  margin-top: 4px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.store-popup__route {
+  display: block;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  transition: background-color 150ms ease;
+}
+.store-popup__route:hover {
+  background: var(--brand-hover);
+}
+html[data-theme="dark"] .maplibregl-ctrl-group {
+  background-color: var(--surface);
+}
+html[data-theme="dark"] .maplibregl-ctrl-group button + button {
+  border-top-color: var(--border);
+}
+html[data-theme="dark"] .maplibregl-ctrl-group .maplibregl-ctrl-icon {
+  filter: invert(1);
+}
+html[data-theme="dark"] .maplibregl-ctrl.maplibregl-ctrl-attrib,
+html[data-theme="dark"] .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+html[data-theme="dark"] .maplibregl-ctrl-attrib a,
+html[data-theme="dark"] .maplibregl-ctrl-attrib a:visited {
+  color: var(--foreground);
+}
+html[data-theme="dark"] .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button {
+  background-color: transparent;
+  filter: invert(1);
+}
+html[data-theme="dark"] .maplibregl-ctrl.maplibregl-ctrl-scale {
+  border-color: var(--foreground);
+  background-color: var(--surface);
+  color: var(--foreground);
+}

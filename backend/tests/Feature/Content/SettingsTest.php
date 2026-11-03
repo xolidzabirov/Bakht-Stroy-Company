@@ -69,3 +69,38 @@ it('closes settings for clients', function () {
         ->putJson('/api/v1/admin/settings', ['delivery' => ['price' => 1]])
         ->assertForbidden();
 });
+
+it('keeps the warehouses as a list and shows them to guests', function () {
+    $warehouses = [
+        ['name' => 'Склад в Душанбе', 'address' => 'Душанбе, ул. Джабор Расулов', 'lat' => 38.56, 'lng' => 68.78],
+        ['name' => 'Склад в Худжанде', 'address' => null, 'lat' => 40.28, 'lng' => 69.62],
+    ];
+
+    $this->withToken($this->adminToken)->putJson('/api/v1/admin/settings', ['store' => ['warehouses' => $warehouses]])->assertOk();
+    $this->getJson('/api/v1/settings/public')->assertOk()
+        ->assertJsonPath('data.store.warehouses.0.name', 'Склад в Душанбе')
+        ->assertJsonPath('data.store.warehouses.0.lat', 38.56)
+        ->assertJsonPath('data.store.warehouses.1.address', null)
+        ->assertJsonPath('data.store.warehouses.1.lng', 69.62);
+
+    // Removing one leaves only the other.
+    $this->withToken($this->adminToken)->putJson('/api/v1/admin/settings', ['store' => ['warehouses' => [$warehouses[1]]]])
+        ->assertOk()
+        ->assertJsonCount(1, 'data.store.warehouses')
+        ->assertJsonPath('data.store.warehouses.0.name', 'Склад в Худжанде');
+
+    $this->withToken($this->adminToken)->putJson('/api/v1/admin/settings', ['store' => ['warehouses' => []]])
+        ->assertOk()
+        ->assertJsonPath('data.store.warehouses', []);
+});
+
+it('rejects a warehouse without a name or outside the map', function (array $warehouse, string $field) {
+    $this->withToken($this->adminToken)->putJson('/api/v1/admin/settings', ['store' => ['warehouses' => [$warehouse]]])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors("store.warehouses.0.{$field}");
+})->with([
+    'no name' => [['address' => 'Душанбе', 'lat' => 38.56, 'lng' => 68.78], 'name'],
+    'no point' => [['name' => 'Склад'], 'lat'],
+    'lat and lng swapped' => [['name' => 'Склад', 'lat' => 68.78, 'lng' => 38.56], 'lat'],
+    'another country' => [['name' => 'Склад', 'lat' => 41.31, 'lng' => 90.0], 'lng'],
+]);
