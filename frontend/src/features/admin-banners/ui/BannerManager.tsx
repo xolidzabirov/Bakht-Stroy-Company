@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, CalendarClock, ExternalLink, ImageOff, ImagePlus, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
@@ -173,10 +173,9 @@ export function BannerManager({ banners, placement }: { banners: Banner[]; place
               banner={editing === "new" ? null : editing}
               placement={placement}
               nextSort={(banners.at(-1)?.sort_order ?? 0) + 10}
-              onSaved={(saved, created) => {
+              onSaved={() => {
                 router.refresh();
-                if (created) setEditing(saved);
-                else setEditing(null);
+                setEditing(null);
               }}
               onClose={() => setEditing(null)}
             />
@@ -233,13 +232,15 @@ function BannerForm({
   banner: Banner | null;
   placement: Placement;
   nextSort: number;
-  onSaved: (banner: Banner, created: boolean) => void;
+  onSaved: () => void;
   onClose: () => void;
 }) {
   const { t } = useI18n();
   const b = t.admin.banners;
   const hero = placement === "hero";
   const [formError, setFormError] = useState<string | null>(null);
+  // Pictures of a banner that is not saved yet: they wait in the browser and go up right after "Создать".
+  const [draft, setDraft] = useState<{ desktop: File | null; mobile: File | null }>({ desktop: null, mobile: null });
   const {
     register,
     control,
@@ -275,8 +276,16 @@ function BannerForm({
       const { data } = banner
         ? await bff<{ data: Banner }>(`/api/proxy/admin/banners/${banner.id}`, { method: "PATCH", body })
         : await bff<{ data: Banner }>("/api/proxy/admin/banners", { body });
+      for (const variant of ["desktop", "mobile"] as const) {
+        const file = draft[variant];
+        if (!file) continue;
+        const form = new FormData();
+        form.append("image", file);
+        form.append("variant", variant);
+        await bff(`/api/proxy/admin/banners/${data.id}/image`, { body: form }).catch((error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic));
+      }
       toast.success(t.admin.common.saved);
-      onSaved(data, !banner);
+      onSaved();
     } catch (error) {
       setFormError(applyApiErrors(error, setError, ["title", "subtitle", "button_text", "link", "starts_at", "ends_at"], t.errors));
     }
@@ -303,15 +312,22 @@ function BannerForm({
           {(id, describedBy) => <TextInput id={id} aria-describedby={describedBy} {...register("subtitle")} />}
         </Field>
       )}
+      {hero && (
+        <Field label={b.link} error={errors.link?.message} hint={b.heroLinkHint}>
+          {(id, describedBy) => <TextInput id={id} placeholder="/catalog" aria-describedby={describedBy} {...register("link")} />}
+        </Field>
+      )}
       <div className="grid gap-4 sm:grid-cols-2">
         {!hero && (
           <Field label={b.buttonText} error={errors.button_text?.message}>
             {(id, describedBy) => <TextInput id={id} placeholder={b.buttonPlaceholder} aria-describedby={describedBy} {...register("button_text")} />}
           </Field>
         )}
-        <Field label={b.link} error={errors.link?.message} hint={hero ? b.heroLinkHint : b.linkHint}>
-          {(id, describedBy) => <TextInput id={id} placeholder="/catalog" aria-describedby={describedBy} {...register("link")} />}
-        </Field>
+        {!hero && (
+          <Field label={b.link} error={errors.link?.message} hint={b.linkHint}>
+            {(id, describedBy) => <TextInput id={id} placeholder="/catalog" aria-describedby={describedBy} {...register("link")} />}
+          </Field>
+        )}
         <Field label={b.startsAt} error={errors.starts_at?.message} hint={b.scheduleHint}>
           {(id, describedBy) => <TextInput id={id} type="datetime-local" aria-describedby={describedBy} {...register("starts_at")} />}
         </Field>
@@ -330,15 +346,23 @@ function BannerForm({
         )}
       />
 
-      {banner &&
-        (hero ? (
+      {hero ? (
+        banner ? (
           <BannerImage banner={banner} variant="hero" />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <BannerImage banner={banner} variant="desktop" />
-            <BannerImage banner={banner} variant="mobile" />
-          </div>
-        ))}
+          <BannerImageDraft variant="hero" file={draft.desktop} onChange={(file) => setDraft({ ...draft, desktop: file })} />
+        )
+      ) : banner ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <BannerImage banner={banner} variant="desktop" />
+          <BannerImage banner={banner} variant="mobile" />
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <BannerImageDraft variant="desktop" file={draft.desktop} onChange={(file) => setDraft({ ...draft, desktop: file })} />
+          <BannerImageDraft variant="mobile" file={draft.mobile} onChange={(file) => setDraft({ ...draft, mobile: file })} />
+        </div>
+      )}
 
       <DialogFooter className="gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
@@ -350,6 +374,55 @@ function BannerForm({
         </Button>
       </DialogFooter>
     </form>
+  );
+}
+
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+
+/** A picture of a banner that is not saved yet: a preview now, the upload after "Создать". */
+function BannerImageDraft({ variant, file, onChange }: { variant: "desktop" | "mobile" | "hero"; file: File | null; onChange: (file: File | null) => void }) {
+  const { t } = useI18n();
+  const b = t.admin.banners;
+  const input = useRef<HTMLInputElement>(null);
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
+
+  return (
+    <div>
+      <p className="text-sm font-semibold">{variant === "hero" ? b.heroImage : variant === "desktop" ? b.image : b.imageMobile}</p>
+      <p className="mb-2 text-xs text-muted-foreground">{variant === "hero" ? b.heroImageHint : variant === "desktop" ? b.imageHint : b.imageMobileHint}</p>
+      <div className={cn("relative", variant === "hero" ? "max-w-sm" : variant === "mobile" && "max-w-40")}>
+        <button
+          type="button"
+          onClick={() => input.current?.click()}
+          className={cn("relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted transition hover:border-primary", variant === "hero" ? "aspect-[5/4]" : variant === "desktop" ? "aspect-[16/5]" : "aspect-square")}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {preview && <img src={preview} alt="" className="absolute inset-0 size-full object-cover" />}
+          <span className={cn("relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold", preview ? "bg-black/60 text-white" : "text-muted-foreground")}>
+            <ImagePlus className="size-4" />
+            {b.upload}
+          </span>
+        </button>
+        {preview && (
+          <button type="button" onClick={() => onChange(null)} aria-label={t.admin.common.delete} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/60 text-white transition hover:bg-destructive">
+            <Trash2 className="size-4" />
+          </button>
+        )}
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={(event) => {
+          const picked = event.target.files?.[0];
+          if (picked && picked.size > MAX_IMAGE_SIZE) toast.error(variant === "hero" ? b.heroImageHint : b.imageHint);
+          else if (picked) onChange(picked);
+          event.target.value = "";
+        }}
+      />
+    </div>
   );
 }
 
