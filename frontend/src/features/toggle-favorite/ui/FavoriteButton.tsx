@@ -12,7 +12,8 @@ import { useSessionName } from "@/shared/lib/useSession";
 
 /**
  * Heart on a product card / product page. Guests go to the login page; for users it toggles at once
- * (optimistic) and rolls back if the server says no.
+ * (optimistic) and rolls back if the server says no. The shop team has no favorites: on a card the heart
+ * only explains that, on the product page there is none.
  */
 export function FavoriteButton({ productId, className, withLabel = false }: { productId: number; className?: string; withLabel?: boolean }) {
   const { t } = useI18n();
@@ -35,6 +36,11 @@ export function FavoriteButton({ productId, className, withLabel = false }: { pr
       return;
     }
 
+    if (isStaff) {
+      toast.info(t.favorites.staffHasNone);
+      return;
+    }
+
     toggle.mutate(
       { productId, favorite: !active },
       {
@@ -44,8 +50,7 @@ export function FavoriteButton({ productId, className, withLabel = false }: { pr
     );
   };
 
-  // The shop team has no favorites.
-  if (isStaff) return null;
+  if (isStaff && withLabel) return null;
 
   return (
     <button

@@ -109,6 +109,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Обновить токен
+         * @description Новая пара token + refresh_token и ещё 24 часа работы без повторного входа, для покупателей и сотрудников.
+         *     Прежний token сразу перестаёт работать. Несколько запросов подряд с одним refresh_token получают одну и ту же пару.
+         *     Если человек не появлялся 7 дней (AUTH_REFRESH_TTL_DAYS), сессия закончилась и нужен обычный вход.
+         */
+        post: operations["auth.refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -2185,6 +2207,12 @@ export interface components {
              */
             token_type: "Bearer";
             expires_at: string | null;
+            /**
+             * @description Когда token заканчивается, POST /auth/refresh с этим значением даёт новую пару без повторного входа.
+             * @example 1|Qm2kZ0pX9yJcT4wLr7NbE5aU3fGd6iKoY1qWhS8vQm2kZ0pX9yJcT4wLr7NbE5aU
+             */
+            refresh_token: string;
+            refresh_expires_at: string;
         };
         /** BannerResource */
         BannerResource: {
@@ -2841,6 +2869,14 @@ export interface components {
          * @enum {string}
          */
         ProductUnit: "piece" | "bag" | "kg" | "ton" | "m" | "m2" | "m3" | "pack" | "roll" | "sheet";
+        /** RefreshTokenRequest */
+        RefreshTokenRequest: {
+            /**
+             * @description Значение refresh_token из ответа входа или предыдущего обновления.
+             * @example 1|Qm2kZ0pX9yJcT4wLr7NbE5aU3fGd6iKoY1qWhS8vQm2kZ0pX9yJcT4wLr7NbE5aU
+             */
+            refresh_token: string;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             /** @description Пропуск из шага с кодом (POST /auth/register/email/verify), действует 30 минут. */
@@ -3124,6 +3160,7 @@ export interface components {
             is_current: string;
             last_used_at: string | null;
             created_at: string | null;
+            /** @description Когда устройство попросит войти снова: токен сам обновляется до этого времени. */
             expires_at: string | null;
         };
         /** UpdateCartItemRequest */
@@ -3159,7 +3196,7 @@ export interface components {
          * @description Any subset of settings: { "store": {...}, "delivery": {...} }.
          */
         UpdateSettingsRequest: {
-            store?: {
+            store: {
                 /** @example Bakht Stroy */
                 name?: string;
                 description?: string | null;
@@ -3186,6 +3223,17 @@ export interface components {
                     /** @example 69.219 */
                     lng?: number | null;
                 };
+                /** @description Склады на карте страницы «Контакты». Список заменяется целиком. */
+                warehouses?: {
+                    /** @example Склад в Душанбе */
+                    name: string;
+                    /** @example Душанбе, ул. Джабор Расулов */
+                    address?: string | null;
+                    /** @example 38.5737 */
+                    lat: number;
+                    /** @example 68.7738 */
+                    lng: number;
+                }[];
                 socials?: {
                     /** Format: uri */
                     telegram?: string | null;
@@ -3633,6 +3681,78 @@ export interface operations {
                         /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
                         message: string;
                         /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "auth.refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description `AuthTokenResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuthTokenResource"];
+                    };
+                };
+            };
+            /** @description Сессия закончилась. Войдите снова. (INVALID_REFRESH_TOKEN) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Сессия закончилась. Войдите снова. */
+                        message: string;
+                        /** @example INVALID_REFRESH_TOKEN */
                         code: string;
                     };
                 };
@@ -10307,7 +10427,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSettingsRequest"];
             };

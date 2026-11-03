@@ -6,6 +6,7 @@ namespace App\Modules\Account\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\PersonalAccessToken;
 
 /**
@@ -30,7 +31,8 @@ final class SessionResource extends JsonResource
             'is_current' => $current instanceof PersonalAccessToken && $current->getKey() === $this->id,
             'last_used_at' => $this->last_used_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
-            'expires_at' => $this->expires_at?->toIso8601String(),
+            /** Когда устройство попросит войти снова: токен сам обновляется до этого времени. */
+            'expires_at' => ($this->refresh_expires_at ? Carbon::parse($this->refresh_expires_at) : $this->expires_at)?->toIso8601String(),
         ];
     }
 }

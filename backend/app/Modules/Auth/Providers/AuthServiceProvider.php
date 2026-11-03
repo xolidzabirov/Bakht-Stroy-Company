@@ -47,6 +47,9 @@ final class AuthServiceProvider extends ModuleServiceProvider
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
             ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
 
+        // Every open tab of a visitor may renew at the same moment, and a shop can have many people behind one address.
+        RateLimiter::for('refresh-token', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
+
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
 
         // Is this number free? Answers about registered numbers, so not too often.

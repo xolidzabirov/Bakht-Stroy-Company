@@ -5,9 +5,11 @@
  */
 export const AUTH_COOKIE = "bakht_token";
 export const USER_COOKIE = "bakht_user";
+/** httpOnly as well: renews the token without a new login (shared/api/bff.ts). */
+export const REFRESH_COOKIE = "bakht_refresh";
 
-/** Token lifetime on the backend (Sanctum): 24 hours, then the person signs in again. */
-export const SESSION_MAX_AGE = 60 * 60 * 24;
+/** The token is replaced this long before it ends, so a page never meets an ended one. */
+export const RENEW_BEFORE_SECONDS = 120;
 
 /** Pages that need a signed-in user; guests are sent to /login?next=… */
 export const PROTECTED_PATHS = ["/account", "/cart", "/favorites", "/checkout", "/admin"];

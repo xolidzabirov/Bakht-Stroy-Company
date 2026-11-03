@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { callBackend, clearSession, relay, unavailable } from "@/shared/api/bff";
+import { applyRenewal, callBackend, canRenew, clearSession, isRenewalDue, relay, renewSession, type Renewal, unavailable } from "@/shared/api/bff";
 import { AUTH_COOKIE } from "@/shared/config/auth";
 
 type Context = { params: Promise<{ path: string[] }> };
@@ -7,6 +7,7 @@ type Context = { params: Promise<{ path: string[] }> };
 /**
  * /api/proxy/* → Laravel /api/v1/* with the token from the httpOnly cookie.
  * The browser calls only its own origin: no token in JavaScript and no CORS.
+ * A token that has ended is replaced on the way, the request goes through and the visitor notices nothing.
  */
 async function handle(request: NextRequest, { params }: Context) {
   const { path } = await params;
@@ -15,11 +16,25 @@ async function handle(request: NextRequest, { params }: Context) {
   const body = ["GET", "HEAD"].includes(request.method) ? null : await request.arrayBuffer();
 
   try {
-    const upstream = await callBackend(request, target, { body: body?.byteLength ? body : null, contentType: request.headers.get("content-type") });
-    const response = await relay(upstream);
+    const send = (token?: string) => callBackend(request, target, { body: body?.byteLength ? body : null, contentType: request.headers.get("content-type"), token });
+    const newToken = (result: Renewal | null) => (result?.status === "renewed" ? result.data.token : undefined);
 
-    // The token expired or was revoked (logout on another device) — forget it here too.
-    return upstream.status === 401 && request.cookies.has(AUTH_COOKIE) ? clearSession(response) : response;
+    let renewal = isRenewalDue(request) ? await renewSession(request) : null;
+    let upstream = await send(newToken(renewal));
+
+    // The API says the token is no good although the cookie looked fine: one more try with a new one.
+    if (upstream.status === 401 && !renewal && canRenew(request)) {
+      renewal = await renewSession(request);
+      if (renewal.status === "renewed") upstream = await send(renewal.data.token);
+    }
+
+    // Nobody knows yet whether the session is alive: "server is busy" is true, "you are signed out" may not be.
+    if (upstream.status === 401 && renewal?.status === "unavailable") return unavailable();
+
+    const response = applyRenewal(await relay(upstream), renewal);
+
+    // Revoked (logout on another device) and nothing to renew it with — forget it here too.
+    return upstream.status === 401 && !renewal && request.cookies.has(AUTH_COOKIE) ? clearSession(response) : response;
   } catch {
     return unavailable();
   }

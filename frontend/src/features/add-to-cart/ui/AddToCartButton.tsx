@@ -25,7 +25,8 @@ type Props = {
 /**
  * "В корзину". Guests go to the login page and come back here; signed-in users get a toast
  * with a link to the cart. A product that is already in the cart shows "В корзине".
- * The shop team does not buy: they get a link to the product in the admin panel instead.
+ * The shop team does not buy: on a card they see what customers see, but the button only explains that and offers
+ * to edit the product; on the product page they get a link to the admin panel instead.
  */
 export function AddToCartButton({ product, variant = "card", className }: Props) {
   const { t } = useI18n();
@@ -46,6 +47,11 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
       return;
     }
 
+    if (isStaff) {
+      toast.info(t.cart.staffCannotBuy, { action: { label: t.admin.common.edit, onClick: () => router.push(routes.adminProduct(product.id)) } });
+      return;
+    }
+
     add.mutate(
       { productId: product.id, quantity: variant === "page" ? quantity : Math.max(1, product.min_order_qty) },
       {
@@ -55,9 +61,9 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
     );
   };
 
-  if (isStaff) {
+  if (isStaff && variant === "page") {
     return (
-      <Link href={routes.adminProduct(product.id)} className={buttonClasses({ variant: "outline", size: variant === "page" ? "lg" : "sm", className: cn("w-full", className) })}>
+      <Link href={routes.adminProduct(product.id)} className={buttonClasses({ variant: "outline", size: "lg", className: cn("w-full", className) })}>
         <Pencil className="size-4" />
         {t.admin.common.edit}
       </Link>

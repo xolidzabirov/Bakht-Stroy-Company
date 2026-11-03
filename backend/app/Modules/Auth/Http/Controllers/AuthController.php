@@ -6,16 +6,19 @@ namespace App\Modules\Auth\Http\Controllers;
 
 use App\Modules\Auth\Actions\LoginUser;
 use App\Modules\Auth\Actions\LogoutUser;
+use App\Modules\Auth\Actions\RefreshSession;
 use App\Modules\Auth\Actions\RegisterUser;
 use App\Modules\Auth\Actions\SendRegistrationCode;
 use App\Modules\Auth\Actions\VerifyRegistrationCode;
 use App\Modules\Auth\Exceptions\CodeRecentlySentException;
 use App\Modules\Auth\Exceptions\EmailNotDeliveredException;
 use App\Modules\Auth\Exceptions\InvalidCredentialsException;
+use App\Modules\Auth\Exceptions\InvalidRefreshTokenException;
 use App\Modules\Auth\Exceptions\InvalidVerificationCodeException;
 use App\Modules\Auth\Exceptions\RegistrationExpiredException;
 use App\Modules\Auth\Http\Requests\CheckRegistrationPhoneRequest;
 use App\Modules\Auth\Http\Requests\LoginRequest;
+use App\Modules\Auth\Http\Requests\RefreshTokenRequest;
 use App\Modules\Auth\Http\Requests\RegisterRequest;
 use App\Modules\Auth\Http\Requests\SendRegistrationCodeRequest;
 use App\Modules\Auth\Http\Requests\VerifyRegistrationCodeRequest;
@@ -121,6 +124,20 @@ final class AuthController extends Controller
     public function login(LoginRequest $request, LoginUser $loginUser): AuthTokenResource
     {
         return AuthTokenResource::make($loginUser->handle($request->toData()));
+    }
+
+    /**
+     * Обновить токен
+     *
+     * Новая пара token + refresh_token и ещё 24 часа работы без повторного входа, для покупателей и сотрудников.
+     * Прежний token сразу перестаёт работать. Несколько запросов подряд с одним refresh_token получают одну и ту же пару.
+     * Если человек не появлялся 7 дней (AUTH_REFRESH_TTL_DAYS), сессия закончилась и нужен обычный вход.
+     *
+     * @throws InvalidRefreshTokenException
+     */
+    public function refresh(RefreshTokenRequest $request, RefreshSession $refreshSession): AuthTokenResource
+    {
+        return AuthTokenResource::make($refreshSession->handle($request->string('refresh_token')->toString()));
     }
 
     /**

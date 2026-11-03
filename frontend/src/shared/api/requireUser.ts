@@ -3,12 +3,13 @@ import { routes } from "@/shared/config/site";
 import { getCurrentUser, type CurrentUser } from "./session";
 
 /**
- * For protected pages: the user, or a trip to the login page (the expired cookie is cleared on the way).
+ * For protected pages: the user. Without one — a trip through /api/auth/refresh: back to this page with a new token,
+ * or to the login page when the session has really ended.
  */
 export async function requireUser(path: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
 
-  if (!user) redirect(`/api/auth/logout?next=${encodeURIComponent(path)}`);
+  if (!user) redirect(`/api/auth/refresh?next=${encodeURIComponent(path)}`);
 
   return user;
 }

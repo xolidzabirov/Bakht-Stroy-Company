@@ -30,6 +30,13 @@ final class AuthTokenResource extends JsonResource
             /** @example Bearer */
             'token_type' => 'Bearer',
             'expires_at' => $this->resource->expiresAt?->toIso8601String(),
+            /**
+             * Когда token заканчивается, POST /auth/refresh с этим значением даёт новую пару без повторного входа.
+             *
+             * @example 1|Qm2kZ0pX9yJcT4wLr7NbE5aU3fGd6iKoY1qWhS8vQm2kZ0pX9yJcT4wLr7NbE5aU
+             */
+            'refresh_token' => $this->resource->refreshToken,
+            'refresh_expires_at' => $this->resource->refreshExpiresAt->toIso8601String(),
         ];
     }
 }

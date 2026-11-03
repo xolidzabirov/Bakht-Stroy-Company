@@ -1,4 +1,5 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import { AUTH_COOKIE } from "@/shared/config/auth";
 import { apiFetch, ApiError } from "./http";
@@ -32,7 +33,15 @@ export async function getToken(): Promise<string | undefined> {
 
 /**
  * GET from the API as the signed-in user (account pages). Never cached between users.
+ * A token that stopped working on the way sends the visitor for a new one and back to this page.
  */
 export async function userFetch<T>(path: string): Promise<T> {
-  return apiFetch<T>(path, { token: await getToken(), cache: "no-store" });
+  try {
+    return await apiFetch<T>(path, { token: await getToken(), cache: "no-store" });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirect(`/api/auth/refresh?next=${encodeURIComponent((await headers()).get("x-pathname") ?? "/")}`);
+    }
+    throw error;
+  }
 }

@@ -14,6 +14,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('register/email/verify', [AuthController::class, 'verifyEmail'])->middleware('throttle:register-verify')->name('register.email.verify');
     Route::post('register', [AuthController::class, 'register'])->middleware('throttle:register')->name('register');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
+    Route::post('refresh', [AuthController::class, 'refresh'])->middleware('throttle:refresh-token')->name('refresh');
 
     Route::middleware('throttle:password-reset')->group(function () {
         Route::post('forgot-password', [PasswordResetController::class, 'forgot'])->name('password.forgot');

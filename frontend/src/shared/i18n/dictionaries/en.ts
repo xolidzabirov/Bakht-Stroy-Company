@@ -372,6 +372,7 @@ export const en: Dictionary = {
     },
   },
   cart: {
+    staffCannotBuy: "The shop team does not buy: only customers add to the cart.",
     title: "Cart",
     add: "Add to cart",
     inCart: "In cart",
@@ -404,6 +405,7 @@ export const en: Dictionary = {
     loginToBuy: "Sign in to add products to the cart",
   },
   favorites: {
+    staffHasNone: "Favorites are for customers only.",
     title: "Favorites",
     add: "Add to favorites",
     remove: "Remove from favorites",

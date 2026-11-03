@@ -13,5 +13,7 @@ final readonly class AuthResult
         public User $user,
         public string $token,
         public ?Carbon $expiresAt,
+        public string $refreshToken,
+        public Carbon $refreshExpiresAt,
     ) {}
 }

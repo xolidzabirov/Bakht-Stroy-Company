@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'auth' => [
+        // How long an access token works; then the refresh token gets a new one without a new login.
+        'token_ttl_minutes' => (int) env('SANCTUM_EXPIRATION', 60 * 24),
+        // Days of absence after which the visitor signs in again; every renewal starts the count over.
+        'refresh_ttl_days' => (int) env('AUTH_REFRESH_TTL_DAYS', 7),
+        // Requests with the same refresh token within these seconds get the same new pair.
+        'refresh_parallel_seconds' => 60,
+    ],
+
 
     /*
     | Tajik somoni. All money in the API and the database is in dirams (1 somoni = 100 dirams):

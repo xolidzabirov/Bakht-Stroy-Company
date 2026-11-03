@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => (int) env('SANCTUM_EXPIRATION', 60 * 24),
+    // Off on purpose: this value is counted from created_at and would end a renewed session.
+    // Every token has its own expires_at (shop.auth.token_ttl_minutes, Auth\Support\SessionTokens).
+    'expiration' => null,
 
     /*
     |--------------------------------------------------------------------------
