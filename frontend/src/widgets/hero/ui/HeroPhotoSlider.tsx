@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { preload } from "react-dom";
-import { useSlider } from "@/shared/lib/useSlider";
+import { SLIDE_MOVE, useSlider } from "@/shared/lib/useSlider";
 import { cn } from "@/shared/lib/cn";
 import { SlideProgress } from "@/shared/ui";
 
@@ -15,15 +14,13 @@ const SIZES = "(max-width: 1024px) 100vw, 45vw";
 const srcSet = (slide: HeroSlide) => `${slide.small} 860w, ${slide.large} 1280w`;
 
 /**
- * Photo carousel in the first screen: each photo stays ~6 s, slowly zooming in,
- * then softly dissolves into the next one. White bars on top show the time left.
+ * Photo carousel in the first screen: each photo stays ~6 s, slowly zooming in, then the next one
+ * softly moves in from the side, and after the last one comes the first, the same way. White bars on top show the time left.
  * Only the first photo loads with the page (it is the largest element of the first screen);
- * each next one loads a couple of seconds after the previous one came up, long before its turn.
+ * its neighbours load a couple of seconds after it came up, long before their turn.
  */
 export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
-  const { index, setIndex, go, paused, handlers, rootRef } = useSlider(slides.length);
-  // The furthest slide whose photo may load.
-  const [reach, setReach] = useState(0);
+  const { index, setIndex, go, paused, handlers, rootRef, stripStyle, slideStyle, shouldLoad } = useSlider(slides.length);
 
   if (slides[0])
     preload(slides[0].small, {
@@ -33,27 +30,16 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
       fetchPriority: "high",
     });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setReach((value) => Math.max(value, index + 1)), 2500);
-    return () => clearTimeout(timer);
-  }, [index]);
-
   return (
     <div
       {...handlers}
       ref={rootRef}
       className="relative aspect-[4/3] overflow-hidden rounded-[2rem] bg-white/5 ring-1 ring-white/10 lg:aspect-[5/4]"
     >
+      <div className={cn("absolute inset-0", SLIDE_MOVE)} style={stripStyle}>
       {slides.map((slide, i) => (
-        <div
-          key={slide.large}
-          aria-hidden={i !== index}
-          className={cn(
-            "absolute inset-0 transition-opacity duration-[1400ms] ease-in-out motion-reduce:transition-none",
-            i === index ? "z-10 opacity-100" : "z-0 opacity-0",
-          )}
-        >
-          {i <= Math.max(index, reach) && (
+        <div key={slide.large} aria-hidden={i !== index} className="absolute inset-0 overflow-hidden" style={slideStyle(i)}>
+          {shouldLoad(i) && (
             // eslint-disable-next-line @next/next/no-img-element -- prepared WebP sizes, no image optimizer
             <img
               src={slide.small}
@@ -98,6 +84,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
           </div>
         </div>
       ))}
+      </div>
 
       <SlideProgress
         count={slides.length}

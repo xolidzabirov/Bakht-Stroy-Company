@@ -1,52 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Banner } from "@/shared/api/types";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
-import { useSlider } from "@/shared/lib/useSlider";
+import { SLIDE_MOVE, useSlider } from "@/shared/lib/useSlider";
 import { SlideProgress } from "@/shared/ui";
 
 const DURATION = 6000;
 
 /**
- * Full-width carousel of admin banners (1920×600). Slides move sideways with a soft ease,
+ * Full-width carousel of admin banners (1920×600). Slides move sideways with a soft ease and never run out,
  * the picture zooms in slightly while it is shown; white bars over the picture show the time left.
  * Auto-play pauses on hover; swipe works on phones. A phone gets the banner's phone picture when there is one.
- * The first picture loads when the slider comes near; each next one a moment before its turn.
+ * The first picture loads when the slider comes near; the neighbours a moment before their turn.
  */
 export function BannerSlider({ banners }: { banners: Banner[] }) {
   const { t } = useI18n();
   const count = banners.length;
-  const { index, setIndex, go, paused, visible, handlers, rootRef } = useSlider(count);
-  const [reach, setReach] = useState(0);
-
-  useEffect(() => {
-    if (!visible) return;
-    const timer = setTimeout(() => setReach((value) => Math.max(value, index + 1)), 2500);
-    return () => clearTimeout(timer);
-  }, [index, visible]);
+  const { index, setIndex, go, paused, handlers, rootRef, stripStyle, slideStyle, shouldLoad } = useSlider(count);
 
   if (count === 0) return null;
 
   return (
     <div {...handlers} ref={rootRef} className="group relative aspect-[16/7] overflow-hidden rounded-[var(--radius-card)] bg-surface-muted sm:aspect-[16/5]">
-      <div
-        className="flex h-full transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-        style={{ transform: `translateX(-${index * 100}%)` }}
-      >
+      <div className={cn("absolute inset-0", SLIDE_MOVE)} style={stripStyle}>
         {banners.map((banner, i) => {
           const picture = banner.image ?? banner.image_mobile;
           const slide = picture ? (
-            i <= Math.max(index, reach) && (
+            shouldLoad(i) && (
               <picture>
                 {banner.image && banner.image_mobile && <source media="(max-width: 640px)" srcSet={banner.image_mobile} />}
                 <img
                   src={picture}
                   alt={banner.title}
-                  loading="lazy"
+                  loading={i === 0 ? "lazy" : "eager"}
                   decoding="async"
                   className={cn(
                     "absolute inset-0 size-full object-cover transition-transform duration-[6000ms] ease-out motion-reduce:transition-none",
@@ -62,7 +51,7 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
           );
 
           return (
-            <div key={banner.id} className="relative h-full w-full shrink-0 overflow-hidden" aria-hidden={i !== index}>
+            <div key={banner.id} className="absolute inset-0 overflow-hidden" style={slideStyle(i)} aria-hidden={i !== index}>
               {banner.link ? (
                 <Link prefetch={false} href={banner.link} aria-label={banner.title} tabIndex={i === index ? 0 : -1} className="block size-full">
                   {slide}
