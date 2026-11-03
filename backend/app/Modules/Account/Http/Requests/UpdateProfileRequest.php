@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 final class UpdateProfileRequest extends FormRequest
 {
-    public const LOCALES = ['ru', 'uz'];
+    public const LOCALES = ['ru', 'tg', 'en'];
 
     public const THEMES = ['light', 'dark', 'system'];
 
@@ -40,7 +40,7 @@ final class UpdateProfileRequest extends FormRequest
              */
             'phone' => ['sometimes', 'nullable', 'string', new ValidPhone($this->attributes->get('raw_phone')),
                 Rule::unique('users', 'phone')->ignore($this->user()?->getAuthIdentifier())],
-            /** Язык интерфейса: ru, uz. */
+            /** Язык интерфейса: ru, tg, en. */
             'locale' => ['sometimes', 'string', Rule::in(self::LOCALES)],
             /** Тема: light, dark, system. */
             'theme' => ['sometimes', 'string', Rule::in(self::THEMES)],

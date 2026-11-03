@@ -46,11 +46,19 @@ final class ProfileController extends Controller
     /**
      * Изменить профиль
      *
-     * Можно передать только изменённые поля: имя, телефон, язык (ru, uz), тему (light, dark, system).
+     * Можно передать только изменённые поля: имя, телефон, язык (ru, tg, en), тему (light, dark, system).
+     * Новый номер телефона считается неподтверждённым.
      */
     public function update(UpdateProfileRequest $request, #[CurrentUser] User $user): UserResource
     {
-        $user->update($request->changes());
+        $user->fill($request->changes());
+
+        // The Telegram check belonged to the old number.
+        if ($user->isDirty('phone')) {
+            $user->phone_verified_at = null;
+        }
+
+        $user->save();
 
         return UserResource::make($user->load('roles'));
     }

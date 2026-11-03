@@ -71,7 +71,7 @@ it('validates profile fields', function (array $payload, string $field) {
     $this->withToken($this->token)->patchJson('/api/v1/me', $payload)->assertUnprocessable()->assertJsonValidationErrors($field);
 })->with([
     [['name' => 'x'], 'name'],
-    [['locale' => 'en'], 'locale'],
+    [['locale' => 'de'], 'locale'],
     [['theme' => 'pink'], 'theme'],
     [['phone' => '12'], 'phone'],
 ]);
@@ -186,4 +186,25 @@ it('lists devices and signs out a chosen one', function () {
     $this->withToken($this->token)->deleteJson("/api/v1/me/sessions/{$foreign}")->assertNotFound();
 
     expect($this->user->tokens()->count())->toBe(1);
+});
+
+it('signs out every other device and keeps this one', function () {
+    $this->user->createToken('Laptop');
+    $this->user->createToken('Tablet');
+    $foreign = User::factory()->create()->createToken('X');
+
+    $this->withToken($this->token)->deleteJson('/api/v1/me/sessions')->assertOk()->assertJsonPath('ended', 2);
+
+    expect($this->user->tokens()->pluck('name')->all())->toBe(['Phone'])
+        ->and($foreign->accessToken->fresh())->not->toBeNull();
+    $this->withToken($this->token)->getJson('/api/v1/me/sessions')->assertOk()->assertJsonCount(1, 'data');
+});
+
+it('treats a new phone number as not confirmed yet', function () {
+    $this->user->forceFill(['phone_verified_at' => now()])->save();
+
+    $this->withToken($this->token)->patchJson('/api/v1/me', ['name' => 'Халид Ж.'])->assertOk()
+        ->assertJsonPath('data.phone_verified_at', fn (?string $value) => $value !== null);
+    $this->withToken($this->token)->patchJson('/api/v1/me', ['phone' => '+998 90 555 12 34'])->assertOk()
+        ->assertJsonPath('data.phone_verified_at', null);
 });

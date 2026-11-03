@@ -57,6 +57,7 @@ export const routes = {
   adminBanners: "/admin/banners",
   adminMessages: "/admin/messages",
   adminSettings: "/admin/settings",
+  adminProfile: "/admin/profile",
   accountSettings: "/account/settings",
   about: "/about",
   contacts: "/contacts",

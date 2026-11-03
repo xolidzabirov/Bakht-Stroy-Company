@@ -108,23 +108,17 @@ class Banner extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        // Registered for every banner: Media Library calls this on a blank model, which does not know its place.
         // The first screen photo frame is 5:4: two sizes for the browser to choose from (phone / desktop).
-        // Media Library may call this on a blank model, so the banner itself is taken from the media record.
-        $banner = $media?->model instanceof self ? $media->model : $this;
+        $this->addMediaConversion('hero_860')->nonOptimized()
+            ->performOnCollections(self::IMAGE_COLLECTION)
+            ->fit(Fit::Crop, 860, 688)
+            ->format('webp');
 
-        if ($banner->isHero()) {
-            $this->addMediaConversion('hero_860')->nonOptimized()
-                ->performOnCollections(self::IMAGE_COLLECTION)
-                ->fit(Fit::Crop, 860, 688)
-                ->format('webp');
-
-            $this->addMediaConversion('hero_1280')->nonOptimized()
-                ->performOnCollections(self::IMAGE_COLLECTION)
-                ->fit(Fit::Crop, 1280, 1024)
-                ->format('webp');
-
-            return;
-        }
+        $this->addMediaConversion('hero_1280')->nonOptimized()
+            ->performOnCollections(self::IMAGE_COLLECTION)
+            ->fit(Fit::Crop, 1280, 1024)
+            ->format('webp');
 
         $this->addMediaConversion('desktop')->nonOptimized()
             ->performOnCollections(self::IMAGE_COLLECTION)

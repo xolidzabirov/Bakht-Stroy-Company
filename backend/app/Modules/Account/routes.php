@@ -26,4 +26,5 @@ Route::middleware(['auth:sanctum', 'active'])->prefix('me')->name('me.')->group(
 
     Route::get('sessions', [SessionController::class, 'index'])->name('sessions.index');
     Route::delete('sessions/{id}', [SessionController::class, 'destroy'])->whereNumber('id')->name('sessions.destroy');
+    Route::delete('sessions', [SessionController::class, 'destroyOthers'])->middleware('throttle:sensitive')->name('sessions.destroy-others');
 });

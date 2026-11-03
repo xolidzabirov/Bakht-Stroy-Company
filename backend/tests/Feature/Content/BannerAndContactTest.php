@@ -37,6 +37,10 @@ it('manages banners with images', function () {
         ->assertJsonPath('data.image', fn (string $url) => str_contains($url, 'desktop') && str_ends_with($url, '.webp'))
         ->assertJsonPath('data.image_mobile', fn (string $url) => str_contains($url, 'mobile'));
 
+    // Lists with pictures: the admin page and the home page.
+    $this->withToken($this->token)->getJson('/api/v1/admin/banners')->assertOk()->assertJsonPath('data.0.image_hero', null);
+    $this->getJson('/api/v1/banners')->assertOk()->assertJsonCount(1, 'data');
+
     $this->withToken($this->token)->patchJson("/api/v1/admin/banners/{$id}", ['is_active' => false])
         ->assertOk()->assertJsonPath('data.is_active', false);
     $this->withToken($this->token)->postJson('/api/v1/admin/banners', ['title' => 'X', 'link' => 'javascript:alert(1)'])

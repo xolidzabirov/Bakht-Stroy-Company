@@ -1,17 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { type Path, useFieldArray, useForm } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
+import { get, type Path, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { LoaderCircle, Plus, X } from "lucide-react";
+import { Clock, ExternalLink, MapPin, Phone, Plus, Store, X } from "lucide-react";
 import { diramsToSomoni, somoniToDirams } from "@/features/admin-products/lib/categories";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import type { StoreSettings } from "@/shared/api/types";
+import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
-import { formatPhone } from "@/shared/lib/format";
-import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
+import { cn } from "@/shared/lib/cn";
+import { formatMoney, formatPhone } from "@/shared/lib/format";
+import { mapLinks } from "@/shared/lib/maps";
+import { LogoMark, TextInput } from "@/shared/ui";
+import { EditButton, EditFooter, EmptyValue, SettingRow, SettingsList, SettingsSection } from "@/shared/ui/admin/Settings";
 import { Textarea } from "@/shared/ui/kit/textarea";
 
 const SOCIALS = ["instagram", "telegram", "telegram_chat", "whatsapp", "facebook", "youtube"] as const;
@@ -37,6 +42,19 @@ type Values = {
   payment_note: string;
 };
 
+/** The sections of the page and their fields (the first one gets the focus when the section opens). */
+const SECTIONS = {
+  store: ["name", "description", "work_hours"],
+  contacts: ["email", "address", "phones", "lat", "lng"],
+  socials: ["socials"],
+  delivery: ["price", "free_from", "pickup_address", "delivery_note"],
+  payment: ["card_number", "card_holder", "bank", "payment_note"],
+} as const satisfies Record<string, readonly string[]>;
+type Section = keyof typeof SECTIONS;
+
+const sectionOf = (field: string): Section | null =>
+  (Object.keys(SECTIONS) as Section[]).find((section) => (SECTIONS[section] as readonly string[]).includes(field.split(".")[0])) ?? null;
+
 /** API field ("store.phones.0", "delivery.price") → form field, so errors land under the right input. */
 const ERROR_FIELDS: Record<string, string> = {
   "store.name": "name",
@@ -56,219 +74,427 @@ const ERROR_FIELDS: Record<string, string> = {
   "payment.note": "payment_note",
 };
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
-      <h2 className="text-base font-extrabold">{title}</h2>
-      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">{children}</div>
-    </section>
-  );
-}
+const toValues = ({ store, delivery, payment }: StoreSettings): Values => ({
+  name: store.name,
+  description: store.description ?? "",
+  email: store.email ?? "",
+  address: store.address ?? "",
+  work_hours: store.work_hours ?? "",
+  phones: store.phones.map((phone) => ({ value: formatPhone(phone) })),
+  lat: store.map.lat?.toString() ?? "",
+  lng: store.map.lng?.toString() ?? "",
+  socials: Object.fromEntries(SOCIALS.map((key) => [key, store.socials[key] ?? ""])) as Record<Social, string>,
+  price: diramsToSomoni(delivery.price),
+  free_from: diramsToSomoni(delivery.free_from),
+  pickup_address: delivery.pickup_address ?? "",
+  delivery_note: delivery.note ?? "",
+  card_number: payment.card_number ?? "",
+  card_holder: payment.card_holder ?? "",
+  bank: payment.bank ?? "",
+  payment_note: payment.note ?? "",
+});
 
 const nullable = (value: string) => value.trim() || null;
+const coordinate = (value: string) => (value.trim() ? Number(value.replace(",", ".")) : null);
 
-/** Contacts, social links, delivery and card details of the shop (administrator only). */
+/** A social link as people say it: instagram.com/bakht_stroy → @bakht_stroy, wa.me/992907666609 → +992 90 766 66 09. */
+function handleOf(url: string): string {
+  try {
+    const { hostname, pathname } = new URL(url);
+    const path = pathname.replace(/^\/+|\/+$/g, "");
+    if (hostname === "wa.me" && /^\d+$/.test(path)) return formatPhone(path);
+    if (path.startsWith("@")) return path;
+    if (path && !path.includes("/")) return `@${path}`;
+    return `${hostname.replace(/^www\./, "")}${path ? `/${path}` : ""}`;
+  } catch {
+    return url;
+  }
+}
+
+/** 8600123412341234 → 8600 1234 1234 1234 */
+const cardGroups = (value: string) => value.replace(/\s+/g, "").replace(/(.{4})(?=.)/g, "$1 ");
+
+/**
+ * Contacts, social links, delivery and card details of the shop (administrator only).
+ * Everything reads as text; "Изменить" opens one section as a form, Save sends the settings and shows what the server kept.
+ * The card on top shows the shop the way customers see it — and changes while you type.
+ */
 export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const s = t.admin.settings;
+  const c = t.admin.common;
   const router = useRouter();
+  const [editing, setEditing] = useState<Section | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const { store, delivery, payment } = settings;
+  const focusField = useRef<string | null>(null);
+  const previous = useRef<Section | null>(null);
+  const editButtons = useRef<Partial<Record<Section, HTMLButtonElement | null>>>({});
 
   const {
     register,
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting, isDirty },
+    setFocus,
     reset,
-  } = useForm<Values>({
-    defaultValues: {
-      name: store.name,
-      description: store.description ?? "",
-      email: store.email ?? "",
-      address: store.address ?? "",
-      work_hours: store.work_hours ?? "",
-      phones: store.phones.map((phone) => ({ value: formatPhone(phone) })),
-      lat: store.map.lat?.toString() ?? "",
-      lng: store.map.lng?.toString() ?? "",
-      socials: Object.fromEntries(SOCIALS.map((key) => [key, store.socials[key] ?? ""])) as Record<Social, string>,
-      price: diramsToSomoni(delivery.price),
-      free_from: diramsToSomoni(delivery.free_from),
-      pickup_address: delivery.pickup_address ?? "",
-      delivery_note: delivery.note ?? "",
-      card_number: payment.card_number ?? "",
-      card_holder: payment.card_holder ?? "",
-      bank: payment.bank ?? "",
-      payment_note: payment.note ?? "",
-    },
-  });
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<Values>({ defaultValues: toValues(settings) });
   const phones = useFieldArray({ control, name: "phones" });
+  const values = useWatch({ control }) as Values;
 
-  const onSubmit = handleSubmit(async (values) => {
+  // Opening a section puts the cursor in its first field (or the one "Добавить" was pressed for);
+  // closing it returns the focus to its "Изменить" button.
+  useEffect(() => {
+    if (editing) {
+      const target = focusField.current ?? (editing === "socials" ? "socials.instagram" : editing === "contacts" ? "email" : SECTIONS[editing][0]);
+      focusField.current = null;
+      setFocus(target as Path<Values>);
+    } else if (previous.current) {
+      editButtons.current[previous.current]?.focus();
+    }
+    previous.current = editing;
+  }, [editing, setFocus]);
+
+  // Unsaved changes: the browser asks before the tab closes or reloads.
+  useEffect(() => {
+    if (!editing || !isDirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [editing, isDirty]);
+
+  const open = (section: Section, field?: string) => {
     setFormError(null);
-    const price = somoniToDirams(values.price || "0");
-    const freeFrom = somoniToDirams(values.free_from || "0");
+    focusField.current = field ?? null;
+    setEditing(section);
+  };
+
+  const close = () => {
+    setFormError(null);
+    setEditing(null);
+  };
+
+  const cancel = () => {
+    reset();
+    close();
+  };
+
+  const onSubmit = handleSubmit(async (form) => {
+    setFormError(null);
+    const price = somoniToDirams(form.price || "0");
+    const freeFrom = somoniToDirams(form.free_from || "0");
     if (price === null) return setError("price", { message: t.admin.product.priceInvalid });
     if (freeFrom === null) return setError("free_from", { message: t.admin.product.priceInvalid });
 
     const body = {
       store: {
-        name: values.name.trim(),
-        description: nullable(values.description),
-        email: nullable(values.email),
-        address: nullable(values.address),
-        work_hours: nullable(values.work_hours),
-        phones: values.phones.map((phone) => phone.value.replace(/[^\d+]/g, "")).filter(Boolean),
-        map: { lat: values.lat.trim() ? Number(values.lat.replace(",", ".")) : null, lng: values.lng.trim() ? Number(values.lng.replace(",", ".")) : null },
-        socials: Object.fromEntries(SOCIALS.map((key) => [key, nullable(values.socials[key])])),
+        name: form.name.trim(),
+        description: nullable(form.description),
+        email: nullable(form.email),
+        address: nullable(form.address),
+        work_hours: nullable(form.work_hours),
+        phones: form.phones.map((phone) => phone.value.replace(/[^\d+]/g, "")).filter(Boolean),
+        map: { lat: coordinate(form.lat), lng: coordinate(form.lng) },
+        socials: Object.fromEntries(SOCIALS.map((key) => [key, nullable(form.socials[key])])),
       },
-      delivery: { price, free_from: freeFrom, pickup_address: nullable(values.pickup_address), note: nullable(values.delivery_note) },
-      payment: { card_number: nullable(values.card_number), card_holder: nullable(values.card_holder), bank: nullable(values.bank), note: nullable(values.payment_note) },
+      delivery: { price, free_from: freeFrom, pickup_address: nullable(form.pickup_address), note: nullable(form.delivery_note) },
+      payment: { card_number: nullable(form.card_number), card_holder: nullable(form.card_holder), bank: nullable(form.bank), note: nullable(form.payment_note) },
     };
 
     try {
-      await bff("/api/proxy/admin/settings", { method: "PUT", body });
-      reset(values);
+      const { data } = await bff<{ data: StoreSettings }>("/api/proxy/admin/settings", { method: "PUT", body });
+      // Show what the server kept (numbers and links come back normalized).
+      reset(toValues(data));
+      close();
       toast.success(s.saved);
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError && error.status === 422 && error.errors) {
-        let placed = false;
+        const elsewhere: string[] = [];
         for (const [field, messages] of Object.entries(error.errors)) {
           const [, index] = field.match(/^store\.phones\.(\d+)$/) ?? [];
           const [, social] = field.match(/^store\.socials\.(\w+)$/) ?? [];
           const target = ERROR_FIELDS[field] ?? (index !== undefined ? `phones.${index}.value` : social ? `socials.${social}` : null);
-          if (target) {
-            setError(target as Path<Values>, { type: "server", message: messages[0] });
-            placed = true;
-          }
+          if (target && sectionOf(target) === editing) setError(target as Path<Values>, { type: "server", message: messages[0] });
+          else elsewhere.push(messages[0]);
         }
-        if (placed) return;
+        if (elsewhere.length === 0) return;
+        return setFormError(elsewhere.join(" "));
       }
       setFormError(error instanceof ApiError ? error.message : t.errors.generic);
     }
   });
 
-  const text = (name: keyof Values, label: string, extra: { placeholder?: string; hint?: string; wide?: boolean; inputMode?: "decimal" | "email" } = {}) => {
-    const error = (errors as Record<string, { message?: string } | undefined>)[name]?.message;
+  /** A text field of the section being edited, with its error under it. */
+  const input = (name: Path<Values>, extra: { placeholder?: string; inputMode?: "decimal" | "email" | "url" | "numeric"; type?: string; multiline?: boolean; label?: string } = {}) => {
+    const id = `store-${name.replace(".", "-")}`;
+    const error = (get(errors, name) as { message?: string } | undefined)?.message;
+    const common = { id, placeholder: extra.placeholder, "aria-invalid": Boolean(error), "aria-describedby": error ? `${id}-error` : undefined, "aria-label": extra.label };
+    return {
+      id,
+      node: (
+        <>
+          {extra.multiline ? (
+            <Textarea rows={3} className="rounded-xl" {...common} {...register(name)} />
+          ) : (
+            <TextInput type={extra.type} inputMode={extra.inputMode} {...common} {...register(name)} />
+          )}
+          {error && (
+            <p id={`${id}-error`} role="alert" className="mt-1.5 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+        </>
+      ),
+    };
+  };
+
+  /** One row: the value as text, or its input while the section is edited. */
+  const row = (section: Section, name: Path<Values>, label: string, shown: React.ReactNode, extra: Parameters<typeof input>[1] = {}) => {
+    if (editing === section) {
+      const field = input(name, extra);
+      return (
+        <SettingRow key={name} label={label} htmlFor={field.id}>
+          {field.node}
+        </SettingRow>
+      );
+    }
+    const raw = get(values, name) as string | undefined;
     return (
-      <div className={extra.wide ? "sm:col-span-2" : undefined}>
-        <Field label={label} error={error} hint={extra.hint}>
-          {(id, describedBy) => <TextInput id={id} placeholder={extra.placeholder} inputMode={extra.inputMode} aria-invalid={Boolean(error)} aria-describedby={describedBy} {...register(name as never)} />}
-        </Field>
-      </div>
+      <SettingRow key={name} label={label}>
+        {raw?.trim() ? shown : <EmptyValue text={s.notSet} addLabel={s.add} onAdd={editing ? undefined : () => open(section, name)} />}
+      </SettingRow>
     );
   };
 
-  const area = (name: keyof Values, label: string) => (
-    <div className="sm:col-span-2">
-      <Field label={label} error={(errors as Record<string, { message?: string } | undefined>)[name]?.message}>
-        {(id, describedBy) => <Textarea id={id} rows={3} aria-describedby={describedBy} className="rounded-xl" {...register(name as never)} />}
-      </Field>
-    </div>
-  );
+  const footer = <EditFooter cancelLabel={c.cancel} saveLabel={c.save} onCancel={cancel} saving={isSubmitting} error={formError} />;
+  const sectionProps = (section: Section) => ({
+    id: `store-${section}`,
+    editing: editing === section,
+    action: (
+      <EditButton
+        label={c.edit}
+        onClick={() => open(section)}
+        disabled={editing !== null}
+        disabledReason={s.finishEditing}
+        buttonRef={(node) => {
+          editButtons.current[section] = node;
+        }}
+      />
+    ),
+    footer,
+  });
+
+  /** "Добавить" next to the empty phone list: open the contacts with one number line ready. */
+  const addPhone = () => {
+    if (phones.fields.length === 0) phones.append({ value: "+992 " }, { shouldFocus: false });
+    open("contacts", "phones.0.value");
+  };
+
+  const money = (somoni: string) => formatMoney(somoniToDirams(somoni || "0") ?? 0, locale);
+  const map = mapLinks(values.address, { lat: values.lat ? Number(values.lat.replace(",", ".")) : null, lng: values.lng ? Number(values.lng.replace(",", ".")) : null });
+  const socialLabel: Record<Social, string> = { instagram: s.instagram, telegram: s.telegram, telegram_chat: s.telegramChat, whatsapp: s.whatsapp, facebook: s.facebook, youtube: s.youtube };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4">
-      {formError && <FormAlert>{formError}</FormAlert>}
+    <form onSubmit={onSubmit} noValidate className="space-y-5">
+      <StorePreview values={values} title={s.previewTitle} openLabel={s.openSite} />
 
-      {/* Two columns on wide screens: the store on the left, links, delivery and payment on the right. */}
-      <div className="grid items-start gap-4 xl:grid-cols-2">
-        <Section title={s.store}>
-          {text("name", s.name)}
-          {text("email", s.email, { inputMode: "email", placeholder: "info@bakhtstroy.tj" })}
-          {text("description", s.description, { wide: true })}
-          {text("address", s.address, { wide: true, placeholder: "Душанбе, ул. Джабор Расулов" })}
-          {text("work_hours", s.workHours, { wide: true, placeholder: s.workHoursPlaceholder })}
+      <div className="grid items-start gap-5 xl:grid-cols-2 [&>*]:min-w-0">
+        <div className="space-y-5">
+          <SettingsSection title={s.store} description={s.storeText} {...sectionProps("store")}>
+            <SettingsList>
+              {row("store", "name", s.name, <span className="font-medium">{values.name}</span>)}
+              {row("store", "description", s.description, <span className="whitespace-pre-line leading-relaxed">{values.description}</span>, { multiline: true })}
+              {row("store", "work_hours", s.workHours, values.work_hours, { placeholder: s.workHoursPlaceholder })}
+            </SettingsList>
+          </SettingsSection>
 
-          <div className="sm:col-span-2">
-            <p className="text-sm font-semibold">{s.phones}</p>
-            <p className="mb-2 text-xs text-muted-foreground">{s.phonesHint}</p>
-            <ul className="space-y-2">
-              {phones.fields.map((phone, index) => (
-                <li key={phone.id} className="flex gap-2">
-                  <div className="flex-1">
-                    <TextInput placeholder="+992 90 766 66 09" inputMode="tel" aria-label={`${s.phones} ${index + 1}`} aria-invalid={Boolean(errors.phones?.[index]?.value)} {...register(`phones.${index}.value`)} />
-                    {errors.phones?.[index]?.value?.message && <p className="mt-1 text-xs text-destructive">{errors.phones[index]!.value!.message}</p>}
+          <SettingsSection title={s.contacts} description={s.contactsText} {...sectionProps("contacts")}>
+            <SettingsList>
+              {row(
+                "contacts",
+                "email",
+                s.email,
+                <a href={`mailto:${values.email}`} className="break-all hover:underline">
+                  {values.email}
+                </a>,
+                { type: "email", inputMode: "email", placeholder: "info@bakhtstroy.tj" },
+              )}
+
+              {editing === "contacts" ? (
+                <SettingRow label={s.phones}>
+                  <ul className="space-y-2">
+                    {phones.fields.map((phone, index) => {
+                      const error = errors.phones?.[index]?.value?.message;
+                      return (
+                        <li key={phone.id}>
+                          <div className="flex gap-2">
+                            <TextInput placeholder="+992 90 766 66 09" inputMode="tel" aria-label={`${s.phones} ${index + 1}`} aria-invalid={Boolean(error)} {...register(`phones.${index}.value`)} />
+                            <button type="button" onClick={() => phones.remove(index)} aria-label={`${c.delete}: ${s.phones} ${index + 1}`} className="grid size-12 shrink-0 place-items-center rounded-xl text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive">
+                              <X className="size-4" />
+                            </button>
+                          </div>
+                          {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-2 text-xs text-muted-foreground">{s.phonesHint}</p>
+                  {phones.fields.length < 5 && (
+                    <button type="button" onClick={() => phones.append({ value: "+992 " })} className="mt-2 inline-flex items-center gap-1.5 rounded-md text-sm font-medium underline decoration-border underline-offset-4 hover:decoration-foreground">
+                      <Plus className="size-3.5" />
+                      {s.addPhone}
+                    </button>
+                  )}
+                </SettingRow>
+              ) : (
+                <SettingRow label={s.phones}>
+                  {values.phones.some((phone) => phone.value.replace(/\D/g, "")) ? (
+                    <ul className="space-y-1.5">
+                      {values.phones.map((phone, index) => (
+                        <li key={`${phone.value}-${index}`} className="flex flex-wrap items-center gap-2">
+                          <a href={`tel:+${phone.value.replace(/\D/g, "")}`} className="tabular-nums hover:underline">
+                            {phone.value}
+                          </a>
+                          {index === 0 && <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">{s.mainPhone}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <EmptyValue text={s.notSet} addLabel={s.add} onAdd={editing ? undefined : addPhone} />
+                  )}
+                </SettingRow>
+              )}
+
+              {row("contacts", "address", s.address, values.address, { placeholder: "Душанбе, ул. Джабор Расулов" })}
+
+              {editing === "contacts" ? (
+                <SettingRow label={s.map} htmlFor="store-lat">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      {input("lat", { inputMode: "decimal", placeholder: "38.5737", label: s.lat }).node}
+                      <span className="mt-1 block text-xs text-muted-foreground">{s.lat}</span>
+                    </div>
+                    <div>
+                      {input("lng", { inputMode: "decimal", placeholder: "68.7738", label: s.lng }).node}
+                      <span className="mt-1 block text-xs text-muted-foreground">{s.lng}</span>
+                    </div>
                   </div>
-                  <button type="button" onClick={() => phones.remove(index)} aria-label={t.admin.common.delete} className="grid size-12 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
-                    <X className="size-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {phones.fields.length < 5 && (
-              <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => phones.append({ value: "+992 " })}>
-                <Plus className="size-4" />
-                {s.addPhone}
-              </Button>
-            )}
-          </div>
+                </SettingRow>
+              ) : (
+                <SettingRow label={s.map}>
+                  {values.lat && values.lng ? (
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="tabular-nums">
+                        {values.lat}, {values.lng}
+                      </span>
+                      {map && (
+                        <a href={map.route} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium underline decoration-border underline-offset-4 hover:decoration-foreground">
+                          {s.openMap}
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      )}
+                    </span>
+                  ) : (
+                    <EmptyValue text={s.notSet} addLabel={s.add} onAdd={editing ? undefined : () => open("contacts", "lat")} />
+                  )}
+                </SettingRow>
+              )}
+            </SettingsList>
+          </SettingsSection>
+        </div>
 
-          <p className="text-sm font-semibold sm:col-span-2">{s.map}</p>
-          {text("lat", s.lat, { inputMode: "decimal", placeholder: "38.5737" })}
-          {text("lng", s.lng, { inputMode: "decimal", placeholder: "68.7738" })}
-        </Section>
+        <div className="space-y-5">
+          <SettingsSection title={s.socials} description={editing === "socials" ? s.socialHint : s.socialsText} {...sectionProps("socials")}>
+            <SettingsList>
+              {SOCIALS.map((key) =>
+                row(
+                  "socials",
+                  `socials.${key}`,
+                  socialLabel[key],
+                  <a href={values.socials[key]} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full items-center gap-1.5 hover:underline">
+                    <span className="truncate">{handleOf(values.socials[key])}</span>
+                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+                  </a>,
+                  { type: "url", inputMode: "url", placeholder: "https://" },
+                ),
+              )}
+            </SettingsList>
+          </SettingsSection>
 
-        <div className="space-y-4">
-          <Section title={s.socials} hint={s.socialHint}>
-            {SOCIALS.map((key) => {
-              const error = errors.socials?.[key]?.message;
-              const label = { instagram: s.instagram, telegram: s.telegram, telegram_chat: s.telegramChat, whatsapp: s.whatsapp, facebook: s.facebook, youtube: s.youtube }[key];
-              return (
-                <Field key={key} label={label} error={error}>
-                  {(id, describedBy) => <TextInput id={id} type="url" placeholder="https://" aria-invalid={Boolean(error)} aria-describedby={describedBy} {...register(`socials.${key}`)} />}
-                </Field>
-              );
-            })}
-          </Section>
+          <SettingsSection title={s.delivery} description={s.deliveryText} {...sectionProps("delivery")}>
+            <SettingsList>
+              {row("delivery", "price", s.deliveryPrice, <span className="font-medium tabular-nums">{money(values.price)}</span>, { inputMode: "decimal", placeholder: "50" })}
+              {row(
+                "delivery",
+                "free_from",
+                s.freeFrom,
+                <span className="tabular-nums">{somoniToDirams(values.free_from || "0") ? money(values.free_from) : s.freeAlways}</span>,
+                { inputMode: "decimal", placeholder: "3000" },
+              )}
+              {row("delivery", "pickup_address", s.pickupAddress, values.pickup_address)}
+              {row("delivery", "delivery_note", s.deliveryNote, <span className="whitespace-pre-line leading-relaxed">{values.delivery_note}</span>, { multiline: true })}
+            </SettingsList>
+          </SettingsSection>
 
-          <Section title={s.delivery}>
-            {text("price", s.deliveryPrice, { inputMode: "decimal", placeholder: "50" })}
-            {text("free_from", s.freeFrom, { inputMode: "decimal", placeholder: "3000" })}
-            {text("pickup_address", s.pickupAddress, { wide: true })}
-            {area("delivery_note", s.deliveryNote)}
-          </Section>
-
-          <Section title={s.payment}>
-            {text("card_number", s.cardNumber, { placeholder: "0000 0000 0000 0000" })}
-            {text("card_holder", s.cardHolder)}
-            {text("bank", s.bank, { placeholder: "Алиф, Эсхата, Душанбе Сити…" })}
-            {area("payment_note", s.paymentNote)}
-          </Section>
+          <SettingsSection title={s.payment} description={s.paymentText} {...sectionProps("payment")}>
+            <SettingsList>
+              {row("payment", "card_number", s.cardNumber, <span className="font-medium tabular-nums tracking-wide">{cardGroups(values.card_number)}</span>, { inputMode: "numeric", placeholder: "0000 0000 0000 0000" })}
+              {row("payment", "card_holder", s.cardHolder, values.card_holder)}
+              {row("payment", "bank", s.bank, values.bank, { placeholder: "Алиф, Эсхата, Душанбе Сити…" })}
+              {row("payment", "payment_note", s.paymentNote, <span className="whitespace-pre-line leading-relaxed">{values.payment_note}</span>, { multiline: true })}
+            </SettingsList>
+          </SettingsSection>
         </div>
       </div>
-
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting || !isDirty} className="w-full sm:w-auto">
-          {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
-          {t.admin.common.save}
-        </Button>
-      </div>
-
-      {/* Only while something is changed: a floating bar to save or drop the changes from anywhere on the page. */}
-      {isDirty && (
-        <div
-          role="status"
-          className="sticky bottom-3 z-20 mx-auto flex w-full max-w-2xl animate-in flex-wrap items-center justify-between gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-2xl shadow-black/25 fade-in-0 slide-in-from-bottom-4 duration-300 dark:bg-white dark:text-ink"
-        >
-          <span className="flex items-center gap-2 text-sm font-semibold">
-            <span aria-hidden className="size-2 rounded-full bg-brand" />
-            {t.admin.common.unsaved}
-          </span>
-          <span className="flex gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => reset()} disabled={isSubmitting} className="text-white hover:bg-white/10 hover:text-white dark:text-ink dark:hover:bg-ink/10 dark:hover:text-ink">
-              {t.admin.common.cancel}
-            </Button>
-            <Button type="submit" size="sm" disabled={isSubmitting}>
-              {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
-              {t.admin.common.save}
-            </Button>
-          </span>
-        </div>
-      )}
     </form>
+  );
+}
+
+/**
+ * The shop the way customers meet it — the dark band with the brand stripes of the home page:
+ * logo, name, description, main phone, hours and address. Follows the fields while they are typed.
+ */
+function StorePreview({ values, title, openLabel }: { values: Values; title: string; openLabel: string }) {
+  const phone = values.phones.find((item) => item.value.replace(/\D/g, ""))?.value;
+  const facts = [
+    { icon: Phone, text: phone },
+    { icon: Clock, text: values.work_hours },
+    { icon: MapPin, text: values.address },
+  ].filter((fact) => fact.text?.trim());
+
+  return (
+    <section aria-label={title} className="relative overflow-hidden rounded-2xl bg-ink text-white dark:ring-1 dark:ring-white/10">
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "repeating-linear-gradient(135deg, var(--brand) 0 2px, transparent 2px 28px)" }} />
+      <div className="relative flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-start gap-4">
+          <LogoMark className="size-14 shrink-0 rounded-2xl" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-white/50">{title}</p>
+            <p className={cn("mt-0.5 truncate text-xl font-bold tracking-tight sm:text-2xl", !values.name.trim() && "text-white/40")}>{values.name.trim() || "—"}</p>
+            {values.description.trim() && <p className="mt-1 line-clamp-2 max-w-2xl text-sm leading-relaxed text-white/65">{values.description}</p>}
+          </div>
+        </div>
+        <Link
+          href={routes.contacts}
+          target="_blank"
+          className="inline-flex h-9 shrink-0 items-center gap-2 self-start rounded-lg border border-white/15 px-3.5 text-sm font-semibold text-white/85 transition hover:border-brand/60 hover:text-brand lg:self-center"
+        >
+          <Store className="size-4" />
+          {openLabel}
+          <ExternalLink className="size-3.5 opacity-70" />
+        </Link>
+      </div>
+      {facts.length > 0 && (
+        <ul className="relative flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 px-5 py-3.5 text-sm text-white/80 sm:px-6">
+          {facts.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex min-w-0 items-center gap-2">
+              <Icon className="size-4 shrink-0 text-brand" />
+              <span className="truncate tabular-nums">{text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

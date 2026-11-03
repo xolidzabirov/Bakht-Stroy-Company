@@ -128,19 +128,27 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
         ))}
       </div>
 
-      {/* Who is signed in, with their settings and the way back to the shop. */}
+      {/* Who is signed in — the card opens their profile — and the way back to the shop. */}
       <div className="border-t border-white/10 p-3">
-        <div className="flex items-center gap-3 rounded-xl bg-white/[0.05] p-2">
+        <Link
+          href={routes.adminProfile}
+          onClick={onNavigate}
+          aria-current={pathname === routes.adminProfile ? "page" : undefined}
+          title={t.admin.nav.profile}
+          className={cn(
+            "group relative flex items-center gap-3 rounded-xl p-2 transition-colors",
+            pathname === routes.adminProfile ? "bg-white/[0.12]" : "bg-white/[0.05] hover:bg-white/[0.09]",
+          )}
+        >
+          <span aria-hidden className={cn("absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-brand transition-opacity", pathname === routes.adminProfile ? "opacity-100" : "opacity-0")} />
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
           <span className="min-w-0 flex-1 leading-tight">
             <b className="block truncate text-sm text-white">{user.name}</b>
-            {/* The seeded account is called just "Администратор" — no need to say it twice. */}
-            {user.name !== role && <span className="block truncate text-xs text-white/50">{role}</span>}
+            {/* The seeded account is called just "Администратор" — then the line says where the card leads. */}
+            <span className="block truncate text-xs text-white/50">{user.name !== role ? role : t.admin.nav.profile}</span>
           </span>
-          <Link href={routes.accountSettings} onClick={onNavigate} aria-label={t.admin.nav.settings} title={t.admin.nav.settings} className="grid size-8 shrink-0 place-items-center rounded-lg text-white/60 transition hover:bg-white/10 hover:text-white">
-            <Settings className="size-4" />
-          </Link>
-        </div>
+          <Settings aria-hidden className="size-4 shrink-0 text-white/45 transition group-hover:text-white" />
+        </Link>
         <Link
           href={routes.home}
           onClick={onNavigate}
