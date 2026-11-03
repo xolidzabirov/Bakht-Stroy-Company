@@ -372,6 +372,7 @@ export const en: Dictionary = {
     },
   },
   cart: {
+    editProduct: "Edit",
     staffCannotBuy: "The shop team does not buy: only customers add to the cart.",
     title: "Cart",
     add: "Add to cart",

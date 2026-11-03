@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiTry } from "@/shared/api/http";
+import { apiTry, SHOP_CACHE_SECONDS } from "@/shared/api/http";
 import type { NewsDetails, NewsItem, Paginated } from "@/shared/api/types";
 
 export type NewsTypeTab = { value: string; label: string; count: number };
@@ -9,12 +9,12 @@ export async function getNews(params: { type?: string; per_page?: number; page?:
     Object.entries(params).flatMap(([key, value]) => (value === undefined ? [] : [[key, String(value)]])),
   ).toString();
 
-  return apiTry<Paginated<NewsItem>>(`/news${query ? `?${query}` : ""}`, { revalidate: 300 });
+  return apiTry<Paginated<NewsItem>>(`/news${query ? `?${query}` : ""}`, { revalidate: SHOP_CACHE_SECONDS });
 }
 
 /** Tabs of /news: every type with the number of published posts. */
 export async function getNewsTypes(): Promise<NewsTypeTab[]> {
-  const response = await apiTry<{ data: NewsTypeTab[] }>("/news/types", { revalidate: 300 });
+  const response = await apiTry<{ data: NewsTypeTab[] }>("/news/types", { revalidate: SHOP_CACHE_SECONDS });
 
   return response?.data ?? [];
 }
@@ -24,7 +24,7 @@ export async function getNewsTypes(): Promise<NewsTypeTab[]> {
  * Cached for 5 minutes (views are counted from the browser by <TrackView>); cache() lets the metadata and the page share it.
  */
 export const getNewsItem = cache(async (slug: string): Promise<NewsDetails | null> => {
-  const response = await apiTry<{ data: NewsDetails }>(`/news/${encodeURIComponent(slug)}`, { revalidate: 300 });
+  const response = await apiTry<{ data: NewsDetails }>(`/news/${encodeURIComponent(slug)}`, { revalidate: SHOP_CACHE_SECONDS });
 
   return response?.data ?? null;
 });

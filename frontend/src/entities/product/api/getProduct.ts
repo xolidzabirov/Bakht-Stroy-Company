@@ -1,11 +1,11 @@
-import { apiTry } from "@/shared/api/http";
+import { apiTry, SHOP_CACHE_SECONDS } from "@/shared/api/http";
 import type { Product, ProductDetails } from "@/shared/api/types";
 
 /**
  * Product page data; null when the product does not exist (or the API is down).
  */
 export async function getProduct(slug: string): Promise<ProductDetails | null> {
-  const response = await apiTry<{ data: ProductDetails }>(`/products/${encodeURIComponent(slug)}`, { revalidate: 60 });
+  const response = await apiTry<{ data: ProductDetails }>(`/products/${encodeURIComponent(slug)}`, { revalidate: SHOP_CACHE_SECONDS });
 
   return response?.data ?? null;
 }
@@ -14,7 +14,7 @@ export async function getProduct(slug: string): Promise<ProductDetails | null> {
  * "Похожие товары" — from the same category.
  */
 export async function getRelatedProducts(slug: string): Promise<Product[]> {
-  const response = await apiTry<{ data: Product[] }>(`/products/${encodeURIComponent(slug)}/related`, { revalidate: 300 });
+  const response = await apiTry<{ data: Product[] }>(`/products/${encodeURIComponent(slug)}/related`, { revalidate: SHOP_CACHE_SECONDS });
 
   return response?.data ?? [];
 }

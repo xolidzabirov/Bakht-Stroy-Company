@@ -1,4 +1,4 @@
-import { apiTry } from "@/shared/api/http";
+import { apiTry, SHOP_CACHE_SECONDS } from "@/shared/api/http";
 import type { Paginated, Product } from "@/shared/api/types";
 
 export type ProductFilters = {
@@ -31,5 +31,5 @@ function toQuery(filters: ProductFilters): string {
  * Catalog list. Cached for a minute — prices and stock change often.
  */
 export async function getProducts(filters: ProductFilters = {}): Promise<Paginated<Product> | null> {
-  return apiTry<Paginated<Product>>(`/products${toQuery(filters)}`, { revalidate: 60 });
+  return apiTry<Paginated<Product>>(`/products${toQuery(filters)}`, { revalidate: SHOP_CACHE_SECONDS });
 }

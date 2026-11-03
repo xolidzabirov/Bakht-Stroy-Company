@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { Boxes, ChevronDown, Newspaper, Plus, UserPlus } from "lucide-react";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { buttonClasses } from "@/shared/ui";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/kit/dropdown-menu";
 
 /** "+ Создать" in the top bar: a new product or post from any page (and a user for administrators). */
 export function QuickCreate({ isAdmin }: { isAdmin: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.create;
   const items = [
     { href: routes.adminProductNew, label: c.product, icon: Boxes },

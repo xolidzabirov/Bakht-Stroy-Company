@@ -1,4 +1,4 @@
-import { apiTry } from "@/shared/api/http";
+import { apiTry, SHOP_CACHE_SECONDS } from "@/shared/api/http";
 import type { StoreSettings } from "@/shared/api/types";
 import { site } from "@/shared/config/site";
 
@@ -7,7 +7,7 @@ import { site } from "@/shared/config/site";
  * with the static company data as a fallback when the API is unavailable.
  */
 export async function getSettings(): Promise<StoreSettings["store"] & { delivery?: StoreSettings["delivery"]; payment?: StoreSettings["payment"] }> {
-  const response = await apiTry<{ data: StoreSettings }>("/settings/public", { revalidate: 600 });
+  const response = await apiTry<{ data: StoreSettings }>("/settings/public", { revalidate: SHOP_CACHE_SECONDS });
 
   if (!response) {
     return {

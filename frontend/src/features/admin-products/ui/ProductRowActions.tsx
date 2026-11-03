@@ -6,20 +6,20 @@ import { toast } from "sonner";
 import { Check, Eye, EyeOff, LoaderCircle, Star, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 
 function useApiError() {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   return (error: unknown) => toast.error(error instanceof ApiError ? error.message : t.errors.generic);
 }
 
 /** Stock right on the card: a quiet line with a coloured dot; type a number, Enter or ✓ saves it, Esc puts it back. */
 export function StockEditor({ productId, stock, unit, low }: { productId: number; stock: number; unit: string; low: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const router = useRouter();
   const onError = useApiError();
   const [value, setValue] = useState(String(stock));
@@ -125,7 +125,7 @@ export function ProductFlag({ productId, field, value, label, offLabel, hint }: 
 
 /** Delete with a confirmation; the product leaves the catalog, orders keep their copy. */
 export function DeleteProduct({ productId, name, afterDelete, compact = true }: { productId: number; name: string; afterDelete?: string; compact?: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.common;
   const router = useRouter();
   const onError = useApiError();

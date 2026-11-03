@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, Trash2 } from "luci
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import type { Image } from "@/shared/api/types";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 
@@ -17,7 +17,7 @@ const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 /** Product photos: drop or pick several at once, reorder by dragging or the arrows (the first is the main photo), delete one by one. */
 export function ProductImages({ productId, images }: { productId: number; images: Image[] }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.product;
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);

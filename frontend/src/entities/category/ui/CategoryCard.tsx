@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -11,17 +10,19 @@ export async function CategoryCard({ category }: { category: Category }) {
 
   return (
     <Link
+      prefetch={false}
       href={routes.category(category.slug)}
-      className="group flex items-stretch overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
+      className="lazy-render [contain-intrinsic-size:auto_112px] group flex items-stretch overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
     >
       <div className="relative w-28 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
         {category.image && (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element -- ready WebP size from the backend; a plain tag costs the browser no script
+          <img
             src={category.image}
             alt={category.name}
-            fill
-            sizes="144px"
-            className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
           />
         )}
       </div>

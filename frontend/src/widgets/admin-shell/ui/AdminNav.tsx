@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Boxes, FolderTree, GalleryHorizontalEnd, Inbox, LayoutDashboard, Menu, MessagesSquare, Newspaper, Package, Settings, SlidersHorizontal, Store, Users } from "lucide-react";
 import { bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useRealtimeConnected } from "@/shared/lib/realtime";
 import { LogoMark } from "@/shared/ui";
@@ -44,7 +44,7 @@ function useBadges() {
 
 /** The menu in groups, like the work goes: sales, catalog, content, and (administrators only) management. */
 function useGroups(isAdmin: boolean): Group[] {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const n = t.admin.nav;
   const g = t.admin.groups;
   const { awaiting, unread, letters } = useBadges();
@@ -88,7 +88,7 @@ function useGroups(isAdmin: boolean): Group[] {
 }
 
 function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const pathname = usePathname();
   const groups = useGroups(user.isAdmin);
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
@@ -164,7 +164,7 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
 
 /** Logo with the "Admin panel" (or "Manager panel") mark: the panel is dark in any theme, so it never looks like the shop. */
 function AdminBrand({ isAdmin }: { isAdmin: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
 
   return (
     <Link href={routes.admin} className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
@@ -191,7 +191,7 @@ export function AdminSidebar({ user }: { user: AdminUser }) {
 
 /** "☰" button in the top bar on phones and tablets. */
 export function AdminMobileNav({ user }: { user: AdminUser }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const [open, setOpen] = useState(false);
 
   return (

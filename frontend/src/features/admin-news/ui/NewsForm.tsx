@@ -9,7 +9,7 @@ import { LoaderCircle, Plus, Search, X } from "lucide-react";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { AdminNews, AdminProduct, Product } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { formatMoney } from "@/shared/lib/format";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
@@ -55,7 +55,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 
 /** Products shown under the post: search by name, add, remove (up to 24). */
 function ProductPicker({ value, onChange }: { value: LinkedProduct[]; onChange: (products: LinkedProduct[]) => void }) {
-  const { t, locale } = useI18n();
+  const { t, locale } = useAdminI18n();
   const n = t.admin.news;
   const [term, setTerm] = useState("");
   const [query, setQuery] = useState("");
@@ -139,7 +139,7 @@ function ProductPicker({ value, onChange }: { value: LinkedProduct[]; onChange: 
  */
 export function NewsForm({ news, aside }: { news?: AdminNews; aside?: React.ReactNode }) {
   const [draft, setDraft] = useState<DraftMedia>({ cover: null, gallery: [] });
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const n = t.admin.news;
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);

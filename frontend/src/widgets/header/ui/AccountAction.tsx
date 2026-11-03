@@ -36,7 +36,7 @@ export function AccountAction() {
 
   if (!name) {
     return (
-      <Link href={routes.login} aria-label={t.header.login} className={triggerClass}>
+      <Link prefetch={false} href={routes.login} aria-label={t.header.login} className={triggerClass}>
         <User className="size-[22px]" />
         <span className="hidden text-[11px] font-medium text-muted-foreground lg:block">{t.header.login}</span>
       </Link>
@@ -83,7 +83,7 @@ export function AccountAction() {
         <DropdownMenuSeparator />
         {items.map(({ href, icon: Icon, label }) => (
           <DropdownMenuItem key={href} asChild className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 font-medium">
-            <Link href={href}>
+            <Link prefetch={false} href={href}>
               <Icon className="size-4" />
               {label}
             </Link>

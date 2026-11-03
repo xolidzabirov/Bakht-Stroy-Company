@@ -20,7 +20,7 @@ export async function SectionHeading({ title, subtitle, href, linkText }: Props)
         {subtitle && <p className="mt-2 text-sm text-muted-foreground sm:text-base">{subtitle}</p>}
       </div>
       {href && (
-        <Link
+        <Link prefetch={false}
           href={href}
           className="group hidden shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground hover:text-muted-foreground sm:inline-flex"
         >

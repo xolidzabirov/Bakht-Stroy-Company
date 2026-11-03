@@ -8,7 +8,7 @@ import { ArrowDown, ArrowUp, CalendarClock, ExternalLink, ImageOff, ImagePlus, L
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Banner } from "@/shared/api/types";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
@@ -37,7 +37,7 @@ const previewOf = (banner: Banner) => (banner.placement === "hero" ? (banner.ima
  */
 export function BannerManager({ banners, placement }: { banners: Banner[]; placement: Placement }) {
   const hero = placement === "hero";
-  const { t, locale } = useI18n();
+  const { t, locale } = useAdminI18n();
   const b = t.admin.banners;
   const router = useRouter();
   const [editing, setEditing] = useState<Banner | "new" | null>(null);
@@ -235,7 +235,7 @@ function BannerForm({
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const b = t.admin.banners;
   const hero = placement === "hero";
   const [formError, setFormError] = useState<string | null>(null);
@@ -381,7 +381,7 @@ const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 
 /** A picture of a banner that is not saved yet: a preview now, the upload after "Создать". */
 function BannerImageDraft({ variant, file, onChange }: { variant: "desktop" | "mobile" | "hero"; file: File | null; onChange: (file: File | null) => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const b = t.admin.banners;
   const input = useRef<HTMLInputElement>(null);
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
@@ -428,7 +428,7 @@ function BannerImageDraft({ variant, file, onChange }: { variant: "desktop" | "m
 
 /** desktop / mobile — the banner pictures; hero — the first screen photo (uploaded as the main picture, cut to 5:4). */
 function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" | "mobile" | "hero" }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const b = t.admin.banners;
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);

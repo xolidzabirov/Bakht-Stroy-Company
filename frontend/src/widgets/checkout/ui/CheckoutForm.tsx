@@ -14,7 +14,7 @@ import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Address, Cart, Order } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
-import type { Dictionary } from "@/shared/i18n/dictionaries";
+import type { BrowserDictionary } from "@/shared/i18n/browserDictionary";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { formatMoney } from "@/shared/lib/format";
@@ -34,7 +34,7 @@ type Props = {
 
 const NEW_ADDRESS = "new";
 
-function createSchema(t: Dictionary) {
+function createSchema(t: BrowserDictionary) {
   const v = t.checkout.validation;
 
   return z

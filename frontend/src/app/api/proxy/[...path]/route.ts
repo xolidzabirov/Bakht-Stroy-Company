@@ -1,6 +1,11 @@
+import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 import { applyRenewal, callBackend, canRenew, clearSession, isRenewalDue, relay, renewSession, type Renewal, unavailable } from "@/shared/api/bff";
+import { SHOP_CACHE_TAG } from "@/shared/api/http";
 import { AUTH_COOKIE } from "@/shared/config/auth";
+
+/** Requests that change what the shop shows: products, prices, stock, banners, news, settings. */
+const CHANGES_THE_SHOP = /^\/(admin\/(products|categories|banners|news|settings|orders)|orders)\b/;
 
 type Context = { params: Promise<{ path: string[] }> };
 
@@ -30,6 +35,9 @@ async function handle(request: NextRequest, { params }: Context) {
 
     // Nobody knows yet whether the session is alive: "server is busy" is true, "you are signed out" may not be.
     if (upstream.status === 401 && renewal?.status === "unavailable") return unavailable();
+
+    // Public pages are rebuilt on the next visit instead of whenever their cache would end.
+    if (upstream.ok && !["GET", "HEAD"].includes(request.method) && CHANGES_THE_SHOP.test(target)) revalidateTag(SHOP_CACHE_TAG, { expire: 0 });
 
     const response = applyRenewal(await relay(upstream), renewal);
 

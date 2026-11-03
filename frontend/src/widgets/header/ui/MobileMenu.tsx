@@ -45,7 +45,7 @@ export function MobileMenu({ nav, phone }: Props) {
 
         <nav className="mt-6 flex flex-col">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-3.5 text-base font-semibold">
+            <Link prefetch={false} key={item.href} href={item.href} onClick={() => setOpen(false)} className="border-b border-border py-3.5 text-base font-semibold">
               {item.label}
             </Link>
           ))}

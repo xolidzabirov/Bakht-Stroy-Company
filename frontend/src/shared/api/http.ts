@@ -1,6 +1,15 @@
 import { env } from "@/shared/config/env";
 
 /**
+ * What the shop shows (products, categories, banners, news, settings) stays in the server cache this long.
+ * It can be long because every change made through the site drops the cache at once: see SHOP_CACHE_TAG.
+ */
+export const SHOP_CACHE_SECONDS = 900;
+
+/** The tag of that cache: /api/proxy drops it after changes in the admin panel and after orders. */
+export const SHOP_CACHE_TAG = "shop";
+
+/**
  * API error in the backend format: { message, code, errors?, details? }.
  */
 export class ApiError extends Error {
@@ -40,7 +49,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
-    ...(revalidate !== undefined ? { next: { revalidate } } : {}),
+    ...(revalidate !== undefined ? { next: { revalidate, tags: [SHOP_CACHE_TAG] } } : {}),
   });
 
   if (response.status === 204) {

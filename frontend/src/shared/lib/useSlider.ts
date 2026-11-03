@@ -1,22 +1,33 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Carousel state: current slide, pause on hover, swipe on touch screens.
  * Auto-play is driven by the progress bar (SlideProgress `onComplete`): it pauses where it stopped
  * and continues from there, so the time left is never lost or restarted.
+ * Off screen it also stands still: nothing to animate, and no photos to load for nobody.
  */
 export function useSlider(count: number) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const touchX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const element = rootRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const go = useCallback((step: number) => setIndex((value) => (value + step + count) % count), [count]);
 
   const handlers = {
-    onMouseEnter: () => setPaused(true),
-    onMouseLeave: () => setPaused(false),
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
     onTouchStart: (event: React.TouchEvent) => {
       touchX.current = event.touches[0].clientX;
     },
@@ -28,5 +39,5 @@ export function useSlider(count: number) {
     },
   };
 
-  return { index, setIndex, go, paused, handlers };
+  return { index, setIndex, go, paused: hovered || !visible, visible, handlers, rootRef };
 }

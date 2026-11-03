@@ -57,7 +57,7 @@ export async function FiltersForm({ action, search, sort, priceFrom, priceTo, in
         <Button type="submit" className="flex-1">
           {t.catalog.show}
         </Button>
-        <Link href={action} className="inline-flex h-11 items-center rounded-xl px-4 text-sm font-semibold text-muted-foreground hover:text-foreground">
+        <Link prefetch={false} href={action} className="inline-flex h-11 items-center rounded-xl px-4 text-sm font-semibold text-muted-foreground hover:text-foreground">
           {t.catalog.reset}
         </Link>
       </div>

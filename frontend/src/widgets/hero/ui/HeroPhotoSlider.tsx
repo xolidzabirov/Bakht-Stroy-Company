@@ -18,11 +18,12 @@ const srcSet = (slide: HeroSlide) => `${slide.small} 860w, ${slide.large} 1280w`
  * Photo carousel in the first screen: each photo stays ~6 s, slowly zooming in,
  * then softly dissolves into the next one. White bars on top show the time left.
  * Only the first photo loads with the page (it is the largest element of the first screen);
- * the others start loading a couple of seconds later, long before their turn.
+ * each next one loads a couple of seconds after the previous one came up, long before its turn.
  */
 export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
-  const { index, setIndex, go, paused, handlers } = useSlider(slides.length);
-  const [warm, setWarm] = useState(false);
+  const { index, setIndex, go, paused, handlers, rootRef } = useSlider(slides.length);
+  // The furthest slide whose photo may load.
+  const [reach, setReach] = useState(0);
 
   if (slides[0])
     preload(slides[0].small, {
@@ -33,13 +34,14 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
     });
 
   useEffect(() => {
-    const timer = setTimeout(() => setWarm(true), 2500);
+    const timer = setTimeout(() => setReach((value) => Math.max(value, index + 1)), 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [index]);
 
   return (
     <div
       {...handlers}
+      ref={rootRef}
       className="relative aspect-[4/3] overflow-hidden rounded-[2rem] bg-white/5 ring-1 ring-white/10 lg:aspect-[5/4]"
     >
       {slides.map((slide, i) => (
@@ -51,7 +53,7 @@ export function HeroPhotoSlider({ slides }: { slides: HeroSlide[] }) {
             i === index ? "z-10 opacity-100" : "z-0 opacity-0",
           )}
         >
-          {(i === 0 || i === index || warm) && (
+          {i <= Math.max(index, reach) && (
             // eslint-disable-next-line @next/next/no-img-element -- prepared WebP sizes, no image optimizer
             <img
               src={slide.small}

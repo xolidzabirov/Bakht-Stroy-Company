@@ -5,12 +5,12 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 import type { Locale } from "@/shared/i18n/config";
 import { I18nProvider } from "@/shared/i18n/client";
-import type { Dictionary } from "@/shared/i18n/dictionaries";
+import type { BrowserDictionary } from "@/shared/i18n/browserDictionary";
 
 /**
  * Client-side providers: language, TanStack Query (cart, favorites), toasts.
  */
-export function Providers({ locale, dictionary, children }: { locale: Locale; dictionary: Dictionary; children: React.ReactNode }) {
+export function Providers({ locale, dictionary, children }: { locale: Locale; dictionary: BrowserDictionary; children: React.ReactNode }) {
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: true, retry: 1 } } }),
   );

@@ -6,13 +6,13 @@ import { toast } from "sonner";
 import { LoaderCircle, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { Button } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 
 /** Delete (with a confirmation) for one contact-form message. */
 export function MessageActions({ id, name }: { id: number; name: string }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const m = t.admin.messages;
   const router = useRouter();
   const [busy, setBusy] = useState(false);

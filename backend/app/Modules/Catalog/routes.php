@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Route;
 | Public catalog — available to guests.
 */
 Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->middleware('cache.public')->name('categories.show');
 
-Route::get('products', [ProductController::class, 'index'])->name('products.index');
-Route::get('products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('products', [ProductController::class, 'index'])->middleware('cache.public')->name('products.index');
+Route::get('products/{product:slug}', [ProductController::class, 'show'])->middleware('cache.public')->name('products.show');
 Route::post('products/{product:slug}/view', [ProductController::class, 'view'])->middleware('throttle:60,1')->name('products.view');
-Route::get('products/{product:slug}/related', [ProductController::class, 'related'])->name('products.related');
+Route::get('products/{product:slug}/related', [ProductController::class, 'related'])->middleware('cache.public')->name('products.related');
 
 /*
 | Admin panel — admins.

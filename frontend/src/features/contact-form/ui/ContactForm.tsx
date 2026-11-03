@@ -8,12 +8,12 @@ import { CircleCheck, LoaderCircle, Send } from "lucide-react";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { useMe } from "@/shared/api/useMe";
 import { useI18n } from "@/shared/i18n/client";
-import type { Dictionary } from "@/shared/i18n/dictionaries";
+import type { BrowserDictionary } from "@/shared/i18n/browserDictionary";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Textarea } from "@/shared/ui/kit/textarea";
 import { PhoneInput } from "@/shared/ui/PhoneInput";
 
-function createSchema(t: Dictionary) {
+function createSchema(t: BrowserDictionary) {
   const v = t.contacts.validation;
 
   return z.object({

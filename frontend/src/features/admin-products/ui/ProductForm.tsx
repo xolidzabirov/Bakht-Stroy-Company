@@ -9,7 +9,7 @@ import { applyApiErrors, bff } from "@/shared/api/client";
 import { ApiError } from "@/shared/api/http";
 import type { AdminProduct } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Switch } from "@/shared/ui/kit/switch";
@@ -51,7 +51,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * After saving, the list of products opens again.
  */
 export function ProductForm({ product, categories, aside }: { product?: AdminProduct; categories: CategoryOption[]; aside?: React.ReactNode }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.product;
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);

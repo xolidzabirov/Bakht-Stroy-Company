@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 | Public — available to guests.
 */
 Route::get('settings/public', [SettingsController::class, 'public'])->name('settings.public');
-Route::get('banners', [BannerController::class, 'public'])->name('banners.index');
+Route::get('banners', [BannerController::class, 'public'])->middleware('cache.public')->name('banners.index');
 Route::post('contact', [ContactController::class, 'store'])->middleware('throttle:contact')->name('contact.store');
 
 /*

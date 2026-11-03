@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, Search, X } from "lucide-react";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useQueryParams } from "@/shared/lib/useQueryParams";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
@@ -41,7 +41,7 @@ export function SearchFilter({ placeholder, name = "search" }: { placeholder: st
 
 /** Drop-down filter bound to one query parameter; "Все" removes it. */
 export function SelectFilter({ name, label, options, allLabel }: { name: string; label: string; options: { value: string; label: string }[]; allLabel?: string }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const { params, set } = useQueryParams();
   const value = params.get(name) ?? ALL;
   const allText = `${label}: ${allLabel ?? t.admin.common.all}`;
@@ -111,7 +111,7 @@ export function DateFilter({ name, label }: { name: string; label: string }) {
 
 /** "Сбросить" — clears every filter of the page (shown only while something is set). */
 export function ResetFilters() {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const { params, set } = useQueryParams();
   const keys = Array.from(params.keys()).filter((key) => key !== "page");
 

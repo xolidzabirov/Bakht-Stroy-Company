@@ -29,7 +29,7 @@ export async function Footer() {
   );
 
   return (
-    <footer className="mt-20 bg-ink text-white">
+    <footer className="lazy-render [contain-intrinsic-size:auto_520px] mt-20 bg-ink text-white">
       <div className="h-1.5 bg-brand" />
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
@@ -61,7 +61,7 @@ export async function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm text-white/70">
             {categories.map((category) => (
               <li key={category.id}>
-                <Link
+                <Link prefetch={false}
                   href={routes.category(category.slug)}
                   className="hover:text-white"
                 >
@@ -85,7 +85,7 @@ export async function Footer() {
               [routes.account, t.nav.account],
             ].map(([href, label]) => (
               <li key={href}>
-                <Link href={href} className="hover:text-white">
+                <Link prefetch={false} href={href} className="hover:text-white">
                   {label}
                 </Link>
               </li>

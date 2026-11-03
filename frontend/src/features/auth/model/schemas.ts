@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Dictionary } from "@/shared/i18n/dictionaries";
+import type { BrowserDictionary } from "@/shared/i18n/browserDictionary";
 
 /**
  * Client checks are friendly hints only; the backend has the final word (real email, unique phone…).
@@ -22,7 +22,7 @@ export function containsEmail(password: string, email: string | null | undefined
 }
 
 /** A new password: 8+ characters with letters and digits, not built from the email (the same rules as the backend). */
-export function newPasswordSchema(t: Dictionary, email?: string | null) {
+export function newPasswordSchema(t: BrowserDictionary, email?: string | null) {
   const v = t.auth.validation;
 
   return z
@@ -33,7 +33,7 @@ export function newPasswordSchema(t: Dictionary, email?: string | null) {
     .refine((value) => !containsEmail(value, email), v.passwordEmail);
 }
 
-export function createAuthSchemas(t: Dictionary, accountEmail?: string | null) {
+export function createAuthSchemas(t: BrowserDictionary, accountEmail?: string | null) {
   const v = t.auth.validation;
 
   const email = z.string().trim().min(1, v.emailRequired).email(v.emailInvalid);

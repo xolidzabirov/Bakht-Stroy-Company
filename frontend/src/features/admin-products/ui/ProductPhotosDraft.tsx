@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImagePlus, Trash2 } from "lucide-react";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 
@@ -16,7 +16,7 @@ const TYPES = ["image/jpeg", "image/png", "image/webp"];
  * right after "Создать" (ProductForm), so a new product is made in one go. The first one is the main photo.
  */
 export function ProductPhotosDraft({ value, onChange }: { value: File[]; onChange: (files: File[]) => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.product;
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);

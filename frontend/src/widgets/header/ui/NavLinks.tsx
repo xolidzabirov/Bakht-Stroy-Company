@@ -17,7 +17,7 @@ export function NavLinks({ items, label }: { items: { href: string; label: strin
         const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
-          <Link
+          <Link prefetch={false}
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}

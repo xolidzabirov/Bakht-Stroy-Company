@@ -12,7 +12,7 @@ import { useSessionName } from "@/shared/lib/useSession";
 
 function Action({ href, label, count, icon, className }: { href: string; label: string; count: number; icon: React.ReactNode; className?: string }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       className={cn("flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-muted md:min-w-16", className)}
     >

@@ -3,6 +3,7 @@
 use App\Modules\User\Http\Middleware\EnsureUserIsActive;
 use App\Modules\User\Http\Middleware\EnsureUserIsCustomer;
 use App\Shared\Exceptions\ApiExceptionRenderer;
+use App\Shared\Http\Middleware\CachePublicResponse;
 use App\Shared\Http\Middleware\JsonApi;
 use App\Shared\Http\Middleware\RequestContext;
 use Illuminate\Foundation\Application;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
+            'cache.public' => CachePublicResponse::class,
             'customer' => EnsureUserIsCustomer::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

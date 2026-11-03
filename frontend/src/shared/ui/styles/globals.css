@@ -228,6 +228,13 @@ h3 {
   }
 }
 
+/* A card far below the screen is not laid out or painted until it comes near: long lists cost a phone much less.
+   Its own shadow and lift on hover are not clipped by this. */
+@utility lazy-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
 /* Sections rise gently into view while scrolling, driven by the scroll itself (no JavaScript).
    Browsers without scroll timelines and people who prefer less motion simply see the section. */
 @utility reveal {

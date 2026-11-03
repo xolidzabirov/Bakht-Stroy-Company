@@ -372,6 +372,7 @@ export const tg: Dictionary = {
     },
   },
   cart: {
+    editProduct: "Тағйир додан",
     staffCannotBuy: "Кормандони мағоза харид намекунанд: ба сабад танҳо харидорон илова мекунанд.",
     title: "Сабад",
     add: "Ба сабад",

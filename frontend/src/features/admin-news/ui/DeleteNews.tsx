@@ -7,14 +7,14 @@ import { LoaderCircle, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { Button } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 
 /** Delete a post with a confirmation, then back to the list. */
 export function DeleteNews({ newsId, title }: { newsId: number; title: string }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

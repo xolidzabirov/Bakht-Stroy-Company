@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Route;
 /*
 | Public news — available to guests.
 */
-Route::get('news', [NewsController::class, 'index'])->name('news.index');
-Route::get('news/types', [NewsController::class, 'types'])->name('news.types');
-Route::get('news/{slug}', [NewsController::class, 'show'])->name('news.show');
+Route::get('news', [NewsController::class, 'index'])->middleware('cache.public')->name('news.index');
+Route::get('news/types', [NewsController::class, 'types'])->middleware('cache.public')->name('news.types');
+Route::get('news/{slug}', [NewsController::class, 'show'])->middleware('cache.public')->name('news.show');
 Route::post('news/{slug}/view', [NewsController::class, 'view'])->middleware('throttle:60,1')->name('news.view');
 
 /*

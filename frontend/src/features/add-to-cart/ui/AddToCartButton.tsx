@@ -48,7 +48,7 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
     }
 
     if (isStaff) {
-      toast.info(t.cart.staffCannotBuy, { action: { label: t.admin.common.edit, onClick: () => router.push(routes.adminProduct(product.id)) } });
+      toast.info(t.cart.staffCannotBuy, { action: { label: t.cart.editProduct, onClick: () => router.push(routes.adminProduct(product.id)) } });
       return;
     }
 
@@ -65,7 +65,7 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
     return (
       <Link href={routes.adminProduct(product.id)} className={buttonClasses({ variant: "outline", size: "lg", className: cn("w-full", className) })}>
         <Pencil className="size-4" />
-        {t.admin.common.edit}
+        {t.cart.editProduct}
       </Link>
     );
   }

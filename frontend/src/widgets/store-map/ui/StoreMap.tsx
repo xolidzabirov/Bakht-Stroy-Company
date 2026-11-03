@@ -1,6 +1,5 @@
 "use client";
 
-import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap, Marker, Popup } from "maplibre-gl";
 import { Box, Loader2, Map as MapIcon, MapPinOff, Maximize2, Minimize2, Satellite } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -115,7 +114,8 @@ export function StoreMap({ points, workHours, label, className }: { points: Stor
     let map: MapLibreMap | null = null;
 
     void (async () => {
-      const library = await import("maplibre-gl").catch(() => null);
+      // The map's script and stylesheet come only when the map is near: the page itself does not wait for them.
+      const [library] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]).catch(() => [null]);
       const container = host.current;
       if (cancelled || !container) return;
       if (!library) return setState("error");

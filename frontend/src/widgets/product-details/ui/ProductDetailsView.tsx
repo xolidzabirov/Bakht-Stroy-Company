@@ -43,7 +43,7 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
 
         <div>
           {product.category && (
-            <Link href={routes.category(product.category.slug)} className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+            <Link prefetch={false} href={routes.category(product.category.slug)} className="text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
               {product.category.name}
             </Link>
           )}
@@ -97,7 +97,7 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
               <span>
                 <b className="block">{t.product.paymentTitle}</b>
                 {t.product.paymentText}{" "}
-                <Link href={routes.delivery} className="underline">
+                <Link prefetch={false} href={routes.delivery} className="underline">
                   {t.product.more}
                 </Link>
               </span>

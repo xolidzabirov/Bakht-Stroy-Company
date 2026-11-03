@@ -11,7 +11,7 @@ import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import type { StoreSettings } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { formatMoney, formatPhone } from "@/shared/lib/format";
 import { mapLinks } from "@/shared/lib/maps";
@@ -132,7 +132,7 @@ const cardGroups = (value: string) => value.replace(/\s+/g, "").replace(/(.{4})(
  * The card on top shows the shop the way customers see it — and changes while you type.
  */
 export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
-  const { t, locale } = useI18n();
+  const { t, locale } = useAdminI18n();
   const s = t.admin.settings;
   const c = t.admin.common;
   const router = useRouter();

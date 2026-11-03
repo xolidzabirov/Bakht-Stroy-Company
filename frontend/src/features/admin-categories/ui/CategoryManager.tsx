@@ -10,7 +10,7 @@ import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
@@ -29,7 +29,7 @@ const ROOT = "root";
  * delete only empty categories (the API explains why otherwise).
  */
 export function CategoryManager({ tree, header }: { tree: Category[]; header: { title: string; description: string } }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.categories;
   const router = useRouter();
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -325,7 +325,7 @@ function CategoryForm({
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.categories;
   const [formError, setFormError] = useState<string | null>(null);
   const [draftImage, setDraftImage] = useState<File | null>(null);
@@ -439,7 +439,7 @@ function CategoryForm({
 
 /** The picture of a category that is not saved yet: it waits in the browser and is uploaded after "Создать". */
 function CategoryImageDraft({ file, onChange }: { file: File | null; onChange: (file: File | null) => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.categories;
   const input = useRef<HTMLInputElement>(null);
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
@@ -490,7 +490,7 @@ function CategoryImageDraft({ file, onChange }: { file: File | null; onChange: (
 }
 
 function CategoryImage({ category }: { category: Category }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.categories;
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);

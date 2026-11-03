@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Clock } from "lucide-react";
 import type { NewsItem } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -13,17 +12,19 @@ export async function NewsCard({ news, headingLevel: Heading = "h3" }: { news: N
 
   return (
     <Link
+      prefetch={false}
       href={routes.newsItem(news.slug)}
-      className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
+      className="lazy-render group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-surface-muted">
         {news.cover && (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element -- ready WebP size from the backend; a plain tag costs the browser no script
+          <img
             src={news.cover.card}
             alt={news.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105"
           />
         )}
         <Badge tone={news.type.value === "promo" ? "brand" : "dark"} className="absolute left-3 top-3">

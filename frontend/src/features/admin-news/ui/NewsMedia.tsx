@@ -7,7 +7,7 @@ import { ImagePlus, LoaderCircle, Trash2, X } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
 import type { Image } from "@/shared/api/types";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 
 const MAX_GALLERY = 20;
@@ -15,7 +15,7 @@ const MAX_SIZE = 8 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 function useUpload() {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ function useUpload() {
 
 /** Cover of the post (one picture) and the gallery under the text (up to 20). */
 export function NewsMedia({ newsId, cover, gallery }: { newsId: number; cover: Image | null; gallery: Image[] }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const n = t.admin.news;
   const { busy, run, valid } = useUpload();
   const coverInput = useRef<HTMLInputElement>(null);

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { ImagePlus, Trash2, X } from "lucide-react";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 
 export type DraftMedia = { cover: File | null; gallery: File[] };
@@ -24,7 +24,7 @@ function usePreviews(files: File[]) {
  * and are uploaded right after "Создать" (NewsForm), so a new post is made in one go.
  */
 export function NewsMediaDraft({ value, onChange }: { value: DraftMedia; onChange: (value: DraftMedia) => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const n = t.admin.news;
   const coverInput = useRef<HTMLInputElement>(null);
   const galleryInput = useRef<HTMLInputElement>(null);

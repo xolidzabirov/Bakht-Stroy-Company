@@ -2,6 +2,7 @@ import { Footer } from "@/widgets/footer";
 import { Header } from "@/widgets/header";
 import { FloatingChat } from "@/widgets/chat/ui/FloatingChat";
 import { setLocaleFrom } from "@/shared/i18n/server";
+import { IntentPrefetch } from "@/shared/lib/IntentPrefetch";
 import { SkipLink } from "@/shared/ui/SkipLink";
 
 /**
@@ -21,6 +22,7 @@ export default async function ShopLayout({ children, params }: Readonly<{ childr
       </main>
       <Footer />
       <FloatingChat />
+      <IntentPrefetch />
     </div>
   );
 }

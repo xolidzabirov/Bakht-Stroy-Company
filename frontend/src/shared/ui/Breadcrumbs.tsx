@@ -17,7 +17,7 @@ export async function Breadcrumbs({ items }: { items: Crumb[] }) {
           <li key={`${item.label}-${index}`} className="flex items-center gap-1.5">
             {index > 0 && <ChevronRight className="size-3.5 shrink-0" />}
             {item.href ? (
-              <Link href={item.href} className="hover:text-foreground">
+              <Link prefetch={false} href={item.href} className="hover:text-foreground">
                 {item.label}
               </Link>
             ) : (

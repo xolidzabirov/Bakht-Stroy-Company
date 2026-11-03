@@ -3,7 +3,7 @@
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Heading2, Heading3, Italic, Link2, Link2Off, List, ListOrdered, Quote, Redo2, Undo2 } from "lucide-react";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 
 /**
@@ -12,7 +12,7 @@ import { cn } from "@/shared/lib/cn";
  */
 /** `label` names the editable area for screen readers (a <label for> does not reach a contenteditable). */
 export function RichTextEditor({ value, onChange, id, invalid, label }: { value: string; onChange: (html: string) => void; id?: string; invalid?: boolean; label?: string }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const e = t.admin.news.editor;
 
   const editor = useEditor({

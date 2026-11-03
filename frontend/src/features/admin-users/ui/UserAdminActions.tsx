@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { bff } from "@/shared/api/client";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { Button } from "@/shared/ui";
 import {
   Dialog,
@@ -45,7 +45,7 @@ export function UserAdminActions({
   blocked: boolean;
   phone?: string | null;
 }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const u = t.admin.user;
   const router = useRouter();
   const [action, setAction] = useState<Action | null>(null);

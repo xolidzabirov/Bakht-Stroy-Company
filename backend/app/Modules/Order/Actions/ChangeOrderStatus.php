@@ -13,6 +13,7 @@ use App\Modules\Order\Exceptions\OrderNotPaidException;
 use App\Modules\Order\Models\Order;
 use App\Modules\Order\Models\OrderItem;
 use App\Modules\User\Models\User;
+use App\Shared\Support\PublicCache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -61,5 +62,7 @@ final class ChangeOrderStatus
         $order->items()->whereNotNull('product_id')->get()->each(
             fn (OrderItem $item) => Product::withTrashed()->whereKey($item->product_id)->toBase()->increment('stock', $item->quantity),
         );
+
+        PublicCache::flush();
     }
 }

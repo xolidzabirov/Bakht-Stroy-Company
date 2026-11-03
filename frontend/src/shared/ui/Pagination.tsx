@@ -35,7 +35,7 @@ export async function Pagination({ page, lastPage, href }: Props) {
   return (
     <nav aria-label={t.common.pages} className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 && (
-        <Link href={href(page - 1)} aria-label={t.common.prevPage} className={cn(item, "border border-border hover:border-foreground/40")}>
+        <Link prefetch={false} href={href(page - 1)} aria-label={t.common.prevPage} className={cn(item, "border border-border hover:border-foreground/40")}>
           <ChevronLeft className="size-4" />
         </Link>
       )}
@@ -45,7 +45,7 @@ export async function Pagination({ page, lastPage, href }: Props) {
             …
           </span>
         ) : (
-          <Link
+          <Link prefetch={false}
             key={value}
             href={href(value)}
             aria-current={value === page ? "page" : undefined}
@@ -56,7 +56,7 @@ export async function Pagination({ page, lastPage, href }: Props) {
         ),
       )}
       {page < lastPage && (
-        <Link href={href(page + 1)} aria-label={t.common.nextPage} className={cn(item, "border border-border hover:border-foreground/40")}>
+        <Link prefetch={false} href={href(page + 1)} aria-label={t.common.nextPage} className={cn(item, "border border-border hover:border-foreground/40")}>
           <ChevronRight className="size-4" />
         </Link>
       )}

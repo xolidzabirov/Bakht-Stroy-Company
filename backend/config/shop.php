@@ -51,6 +51,12 @@ return [
     'catalog_cache_ttl' => (int) env('CATALOG_CACHE_TTL', 600),
 
     /*
+    | How long public answers (products, banners, news) are kept, in seconds; 0 turns it off.
+    | They are also dropped on every change (App\Shared\Support\PublicCache).
+    */
+    'public_cache_ttl' => (int) env('PUBLIC_CACHE_TTL', 900),
+
+    /*
     | Products with stock at or below this value are shown as "low stock" to admins.
     */
     'low_stock_threshold' => (int) env('LOW_STOCK_THRESHOLD', 10),

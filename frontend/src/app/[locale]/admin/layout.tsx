@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { getCurrentUser } from "@/shared/api/session";
 import { routes } from "@/shared/config/site";
+import { I18nProvider } from "@/shared/i18n/client";
 import { SkipLink } from "@/shared/ui/SkipLink";
 import { getI18n } from "@/shared/i18n/server";
 import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
@@ -25,11 +26,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * Customers who open /admin go to their account.
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [user, { t }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
+  const [user, { t, locale }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
   const admin = isAdmin(user);
   const shell = { name: user.name, isAdmin: admin };
 
   return (
+    <I18nProvider locale={locale} dictionary={t}>
     <div className="admin-ui flex h-dvh bg-background">
       <AdminScope />
       <SkipLink />
@@ -64,5 +66,6 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
         </main>
       </div>
     </div>
+    </I18nProvider>
   );
 }

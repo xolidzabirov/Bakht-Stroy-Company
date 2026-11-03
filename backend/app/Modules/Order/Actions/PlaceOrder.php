@@ -15,6 +15,7 @@ use App\Modules\Order\Exceptions\CartHasProblemsException;
 use App\Modules\Order\Models\Order;
 use App\Modules\Order\Support\DeliveryPrice;
 use App\Modules\User\Models\User;
+use App\Shared\Support\PublicCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -80,6 +81,8 @@ final class PlaceOrder
 
             return $order;
         });
+
+        PublicCache::flush(); // The stock has changed.
 
         OrderPlaced::dispatch($order);
 

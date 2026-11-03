@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import type { Image as ProductImage } from "@/shared/api/types";
 import { useI18n } from "@/shared/i18n/client";
@@ -19,7 +18,18 @@ export function ProductGallery({ images, name, badges }: { images: ProductImage[
     <div>
       <div className="relative aspect-square overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface-muted">
         {current ? (
-          <Image src={current.full} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- ready WebP sizes from the backend: a phone takes the smaller one */}
+            <img
+              src={current.full}
+              srcSet={`${current.card} 600w, ${current.full} 1600w`}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              alt={name}
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 size-full object-cover"
+            />
+          </>
         ) : (
           <span className="grid size-full place-items-center text-muted-foreground">{t.product.noPhoto}</span>
         )}
@@ -39,7 +49,10 @@ export function ProductGallery({ images, name, badges }: { images: ProductImage[
                 index === active ? "border-brand" : "border-transparent opacity-70 hover:opacity-100",
               )}
             >
-              <Image src={image.thumb} alt="" fill sizes="96px" className="object-cover" />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- ready WebP size from the backend */}
+                <img src={image.thumb} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+              </>
             </button>
           ))}
         </div>

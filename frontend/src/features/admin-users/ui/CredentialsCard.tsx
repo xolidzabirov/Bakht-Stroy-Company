@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Check, Copy, KeyRound, MessageCircle } from "lucide-react";
 import { env } from "@/shared/config/env";
 import { routes } from "@/shared/config/site";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { Button, buttonClasses } from "@/shared/ui";
 
@@ -15,7 +15,7 @@ export type Credentials = { login: string; password: string };
  * copy a ready message, or send it straight to the person's WhatsApp.
  */
 export function CredentialsCard({ credentials, phone }: { credentials: Credentials; phone?: string | null }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const c = t.admin.credentials;
   const [copied, setCopied] = useState<string | null>(null);
   const message = fmt(c.message, { url: `${env.siteUrl}${routes.login}`, login: credentials.login, password: credentials.password });

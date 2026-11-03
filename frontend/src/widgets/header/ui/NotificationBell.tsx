@@ -139,7 +139,7 @@ export function NotificationBell({ className }: { className?: string }) {
                 const fresh = item.published_at !== null && Date.parse(item.published_at) > seen;
 
                 return (
-                  <Link onClick={() => setOpen(false)} key={item.id} href={routes.newsItem(item.slug)} className="flex gap-3 rounded-xl p-2 transition hover:bg-muted">
+                  <Link prefetch={false} onClick={() => setOpen(false)} key={item.id} href={routes.newsItem(item.slug)} className="flex gap-3 rounded-xl p-2 transition hover:bg-muted">
                     {item.cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.cover.thumb} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
@@ -164,7 +164,7 @@ export function NotificationBell({ className }: { className?: string }) {
             <div className="grid place-items-center px-4 py-8 text-center">
               <MessageCircle className="size-8 text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">{n.loginHint}</p>
-              <Link onClick={() => setOpen(false)} href={routes.login} className="mt-3 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-brand-hover">
+              <Link prefetch={false} onClick={() => setOpen(false)} href={routes.login} className="mt-3 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-brand-hover">
                 {t.header.login}
               </Link>
             </div>
@@ -172,7 +172,7 @@ export function NotificationBell({ className }: { className?: string }) {
             <Empty text={n.emptyMessages} />
           ) : (
             notices.data.map((item) => (
-              <Link
+              <Link prefetch={false}
                 key={item.id}
                 href={item.order_number ? routes.accountOrder(item.order_number) : routes.accountNotifications}
                 onClick={() => {
@@ -192,7 +192,7 @@ export function NotificationBell({ className }: { className?: string }) {
           )}
         </div>
 
-        <Link
+        <Link prefetch={false}
           onClick={() => setOpen(false)}
           href={tab === "news" ? routes.news : signedIn ? routes.accountNotifications : routes.login}
           className="block border-t border-border px-4 py-3 text-center text-sm font-semibold transition hover:bg-muted"

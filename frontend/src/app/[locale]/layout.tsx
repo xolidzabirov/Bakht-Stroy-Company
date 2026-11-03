@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { env } from "@/shared/config/env";
 import { site } from "@/shared/config/site";
+import { forBrowser } from "@/shared/i18n/browserDictionary";
 import { locales, THEME_COOKIE } from "@/shared/i18n/config";
 import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
 import "@/shared/ui/styles/globals.css";
@@ -69,7 +70,7 @@ export default async function RootLayout({ children, params }: Props) {
         {process.env.NODE_ENV === "development" && <script dangerouslySetInnerHTML={{ __html: extensionNoiseScript }} />}
       </head>
       <body className="min-h-dvh">
-        <Providers locale={locale} dictionary={t}>
+        <Providers locale={locale} dictionary={forBrowser(t)}>
           {children}
         </Providers>
       </body>

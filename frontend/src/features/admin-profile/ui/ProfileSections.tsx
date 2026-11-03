@@ -14,7 +14,7 @@ import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Session } from "@/shared/api/types";
 import { localeNames, locales, type Locale, type Theme, themes } from "@/shared/i18n/config";
-import { useI18n } from "@/shared/i18n/client";
+import { useAdminI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { formatDate, formatPhone } from "@/shared/lib/format";
@@ -58,7 +58,7 @@ function useReturnFocus(open: boolean) {
 /* ---------- Name and phone ---------- */
 
 export function PersonalSection({ name, phone, phoneVerified }: { name: string; phone: string | null; phoneVerified: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
   const router = useRouter();
@@ -171,7 +171,7 @@ export function PersonalSection({ name, phone, phoneVerified }: { name: string; 
 type SignInEditing = "email" | "password" | null;
 
 export function SignInSection({ email, emailVerified }: { email: string; emailVerified: boolean }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.profile;
   const [editing, setEditing] = useState<SignInEditing>(null);
   const emailButton = useReturnFocus(editing === "email");
@@ -226,7 +226,7 @@ function RowButton({ label, onClick, buttonRef }: { label: string; onClick: () =
 
 /** New email → a code to that address → the code and the current password. */
 function EmailEditor({ email, onDone }: { email: string; onDone: () => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
   const router = useRouter();
@@ -331,7 +331,7 @@ function EmailEditor({ email, onDone }: { email: string; onDone: () => void }) {
 }
 
 function PasswordEditor({ email, onDone }: { email: string; onDone: () => void }) {
-  const { t } = useI18n();
+  const { t } = useAdminI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
   const router = useRouter();
@@ -450,7 +450,7 @@ function Segmented<T extends string>({ name, legend, value, options, onChange }:
 const noop = () => () => {};
 
 export function AppearanceSection() {
-  const { t, locale } = useI18n();
+  const { t, locale } = useAdminI18n();
   const p = t.admin.profile;
   // The saved theme lives in a cookie: read in the browser only (the server does not know it).
   const savedTheme = useSyncExternalStore(noop, readTheme, () => null);
@@ -491,7 +491,7 @@ const PREVIEW = 4;
 const isPhone = (device: string) => /android|iphone|ipad|mobile/i.test(device);
 
 export function SessionsSection({ sessions }: { sessions: Session[] }) {
-  const { t, locale } = useI18n();
+  const { t, locale } = useAdminI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
   const router = useRouter();

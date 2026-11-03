@@ -51,7 +51,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
           <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
             {categories.map((category) => (
               <li key={category.id}>
-                <Link
+                <Link prefetch={false}
                   href={routes.category(category.slug)}
                   onClick={() => setOpen(false)}
                   className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-brand-soft"
@@ -67,7 +67,7 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
               </li>
             ))}
           </ul>
-          <Link
+          <Link prefetch={false}
             href={routes.catalog}
             onClick={() => setOpen(false)}
             className="mt-3 flex items-center justify-between rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-white"
