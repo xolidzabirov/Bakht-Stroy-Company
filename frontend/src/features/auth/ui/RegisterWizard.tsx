@@ -5,39 +5,43 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, Check, LoaderCircle, Lock, RotateCw, Send, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, ArrowRight, Check, LoaderCircle, Lock, Mail, RotateCw, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
-import { formatPhone } from "@/shared/lib/format";
 import { Button, Field, FormAlert, PasswordInput, TextInput } from "@/shared/ui";
 import { OtpInput } from "@/shared/ui/OtpInput";
 import { PhoneInput } from "@/shared/ui/PhoneInput";
-import { type RegAccountValues, type RegNameValues, type RegPhoneValues, createAuthSchemas } from "../model/schemas";
+import { type EmailStepValues, type RegNameValues, type RegPasswordValues, type RegPhoneValues, createAuthSchemas } from "../model/schemas";
 import { PasswordStrength } from "./PasswordStrength";
 import { secondsFromMessage, useCountdown } from "./useCountdown";
 
-const TOTAL = 4;
+const TOTAL = 5;
 
 type Countdown = ReturnType<typeof useCountdown>;
 
-/** delivered — the code is already in Telegram; otherwise the person opens the bot (botLink) and shares the number. */
-type Delivery = { delivered: boolean; botLink: string | null };
+/** Sends the code to the address. `devCode` — only in local development, where the mail goes to the log. */
+async function sendEmailCode(email: string): Promise<string | null> {
+  const { data } = await bff<{ data: { dev_code: string | null } }>("/api/proxy/auth/register/email", { body: { email } });
+
+  return data.dev_code;
+}
 
 /**
- * Registration in 4 steps (like a phone setup wizard):
- * 1) first and last name — 2) Tajik phone → code to its Telegram — 3) the code → a pass for 30 min —
- * 4) email and password → the account is created and signed in.
+ * Registration in 5 steps: 1) first and last name — 2) Tajik phone — 3) email, a code goes there —
+ * 4) the 6-digit code from the letter — 5) password twice → the account is created and signed in.
  */
 export function RegisterWizard({ next }: { next: string }) {
   const { t } = useI18n();
   const [step, setStep] = useState(1);
   const [name, setName] = useState<RegNameValues>({ first_name: "", last_name: "" });
   const [phone, setPhone] = useState("");
-  const [delivery, setDelivery] = useState<Delivery>({ delivered: true, botLink: null });
+  const [email, setEmail] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [ticket, setTicket] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const countdown = useCountdown();
@@ -50,12 +54,14 @@ export function RegisterWizard({ next }: { next: string }) {
   return (
     <div>
       <div className="mb-8">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: TOTAL }, (_, i) => (
             <span key={i} className={cn("h-1.5 rounded-full transition-colors duration-500", i < step ? "bg-primary" : "bg-border")} />
           ))}
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">{fmt(t.reg.stepOf, { n: step, total: TOTAL })}</p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          {fmt(t.reg.stepOf, { n: step, total: TOTAL })}: <span className="font-medium text-foreground">{t.reg.steps[step - 1]}</span>
+        </p>
       </div>
 
       {notice && (
@@ -78,38 +84,49 @@ export function RegisterWizard({ next }: { next: string }) {
         {step === 2 && (
           <PhoneStep
             initial={phone}
-            countdown={countdown}
             onBack={() => go(1)}
-            onSent={(digits, sent) => {
+            onDone={(digits) => {
               setPhone(digits);
-              if (sent) setDelivery(sent);
               go(3);
             }}
           />
         )}
         {step === 3 && (
-          <CodeStep
-            phone={phone}
-            delivery={delivery}
-            onResent={setDelivery}
+          <EmailStep
+            initial={email}
             countdown={countdown}
-            onChange={() => go(2)}
-            onConfirmed={(token) => {
-              setTicket(token);
+            onBack={() => go(2)}
+            onSent={(address, code) => {
+              setEmail(address);
+              setDevCode(code);
               go(4);
             }}
           />
         )}
-        {step === 4 && ticket && (
-          <AccountStep
+        {step === 4 && (
+          <CodeStep
+            email={email}
+            devCode={devCode}
+            onResent={setDevCode}
+            countdown={countdown}
+            onChange={() => go(3)}
+            onConfirmed={(token) => {
+              setTicket(token);
+              go(5);
+            }}
+          />
+        )}
+        {step === 5 && ticket && (
+          <PasswordStep
             name={name}
             phone={phone}
+            email={email}
             ticket={ticket}
             next={next}
             onBack={() => go(3)}
             onExpired={() => {
               setTicket(null);
-              setStep(2);
+              setStep(3);
               setNotice(t.reg.expired);
             }}
           />
@@ -150,7 +167,6 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
     formState: { errors },
   } = useForm<RegNameValues>({ resolver: zodResolver(schema), defaultValues: initial });
 
-
   return (
     <form onSubmit={handleSubmit(onDone)} noValidate className="space-y-5">
       <StepHeader title={t.reg.step1Title} lead={t.reg.step1Lead} />
@@ -158,31 +174,15 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t.reg.firstName} error={errors.first_name?.message}>
           {(id, describedBy) => (
-            <TextInput
-              id={id}
-              autoComplete="given-name"
-              placeholder={t.reg.firstNamePlaceholder}
-              autoFocus
-              aria-invalid={Boolean(errors.first_name)}
-              aria-describedby={describedBy}
-              {...register("first_name")}
-            />
+            <TextInput id={id} autoComplete="given-name" placeholder={t.reg.firstNamePlaceholder} autoFocus aria-invalid={Boolean(errors.first_name)} aria-describedby={describedBy} {...register("first_name")} />
           )}
         </Field>
         <Field label={t.reg.lastName} error={errors.last_name?.message}>
           {(id, describedBy) => (
-            <TextInput
-              id={id}
-              autoComplete="family-name"
-              placeholder={t.reg.lastNamePlaceholder}
-              aria-invalid={Boolean(errors.last_name)}
-              aria-describedby={describedBy}
-              {...register("last_name")}
-            />
+            <TextInput id={id} autoComplete="family-name" placeholder={t.reg.lastNamePlaceholder} aria-invalid={Boolean(errors.last_name)} aria-describedby={describedBy} {...register("last_name")} />
           )}
         </Field>
       </div>
-
 
       <Button type="submit" size="lg" className="w-full">
         {t.reg.next}
@@ -201,15 +201,7 @@ function NameStep({ initial, next, onDone }: { initial: RegNameValues; next: str
 
 /* ---------- 2. Phone ---------- */
 
-async function sendPhoneCode(digits: string): Promise<Delivery> {
-  const response = await bff<{ data: { delivered: boolean; bot_link: string | null } }>("/api/proxy/auth/register/phone", {
-    body: { phone: `+992${digits}` },
-  });
-
-  return { delivered: response.data.delivered, botLink: response.data.bot_link };
-}
-
-function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; countdown: Countdown; onBack: () => void; onSent: (digits: string, delivery?: Delivery) => void }) {
+function PhoneStep({ initial, onBack, onDone }: { initial: string; onBack: () => void; onDone: (digits: string) => void }) {
   const { t } = useI18n();
   const [formError, setFormError] = useState<string | null>(null);
   const schema = useMemo(() => createAuthSchemas(t).regPhone, [t]);
@@ -224,20 +216,10 @@ function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; co
     setFormError(null);
 
     try {
-      const sent = await sendPhoneCode(phone);
-      countdown.start();
-      onSent(phone, sent);
+      // A real number that is not taken yet — better to say it now than on the last step.
+      await bff("/api/proxy/auth/register/phone", { body: { phone: `+992${phone}` } });
+      onDone(phone);
     } catch (error) {
-      // A code went to this number a moment ago — go on and wait for it.
-      if (error instanceof ApiError && error.code === "CODE_RECENTLY_SENT") {
-        countdown.start(secondsFromMessage(error.message) ?? 60);
-        onSent(phone);
-        return;
-      }
-      if (error instanceof ApiError && error.code === "PHONE_NOT_ON_TELEGRAM") {
-        setError("phone", { type: "server", message: error.message });
-        return;
-      }
       setFormError(applyApiErrors(error, setError, ["phone"], t.errors));
     }
   });
@@ -253,23 +235,66 @@ function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; co
             control={control}
             name="phone"
             render={({ field }) => (
-              <PhoneInput
-                id={id}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                placeholder="93 123 45 67"
-                autoFocus
-                aria-invalid={Boolean(errors.phone)}
-                aria-describedby={describedBy}
-              />
+              <PhoneInput id={id} value={field.value} onChange={field.onChange} onBlur={field.onBlur} placeholder="93 123 45 67" autoFocus aria-invalid={Boolean(errors.phone)} aria-describedby={describedBy} />
             )}
           />
         )}
       </Field>
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : <Send className="size-5" />}
+        {t.reg.next}
+        {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : <ArrowRight className="size-5" />}
+      </Button>
+
+      <BackButton onClick={onBack} />
+    </form>
+  );
+}
+
+/* ---------- 3. Email ---------- */
+
+function EmailStep({ initial, countdown, onBack, onSent }: { initial: string; countdown: Countdown; onBack: () => void; onSent: (email: string, devCode: string | null) => void }) {
+  const { t } = useI18n();
+  const [formError, setFormError] = useState<string | null>(null);
+  const schema = useMemo(() => createAuthSchemas(t).emailStep, [t]);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<EmailStepValues>({ resolver: zodResolver(schema), defaultValues: { email: initial } });
+
+  const onSubmit = handleSubmit(async ({ email }) => {
+    setFormError(null);
+
+    try {
+      const code = await sendEmailCode(email);
+      countdown.start();
+      onSent(email, code);
+    } catch (error) {
+      // A code went to this address a moment ago — go on and wait for it.
+      if (error instanceof ApiError && error.code === "CODE_RECENTLY_SENT") {
+        countdown.start(secondsFromMessage(error.message) ?? 60);
+        onSent(email, null);
+        return;
+      }
+      setFormError(applyApiErrors(error, setError, ["email"], t.errors));
+    }
+  });
+
+  return (
+    <form onSubmit={onSubmit} noValidate className="space-y-5">
+      <StepHeader title={t.reg.step3Title} lead={t.reg.step3Lead} />
+      {formError && <FormAlert>{formError}</FormAlert>}
+
+      <Field label={t.auth.email} error={errors.email?.message}>
+        {(id, describedBy) => (
+          <TextInput id={id} type="email" autoComplete="email" inputMode="email" placeholder={t.auth.emailPlaceholder} autoFocus aria-invalid={Boolean(errors.email)} aria-describedby={describedBy} {...register("email")} />
+        )}
+      </Field>
+
+      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? <LoaderCircle className="size-5 animate-spin" /> : <Mail className="size-5" />}
         {t.reg.getCode}
       </Button>
 
@@ -278,19 +303,19 @@ function PhoneStep({ initial, countdown, onBack, onSent }: { initial: string; co
   );
 }
 
-/* ---------- 3. Code from Telegram ---------- */
+/* ---------- 4. Code from the letter ---------- */
 
 function CodeStep({
-  phone,
-  delivery,
+  email,
+  devCode,
   onResent,
   countdown,
   onChange,
   onConfirmed,
 }: {
-  phone: string;
-  delivery: Delivery;
-  onResent: (delivery: Delivery) => void;
+  email: string;
+  devCode: string | null;
+  onResent: (devCode: string | null) => void;
   countdown: Countdown;
   onChange: () => void;
   onConfirmed: (token: string) => void;
@@ -311,9 +336,7 @@ function CodeStep({
     setError(null);
 
     try {
-      const response = await bff<{ data: { registration_token: string } }>("/api/proxy/auth/register/phone/verify", {
-        body: { phone: `+992${phone}`, code: value },
-      });
+      const response = await bff<{ data: { registration_token: string } }>("/api/proxy/auth/register/email/verify", { body: { email, code: value } });
       onConfirmed(response.data.registration_token);
     } catch (failure) {
       setError(failure instanceof ApiError ? failure.message : t.errors.generic);
@@ -328,10 +351,9 @@ function CodeStep({
     setNotice(null);
 
     try {
-      const sent = await sendPhoneCode(phone);
-      onResent(sent);
+      onResent(await sendEmailCode(email));
       countdown.start();
-      if (sent.delivered) setNotice(t.reg.newCodeSent);
+      setNotice(t.reg.newCodeSent);
     } catch (failure) {
       if (failure instanceof ApiError && failure.code === "CODE_RECENTLY_SENT") countdown.start(secondsFromMessage(failure.message) ?? 60);
       setError(failure instanceof ApiError ? failure.message : t.errors.generic);
@@ -348,10 +370,10 @@ function CodeStep({
       className="space-y-5"
     >
       <StepHeader
-        title={t.reg.step3Title}
+        title={t.reg.step4Title}
         lead={
           <>
-            {fmt(t.reg.step3Lead, { phone: formatPhone(`+992${phone}`) })}{" "}
+            {fmt(t.reg.step4Lead, { email })}{" "}
             <button type="button" onClick={onChange} className="font-semibold text-foreground underline-offset-4 hover:underline">
               {t.reg.change}
             </button>
@@ -360,21 +382,12 @@ function CodeStep({
       />
 
       {notice && <FormAlert tone="success">{notice}</FormAlert>}
-
+      {devCode && <FormAlert tone="info">{fmt(t.reg.devCode, { code: devCode })}</FormAlert>}
 
       <OtpInput label={t.auth.code} value={code} onChange={setCode} onComplete={(value) => void verify(value)} invalid={Boolean(error)} disabled={pending} />
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
-        </p>
-      )}
-
-      {!delivery.delivered && delivery.botLink && (
-        <p className="text-sm text-muted-foreground">
-          {t.reg.botHint}{" "}
-          <a href={delivery.botLink} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#229ED9] hover:underline">
-            {t.reg.botHintLink}
-          </a>
         </p>
       )}
 
@@ -401,11 +414,12 @@ function CodeStep({
   );
 }
 
-/* ---------- 4. Email and password ---------- */
+/* ---------- 5. Password ---------- */
 
-function AccountStep({
+function PasswordStep({
   name,
   phone,
+  email,
   ticket,
   next,
   onBack,
@@ -413,6 +427,7 @@ function AccountStep({
 }: {
   name: RegNameValues;
   phone: string;
+  email: string;
   ticket: string;
   next: string;
   onBack: () => void;
@@ -421,21 +436,22 @@ function AccountStep({
   const { t } = useI18n();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const schema = useMemo(() => createAuthSchemas(t).regAccount, [t]);
+  const schema = useMemo(() => createAuthSchemas(t, email).regPassword, [t, email]);
   const {
     register,
     handleSubmit,
     setError,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<RegAccountValues>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", password_confirmation: "" } });
+  } = useForm<RegPasswordValues>({ resolver: zodResolver(schema), defaultValues: { password: "", password_confirmation: "" } });
   const password = useWatch({ control, name: "password" });
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
 
     try {
-      await bff("/api/auth/register", { body: { ...name, ...values, registration_token: ticket } });
+      await bff("/api/auth/register", { body: { ...name, ...values, phone: `+992${phone}`, registration_token: ticket } });
+      toast.success(fmt(t.reg.created, { name: name.first_name.trim() }));
       router.replace(next);
       router.refresh();
     } catch (error) {
@@ -443,59 +459,29 @@ function AccountStep({
         onExpired();
         return;
       }
-      const message = applyApiErrors(error, setError, ["email", "password", "password_confirmation"], t.errors);
-      // The number was taken by someone else meanwhile, or the name did not pass — show it on top.
-      setFormError(error instanceof ApiError && error.errors && !message ? Object.values(error.errors)[0]?.[0] ?? null : message);
+      const message = applyApiErrors(error, setError, ["password", "password_confirmation"], t.errors);
+      // The address or the number was taken by someone else meanwhile — show it on top.
+      setFormError(error instanceof ApiError && error.errors && !message ? (Object.entries(error.errors).find(([field]) => !field.startsWith("password"))?.[1][0] ?? null) : message);
     }
   });
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-5">
-      <StepHeader title={t.reg.step4Title} lead={fmt(t.reg.step4Lead, { phone: formatPhone(`+992${phone}`) })} />
+      <StepHeader title={t.reg.step5Title} lead={fmt(t.reg.step5Lead, { email })} />
       {formError && <FormAlert>{formError}</FormAlert>}
-
-      <Field label={t.auth.email} error={errors.email?.message}>
-        {(id, describedBy) => (
-          <TextInput
-            id={id}
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            placeholder={t.auth.emailPlaceholder}
-            autoFocus
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={describedBy}
-            {...register("email")}
-          />
-        )}
-      </Field>
 
       <Field label={t.auth.password} error={errors.password?.message}>
         {(id, describedBy) => (
           <>
-            <PasswordInput
-              id={id}
-              autoComplete="new-password"
-              placeholder={t.auth.newPasswordPlaceholder}
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={describedBy}
-              {...register("password")}
-            />
-            <PasswordStrength value={password} />
+            <PasswordInput id={id} autoComplete="new-password" placeholder={t.auth.newPasswordPlaceholder} autoFocus aria-invalid={Boolean(errors.password)} aria-describedby={describedBy} {...register("password")} />
+            <PasswordStrength value={password} email={email} />
           </>
         )}
       </Field>
 
       <Field label={t.auth.confirmPassword} error={errors.password_confirmation?.message}>
         {(id, describedBy) => (
-          <PasswordInput
-            id={id}
-            autoComplete="new-password"
-            placeholder={t.auth.confirmPlaceholder}
-            aria-invalid={Boolean(errors.password_confirmation)}
-            aria-describedby={describedBy}
-            {...register("password_confirmation")}
-          />
+          <PasswordInput id={id} autoComplete="new-password" placeholder={t.auth.confirmPlaceholder} aria-invalid={Boolean(errors.password_confirmation)} aria-describedby={describedBy} {...register("password_confirmation")} />
         )}
       </Field>
 

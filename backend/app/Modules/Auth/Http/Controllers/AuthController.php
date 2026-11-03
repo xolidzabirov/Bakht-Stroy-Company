@@ -7,17 +7,18 @@ namespace App\Modules\Auth\Http\Controllers;
 use App\Modules\Auth\Actions\LoginUser;
 use App\Modules\Auth\Actions\LogoutUser;
 use App\Modules\Auth\Actions\RegisterUser;
-use App\Modules\Auth\Actions\SendPhoneCode;
-use App\Modules\Auth\Actions\VerifyPhoneCode;
+use App\Modules\Auth\Actions\SendRegistrationCode;
+use App\Modules\Auth\Actions\VerifyRegistrationCode;
 use App\Modules\Auth\Exceptions\CodeRecentlySentException;
+use App\Modules\Auth\Exceptions\EmailNotDeliveredException;
 use App\Modules\Auth\Exceptions\InvalidCredentialsException;
 use App\Modules\Auth\Exceptions\InvalidVerificationCodeException;
-use App\Modules\Auth\Exceptions\PhoneNotOnTelegramException;
 use App\Modules\Auth\Exceptions\RegistrationExpiredException;
+use App\Modules\Auth\Http\Requests\CheckRegistrationPhoneRequest;
 use App\Modules\Auth\Http\Requests\LoginRequest;
 use App\Modules\Auth\Http\Requests\RegisterRequest;
-use App\Modules\Auth\Http\Requests\SendPhoneCodeRequest;
-use App\Modules\Auth\Http\Requests\VerifyPhoneCodeRequest;
+use App\Modules\Auth\Http\Requests\SendRegistrationCodeRequest;
+use App\Modules\Auth\Http\Requests\VerifyRegistrationCodeRequest;
 use App\Modules\Auth\Http\Resources\AuthTokenResource;
 use App\Modules\Auth\Support\RegistrationTicket;
 use App\Modules\Auth\Support\VerificationCodes;
@@ -34,39 +35,41 @@ use Illuminate\Http\Response;
 final class AuthController extends Controller
 {
     /**
-     * Регистрация — код в Telegram
+     * Регистрация — проверить телефон
      *
-     * Шаги регистрации: 1) имя, фамилия и «кто вы» — только на сайте; 2) этот запрос — номер +992,
-     * на его Telegram приходит 6-значный код; 3) POST /auth/register/phone/verify — код → пропуск;
-     * 4) POST /auth/register — email и пароль, аккаунт создан.
+     * Шаги регистрации: 1) имя и фамилия — на сайте; 2) этот запрос — номер +992 настоящий и свободен;
+     * 3) POST /auth/register/email — код на email; 4) POST /auth/register/email/verify — код → пропуск;
+     * 5) POST /auth/register — пароль, аккаунт создан и вход выполнен.
+     */
+    public function checkPhone(CheckRegistrationPhoneRequest $request): JsonResponse
+    {
+        return response()->json(['data' => [
+            /** @example +992931234567 */
+            'phone' => $request->string('phone')->toString(),
+        ]]);
+    }
+
+    /**
+     * Регистрация — код на email
      *
-     * Номер должен быть таджикским, настоящим, свободным и с Telegram. Повторно — не чаще раза в минуту.
-     * Локально (TELEGRAM_CODES_DRIVER=log) код пишется в storage/logs/laravel-<дата>.log.
+     * Отправляет 6-значный код на адрес, если он настоящий и свободен. Повторно — не чаще раза в минуту.
+     * Только при локальной разработке с почтой в лог ответ содержит и сам код (dev_code).
      *
      * @throws CodeRecentlySentException
-     * @throws PhoneNotOnTelegramException
+     * @throws EmailNotDeliveredException
      */
-    public function sendPhoneCode(SendPhoneCodeRequest $request, SendPhoneCode $sendCode): JsonResponse
+    public function sendEmailCode(SendRegistrationCodeRequest $request, SendRegistrationCode $sendCode): JsonResponse
     {
-        $phone = $request->string('phone')->toString();
-        $delivery = $sendCode->handle($phone);
+        $email = $request->string('email')->toString();
+        $code = $sendCode->handle($email);
 
         return response()->json([
             'data' => [
-                /** @example Код отправлен в Telegram. */
-                'message' => $delivery->delivered ? 'Код отправлен в Telegram.' : 'Откройте бота Bakht Stroy в Telegram и поделитесь номером — бот пришлёт код.',
-                /** @example +992931234567 */
-                'phone' => $phone,
-                /** true — код уже в Telegram; false — откройте bot_link и поделитесь номером, бот пришлёт код. */
-                'delivered' => $delivery->delivered,
-                /**
-                 * Ссылка на @BakhtStroyBot (когда номер ещё не связан с ботом).
-                 *
-                 * @example https://t.me/BakhtStroyBot?start=Ab12Cd34
-                 */
-                'bot_link' => $delivery->botLink,
+                /** @example client@gmail.com */
+                'email' => $email,
                 /** @example 15 */
                 'expires_in_minutes' => VerificationCodes::ttlMinutes(),
+                'dev_code' => app()->isLocal() && config('mail.default') === 'log' ? $code : null,
             ],
         ], 202);
     }
@@ -74,14 +77,14 @@ final class AuthController extends Controller
     /**
      * Регистрация — проверить код
      *
-     * Верный код из Telegram подтверждает номер и даёт пропуск (registration_token) на последний шаг.
+     * Верный код из письма подтверждает email и даёт пропуск (registration_token) на последний шаг.
      * Пропуск действует 30 минут. После 5 неверных попыток код сгорает — запросите новый.
      *
      * @throws InvalidVerificationCodeException
      */
-    public function verifyPhone(VerifyPhoneCodeRequest $request, VerifyPhoneCode $verify): JsonResponse
+    public function verifyEmail(VerifyRegistrationCodeRequest $request, VerifyRegistrationCode $verify): JsonResponse
     {
-        $token = $verify->handle($request->string('phone')->toString(), $request->string('code')->toString());
+        $token = $verify->handle($request->string('email')->toString(), $request->string('code')->toString());
 
         return response()->json([
             'data' => [
@@ -95,8 +98,8 @@ final class AuthController extends Controller
     /**
      * Регистрация — создать аккаунт
      *
-     * Последний шаг: пропуск из шага с кодом, имя, фамилия, «кто вы», email и пароль.
-     * Создаёт аккаунт покупателя (роль client) с подтверждённым телефоном и сразу возвращает токен.
+     * Последний шаг: пропуск из шага с кодом, имя, фамилия, телефон и пароль.
+     * Создаёт аккаунт покупателя (роль client) с подтверждённым email и сразу возвращает токен.
      *
      * @throws RegistrationExpiredException
      */

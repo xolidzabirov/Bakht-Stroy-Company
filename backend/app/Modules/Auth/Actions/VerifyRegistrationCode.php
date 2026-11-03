@@ -9,23 +9,23 @@ use App\Modules\Auth\Support\RegistrationTicket;
 use App\Modules\Auth\Support\VerificationCodes;
 
 /**
- * Registration, code step: a right code from Telegram gives a pass for the last step (30 minutes).
+ * Registration, code step: the right code from the email gives a pass for the last step (30 minutes).
  */
-final class VerifyPhoneCode
+final class VerifyRegistrationCode
 {
     /**
      * @throws InvalidVerificationCodeException
      */
-    public function handle(string $phone, string $code): string
+    public function handle(string $email, string $code): string
     {
-        $codes = VerificationCodes::phoneOwnership();
+        $codes = VerificationCodes::emailOwnership();
 
-        if (! $codes->check($phone, $code)) {
+        if (! $codes->check($email, $code)) {
             throw new InvalidVerificationCodeException;
         }
 
-        $codes->forget($phone);
+        $codes->forget($email);
 
-        return RegistrationTicket::issue($phone);
+        return RegistrationTicket::issue($email);
     }
 }

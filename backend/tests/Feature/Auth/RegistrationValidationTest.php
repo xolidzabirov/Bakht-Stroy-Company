@@ -8,10 +8,10 @@ use App\Modules\Auth\Support\RegistrationTicket;
 function registrationAttempt(object $test, array $overrides)
 {
     return $test->postJson('/api/v1/auth/register', array_merge([
-        'registration_token' => RegistrationTicket::issue('+992931234567'),
+        'registration_token' => RegistrationTicket::issue('new.client@gmail.com'),
         'first_name' => 'Новый',
         'last_name' => 'Покупатель',
-        'email' => 'new.client@gmail.com',
+        'phone' => '+992931234567',
         'password' => 'Stroy2026!',
         'password_confirmation' => 'Stroy2026!',
     ], $overrides));

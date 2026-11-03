@@ -49,11 +49,14 @@ final class AuthServiceProvider extends ModuleServiceProvider
 
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
 
-        // Telegram codes cost money: at most 10 per hour from one IP and 5 per hour for one number
-        // (plus 1 per minute per number in the action).
+        // Is this number free? Answers about registered numbers, so not too often.
+        RateLimiter::for('register-phone', fn (Request $request) => Limit::perMinutes(10, 20)->by($request->ip()));
+
+        // Emails with codes: at most 10 per hour from one IP and 5 per hour for one address
+        // (plus 1 per minute per address in the action).
         RateLimiter::for('register-code', fn (Request $request) => [
             Limit::perHour(10)->by($request->ip()),
-            Limit::perHour(5)->by('phone|'.preg_replace('/\D+/', '', (string) $request->input('phone'))),
+            Limit::perHour(5)->by('email|'.Str::lower(trim((string) $request->input('email')))),
         ]);
 
         // Checking a code: 10 tries per 10 minutes per IP (each code allows only a few wrong tries anyway).

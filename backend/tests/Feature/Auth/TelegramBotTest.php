@@ -1,9 +1,11 @@
 <?php
 
 use App\Modules\Auth\Actions\HandleTelegramUpdate;
+use App\Modules\Auth\Actions\SendPhoneCode;
 use App\Modules\Auth\Contracts\PhoneCodeSender;
 use App\Modules\Auth\Support\BotPhoneCodeSender;
 use App\Modules\Auth\Support\TelegramBot;
+use App\Modules\Auth\Support\VerificationCodes;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -35,21 +37,19 @@ function sentToTelegram(string $method, ?Closure $check = null): bool
 it('sends the code straight to the chat of a number known to the bot', function () {
     DB::table('telegram_chats')->insert(['phone' => '+992931234567', 'chat_id' => 777, 'telegram_user_id' => 555, 'created_at' => now(), 'updated_at' => now()]);
 
-    $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
-        ->assertAccepted()
-        ->assertJsonPath('data.delivered', true)
-        ->assertJsonPath('data.bot_link', null);
+    $delivery = app(SendPhoneCode::class)->handle('+992931234567');
+
+    expect($delivery->delivered)->toBeTrue()->and($delivery->botLink)->toBeNull();
 
     expect(sentToTelegram('sendMessage', fn (Request $r) => $r['chat_id'] === 777 && preg_match('/<b>\d{6}<\/b>/', $r['text']) === 1))->toBeTrue();
 });
 
 it('asks to open the bot for a new number and sends the code after the person shares it', function () {
-    $response = $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
-        ->assertAccepted()
-        ->assertJsonPath('data.delivered', false);
+    $delivery = app(SendPhoneCode::class)->handle('+992931234567');
 
-    $link = $response->json('data.bot_link');
-    expect($link)->toStartWith('https://t.me/BakhtStroyBot?start=')
+    $link = (string) $delivery->botLink;
+    expect($delivery->delivered)->toBeFalse()
+        ->and($link)->toStartWith('https://t.me/BakhtStroyBot?start=')
         ->and(sentToTelegram('sendMessage'))->toBeFalse();
 
     $handle = app(HandleTelegramUpdate::class);
@@ -65,11 +65,11 @@ it('asks to open the bot for a new number and sends the code after the person sh
     expect(DB::table('telegram_chats')->where('phone', '+992931234567')->value('chat_id'))->toBe(777)
         ->and(sentToTelegram('sendMessage', fn (Request $r) => preg_match('/<b>(\d{6})<\/b>/', $r['text']) === 1))->toBeTrue();
 
-    // That code confirms the number on the site.
+    // That code confirms the number.
     $sent = Http::recorded(fn (Request $r) => preg_match('/<b>\d{6}<\/b>/', (string) ($r['text'] ?? '')) === 1)->first()[0];
     preg_match('/<b>(\d{6})<\/b>/', $sent['text'], $match);
 
-    $this->postJson('/api/v1/auth/register/phone/verify', ['phone' => '+992931234567', 'code' => $match[1]])->assertOk();
+    expect(VerificationCodes::phoneOwnership()->check('+992931234567', $match[1]))->toBeTrue();
 });
 
 it('sends a new number straight through Telegram Gateway when its token is set', function () {
@@ -80,10 +80,9 @@ it('sends a new number straight through Telegram Gateway when its token is set',
         'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
     ]);
 
-    $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
-        ->assertAccepted()
-        ->assertJsonPath('data.delivered', true)
-        ->assertJsonPath('data.bot_link', null);
+    $delivery = app(SendPhoneCode::class)->handle('+992931234567');
+
+    expect($delivery->delivered)->toBeTrue()->and($delivery->botLink)->toBeNull();
 
     expect(sentToTelegram('sendVerificationMessage', fn (Request $r) => $r['phone_number'] === '+992931234567'))->toBeTrue()
         ->and(sentToTelegram('sendMessage'))->toBeFalse();
@@ -96,10 +95,9 @@ it('falls back to the bot link when Telegram Gateway has no money', function () 
         'https://api.telegram.org/*' => Http::response(['ok' => true, 'result' => true]),
     ]);
 
-    $this->postJson('/api/v1/auth/register/phone', ['phone' => '+992931234567'])
-        ->assertAccepted()
-        ->assertJsonPath('data.delivered', false)
-        ->assertJsonPath('data.bot_link', fn (string $link) => str_starts_with($link, 'https://t.me/BakhtStroyBot?start='));
+    $delivery = app(SendPhoneCode::class)->handle('+992931234567');
+
+    expect($delivery->delivered)->toBeFalse()->and($delivery->botLink)->toStartWith('https://t.me/BakhtStroyBot?start=');
 });
 
 it('does not accept someone else\'s contact card', function () {

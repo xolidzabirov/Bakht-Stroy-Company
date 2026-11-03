@@ -9,9 +9,9 @@ final readonly class RegisterData
     public function __construct(
         public string $firstName,
         public string $lastName,
-        /** Pass from the phone step (RegistrationTicket). */
+        /** Pass from the email code step (RegistrationTicket). */
         public string $registrationToken,
-        public string $email,
+        public string $phone,
         public string $password,
         public string $deviceName,
     ) {}

@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('telegram/webhook', TelegramWebhookController::class)->name('telegram.webhook');
 
 Route::prefix('auth')->name('auth.')->group(function () {
-    Route::post('register/phone', [AuthController::class, 'sendPhoneCode'])->middleware('throttle:register-code')->name('register.phone');
-    Route::post('register/phone/verify', [AuthController::class, 'verifyPhone'])->middleware('throttle:register-verify')->name('register.phone.verify');
+    Route::post('register/phone', [AuthController::class, 'checkPhone'])->middleware('throttle:register-phone')->name('register.phone');
+    Route::post('register/email', [AuthController::class, 'sendEmailCode'])->middleware('throttle:register-code')->name('register.email');
+    Route::post('register/email/verify', [AuthController::class, 'verifyEmail'])->middleware('throttle:register-verify')->name('register.email.verify');
     Route::post('register', [AuthController::class, 'register'])->middleware('throttle:register')->name('register');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
 

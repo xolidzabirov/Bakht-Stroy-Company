@@ -7,7 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getI18n()).t.meta.register, robots: { index: false } };
 }
 
-/** Registration wizard: name → phone (+992) → code from Telegram → email and password. */
+/** Registration wizard: name → phone (+992) → email → code from the letter → password. */
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
 

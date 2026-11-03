@@ -6,7 +6,7 @@ namespace App\Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class SendPhoneCodeRequest extends FormRequest
+final class CheckRegistrationPhoneRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
@@ -20,7 +20,7 @@ final class SendPhoneCodeRequest extends FormRequest
     {
         return [
             /**
-             * Таджикский номер с Telegram: +992 и 9 цифр (или только 9 цифр). Код придёт в Telegram этого номера.
+             * Таджикский номер: +992 и 9 цифр (или только 9 цифр).
              *
              * @example +992931234567
              */

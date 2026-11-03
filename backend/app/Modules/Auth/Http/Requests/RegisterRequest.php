@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Http\Requests;
 
 use App\Modules\Auth\DTO\RegisterData;
+use App\Modules\Auth\Support\RegistrationTicket;
 use App\Shared\Rules\NotCommonPassword;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,7 +15,7 @@ final class RegisterRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        $this->merge(['email' => EmailRules::normalize($this->input('email'))]);
+        RegistrationPhone::prepare($this);
     }
 
     /**
@@ -24,7 +25,7 @@ final class RegisterRequest extends FormRequest
     {
         return [
             /**
-             * Пропуск из шага с кодом (POST /auth/register/phone/verify), действует 30 минут.
+             * Пропуск из шага с кодом (POST /auth/register/email/verify), действует 30 минут.
              */
             'registration_token' => ['required', 'string', 'max:2000'],
             /** @example Фирдавс */
@@ -32,17 +33,17 @@ final class RegisterRequest extends FormRequest
             /** @example Рахимов */
             'last_name' => ['required', 'string', 'min:2', 'max:50'],
             /**
-             * Email для входа и чеков. Без кода — номер уже подтверждён в Telegram.
+             * Таджикский номер: по нему менеджер связывается по заказам.
              *
-             * @example client@gmail.com
+             * @example +992931234567
              */
-            'email' => EmailRules::newAccount(),
+            'phone' => RegistrationPhone::rules($this),
             /**
              * Не короче 8 символов, буквы и цифры; символы (!, #, ?) — ещё надёжнее.
              *
              * @example Stroy2026!
              */
-            'password' => ['required', 'string', 'max:100', 'confirmed', Password::defaults(), new NotCommonPassword($this->input('email'))],
+            'password' => ['required', 'string', 'max:100', 'confirmed', Password::defaults(), new NotCommonPassword(RegistrationTicket::email($this->string('registration_token')->toString()))],
             /** @example Stroy2026! */
             'password_confirmation' => ['required', 'string'],
             /**
@@ -59,7 +60,7 @@ final class RegisterRequest extends FormRequest
      */
     public function messages(): array
     {
-        return EmailRules::messages();
+        return RegistrationPhone::messages();
     }
 
     /**
@@ -76,7 +77,7 @@ final class RegisterRequest extends FormRequest
             firstName: trim($this->string('first_name')->toString()),
             lastName: trim($this->string('last_name')->toString()),
             registrationToken: $this->string('registration_token')->toString(),
-            email: $this->string('email')->toString(),
+            phone: $this->string('phone')->toString(),
             password: $this->string('password')->toString(),
             deviceName: DeviceName::from($this),
         );

@@ -3,7 +3,7 @@ import { callBackend, deviceName, relay, unavailable, withSession } from "@/shar
 
 /**
  * POST /api/auth/register — last step of the wizard:
- * { registration_token, first_name, last_name, customer_type, email, password, password_confirmation }
+ * { registration_token, first_name, last_name, phone, password, password_confirmation }
  * → account created and signed in right away (token in the httpOnly cookie).
  */
 export async function POST(request: NextRequest) {
@@ -16,8 +16,7 @@ export async function POST(request: NextRequest) {
         registration_token: input.registration_token,
         first_name: input.first_name,
         last_name: input.last_name,
-        customer_type: input.customer_type,
-        email: input.email,
+        phone: input.phone,
         password: input.password,
         password_confirmation: input.password_confirmation,
         device_name: deviceName(request),

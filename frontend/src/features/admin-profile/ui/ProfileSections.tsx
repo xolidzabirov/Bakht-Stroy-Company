@@ -195,7 +195,7 @@ export function SignInSection({ email, emailVerified }: { email: string; emailVe
 
       {editing === "password" ? (
         <div className="border-t border-border">
-          <PasswordEditor onDone={() => setEditing(null)} />
+          <PasswordEditor email={email} onDone={() => setEditing(null)} />
         </div>
       ) : (
         <div className={cn(editing !== "email" && "border-t border-border")}>
@@ -330,7 +330,7 @@ function EmailEditor({ email, onDone }: { email: string; onDone: () => void }) {
   );
 }
 
-function PasswordEditor({ onDone }: { onDone: () => void }) {
+function PasswordEditor({ email, onDone }: { email: string; onDone: () => void }) {
   const { t } = useI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
@@ -339,9 +339,9 @@ function PasswordEditor({ onDone }: { onDone: () => void }) {
   const schema = useMemo(
     () =>
       z
-        .object({ current_password: z.string().min(1, t.auth.validation.passwordRequired), password: newPasswordSchema(t), password_confirmation: z.string() })
+        .object({ current_password: z.string().min(1, t.auth.validation.passwordRequired), password: newPasswordSchema(t, email), password_confirmation: z.string() })
         .refine((data) => data.password === data.password_confirmation, { path: ["password_confirmation"], message: t.auth.validation.mismatch }),
-    [t],
+    [t, email],
   );
   const {
     register,
@@ -396,7 +396,7 @@ function PasswordEditor({ onDone }: { onDone: () => void }) {
               aria-describedby={errors.password ? "profile-new-password-error" : undefined}
               {...register("password")}
             />
-            <PasswordStrength value={password} />
+            <PasswordStrength value={password} email={email} />
             <FieldError id="profile-new-password-error" message={errors.password?.message} />
           </SettingRow>
           <SettingRow label={p.confirmPassword} htmlFor="profile-confirm-password">

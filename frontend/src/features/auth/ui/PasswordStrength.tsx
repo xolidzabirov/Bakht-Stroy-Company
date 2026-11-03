@@ -3,19 +3,21 @@
 import { Check } from "lucide-react";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
-import { passwordRules } from "../model/schemas";
+import { containsEmail, passwordRules } from "../model/schemas";
 
 const colors = ["bg-border", "bg-danger", "bg-amber-500", "bg-brand", "bg-success"];
 
 /**
  * Soft password meter: a bar and a checklist that turns green as you type — no red errors while typing.
+ * With the email known, a password built from it never looks strong: the server would refuse it.
  */
-export function PasswordStrength({ value }: { value: string }) {
+export function PasswordStrength({ value, email }: { value: string; email?: string | null }) {
   const { t } = useI18n();
   const passed = passwordRules.map((rule) => rule.test(value));
   // Length, letters, digits give up to 3; a symbol or 12+ characters adds the 4th. Shorter than 8 is always "weak".
   const base = passed.slice(0, 3).filter(Boolean).length + (passed[3] || value.length >= 12 ? 1 : 0);
-  const score = !value ? 0 : passed[0] ? Math.min(4, base) : 1;
+  const hasEmail = containsEmail(value, email);
+  const score = !value ? 0 : passed[0] && !hasEmail ? Math.min(4, base) : 1;
 
   return (
     <div className="mt-2">
@@ -37,6 +39,12 @@ export function PasswordStrength({ value }: { value: string }) {
             {t.auth.rules[rule.key]}
           </li>
         ))}
+        {email && (
+          <li className={cn("col-span-2 flex items-center gap-1.5 transition-colors", hasEmail ? "font-medium text-destructive" : value ? "text-success" : "text-muted-foreground")}>
+            <Check className={cn("size-3.5 shrink-0", (hasEmail || !value) && "opacity-30")} />
+            {t.auth.rules.noEmail}
+          </li>
+        )}
       </ul>
     </div>
   );

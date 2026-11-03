@@ -8,8 +8,8 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
 
 /**
- * "Pass" between the confirmed phone and the last registration step: an encrypted note
- * "this phone was confirmed, valid until …". Nobody can forge it without the APP_KEY.
+ * "Pass" between the confirmed email and the last registration step: an encrypted note
+ * "this email was confirmed, valid until …". Nobody can forge it without the APP_KEY.
  */
 final class RegistrationTicket
 {
@@ -17,22 +17,22 @@ final class RegistrationTicket
 
     private const PURPOSE = 'register';
 
-    public static function issue(string $phone): string
+    public static function issue(string $email): string
     {
         return Crypt::encryptString((string) json_encode([
             'purpose' => self::PURPOSE,
-            'phone' => $phone,
+            'email' => $email,
             'expires_at' => now()->addMinutes(self::TTL_MINUTES)->getTimestamp(),
         ]));
     }
 
     /**
-     * The confirmed phone, or null when the ticket is broken, forged or expired.
+     * The confirmed email, or null when the ticket is broken, forged or expired.
      */
-    public static function phone(string $ticket): ?string
+    public static function email(string $ticket): ?string
     {
         try {
-            /** @var array{purpose?: string, phone?: string, expires_at?: int}|null $data */
+            /** @var array{purpose?: string, email?: string, expires_at?: int}|null $data */
             $data = json_decode(Crypt::decryptString($ticket), true);
         } catch (DecryptException) {
             return null;
@@ -42,6 +42,6 @@ final class RegistrationTicket
             return null;
         }
 
-        return is_string($data['phone'] ?? null) ? $data['phone'] : null;
+        return is_string($data['email'] ?? null) ? $data['email'] : null;
     }
 }

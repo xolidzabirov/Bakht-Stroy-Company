@@ -1,26 +1,11 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { type Browser, expect, type Page, test } from "@playwright/test";
 import { E2E_ADMIN, E2E_API } from "./config";
 
 /**
  * The main story of the shop, end to end in a real browser:
- * a new customer registers (with the phone code), buys a product with pickup,
+ * a new customer registers (with the code from the email), buys a product with pickup,
  * the administrator confirms the order, and the customer sees the new status.
  */
-
-const LOG = path.resolve(__dirname, "../../backend/storage/logs/laravel.log");
-
-/** The code the API "sent" to Telegram — the E2E API writes it to the log instead (TELEGRAM_CODES_DRIVER=log). */
-async function phoneCode(phone: string): Promise<string> {
-  const pattern = new RegExp(`Telegram code for \\${phone}: (\\d{6})`, "g");
-  for (let attempt = 0; attempt < 40; attempt++) {
-    const found = [...readFileSync(LOG, "utf8").matchAll(pattern)].at(-1);
-    if (found) return found[1];
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`No code for ${phone} in ${LOG}`);
-}
 
 async function signIn(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -40,26 +25,30 @@ async function asAdmin(browser: Browser) {
 
 test("a new customer registers, orders with pickup, the admin confirms, the customer sees it", async ({ page, browser, request }) => {
   const local = `93${Math.floor(1_000_000 + Math.random() * 8_999_999)}`;
-  const phone = `+992${local}`;
   // A real mail domain: the API checks that the domain has a mail server (MX). Nothing is sent — MAIL_MAILER=log.
   const email = `bakhtstroy.e2e.${Date.now()}@gmail.com`;
   const password = "Stroika2026e2e";
 
-  await test.step("registration: name → phone → code from Telegram → email and password", async () => {
+  await test.step("registration: name → phone → email → code from the letter → password", async () => {
     await page.goto("/register");
     await page.getByLabel("Имя", { exact: true }).fill("Тест");
     await page.getByLabel("Фамилия", { exact: true }).fill("Покупатель");
     await page.getByRole("button", { name: "Далее" }).click();
 
     await page.getByLabel("Номер телефона").fill(local);
-    await page.getByRole("button", { name: "Получить код в Telegram" }).click();
+    await page.getByRole("button", { name: "Далее" }).click();
 
-    const code = await phoneCode(phone);
-    // The sixth digit submits the code by itself, like on a phone.
-    await page.locator('input[autocomplete="one-time-code"]').fill(code);
-
-    await expect(page.getByRole("heading", { name: "Почта и пароль" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ваша почта" })).toBeVisible();
     await page.getByLabel("Email", { exact: true }).fill(email);
+    // The test API keeps its mail in the log and returns the code (dev_code, local development only).
+    const sent = page.waitForResponse((response) => response.url().includes("/auth/register/email") && response.request().method() === "POST");
+    await page.getByRole("button", { name: "Получить код" }).click();
+    const { data } = (await (await sent).json()) as { data: { dev_code: string } };
+
+    // The sixth digit submits the code by itself, like on a phone.
+    await page.locator('input[autocomplete="one-time-code"]').fill(data.dev_code);
+
+    await expect(page.getByRole("heading", { name: "Придумайте пароль" })).toBeVisible();
     await page.getByLabel("Пароль", { exact: true }).fill(password);
     await page.getByLabel("Повторите пароль", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Создать аккаунт" }).click();

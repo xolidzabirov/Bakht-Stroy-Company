@@ -6,11 +6,11 @@ namespace App\Modules\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VerifyPhoneCodeRequest extends FormRequest
+final class VerifyRegistrationCodeRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        RegistrationPhone::prepare($this);
+        $this->merge(['email' => EmailRules::normalize($this->input('email'))]);
     }
 
     /**
@@ -20,26 +20,18 @@ final class VerifyPhoneCodeRequest extends FormRequest
     {
         return [
             /**
-             * Тот же номер, на который отправлен код.
+             * Тот же email, на который отправлен код.
              *
-             * @example +992931234567
+             * @example client@gmail.com
              */
-            'phone' => RegistrationPhone::rules($this),
+            'email' => ['required', 'string', 'email:rfc', 'max:255'],
             /**
-             * 6-значный код из Telegram.
+             * 6-значный код из письма.
              *
              * @example 123456
              */
             'code' => ['required', 'string', 'digits:6'],
         ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return RegistrationPhone::messages();
     }
 
     /**
