@@ -66,14 +66,16 @@ final class ContactController extends Controller
     }
 
     /**
-     * Отметить сообщение прочитанным
+     * Отметить все сообщения прочитанными
+     *
+     * Вызывается при открытии раздела «Сообщения». Ответ — сколько сообщений отмечено.
      */
     #[Group('Админ: настройки и контент', weight: 15)]
-    public function read(ContactMessage $message): ContactMessageResource
+    public function readAll(): JsonResponse
     {
-        $message->forceFill(['read_at' => $message->read_at ?? now()])->save();
+        $marked = ContactMessage::query()->whereNull('read_at')->update(['read_at' => now()]);
 
-        return ContactMessageResource::make($message);
+        return response()->json(['marked' => $marked]);
     }
 
     /**

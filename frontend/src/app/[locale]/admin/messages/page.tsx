@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inbox, Mail, Phone, UserCheck } from "lucide-react";
-import { TabFilter } from "@/features/admin-filters/ui/Filters";
+import { MarkMessagesRead } from "@/features/admin-messages/ui/MarkMessagesRead";
 import { MessageActions } from "@/features/admin-messages/ui/MessageActions";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
@@ -18,28 +18,20 @@ export async function generateMetadata(): Promise<Metadata> {
 type Message = { id: number; name: string; phone: string; email: string | null; message: string; user_id: number | null; is_read: boolean; read_at: string | null; created_at: string };
 type Page = { data: Message[]; meta: { current_page: number; last_page: number; total: number; unread_count: number } };
 
-/** Questions from the Contacts form: unread first in the tab, call / WhatsApp / email in one tap. */
-export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ unread?: string; page?: string }> }) {
+/** Questions from the Contacts form, newest first: opening the page marks them read; call / WhatsApp / email in one tap. */
+export default async function AdminMessagesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   await requireStaff(routes.adminMessages);
-  const { unread, page } = await searchParams;
-  const query = new URLSearchParams({ per_page: "20", ...(unread ? { unread: "1" } : {}), ...(page ? { page } : {}) });
+  const { page } = await searchParams;
+  const query = new URLSearchParams({ per_page: "20", ...(page ? { page } : {}) });
   const [{ t, locale }, messages] = await Promise.all([getI18n(), userFetch<Page>(`/admin/messages?${query}`)]);
   const m = t.admin.messages;
   const dateTime = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
-  const pageHref = (n: number) => `${routes.adminMessages}?${new URLSearchParams({ ...(unread ? { unread: "1" } : {}), page: String(n) })}`;
+  const pageHref = (n: number) => `${routes.adminMessages}?page=${n}`;
 
   return (
     <div>
       <PageHeader icon={Inbox} title={m.title} description={m.lead} />
-      <div className="mb-4">
-        <TabFilter
-          name="unread"
-          tabs={[
-            { value: null, label: m.all },
-            { value: "1", label: m.unread, count: messages.meta.unread_count },
-          ]}
-        />
-      </div>
+      <MarkMessagesRead unread={messages.meta.unread_count} />
 
       {messages.data.length === 0 ? (
         <EmptyState icon={Inbox} title={m.empty} text={m.emptyText} />
@@ -64,7 +56,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{dateTime.format(new Date(message.created_at))}</p>
                     </div>
-                    <MessageActions id={message.id} read={message.is_read} name={message.name} />
+                    <MessageActions id={message.id} name={message.name} />
                   </div>
 
                   <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{message.message}</p>

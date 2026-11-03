@@ -14,13 +14,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Регистрация — код в Telegram
-         * @description Шаги регистрации: 1) имя, фамилия и «кто вы» — только на сайте; 2) этот запрос — номер +992,
-         *     на его Telegram приходит 6-значный код; 3) POST /auth/register/phone/verify — код → пропуск;
-         *     4) POST /auth/register — email и пароль, аккаунт создан.
-         *
-         *     Номер должен быть таджикским, настоящим, свободным и с Telegram. Повторно — не чаще раза в минуту.
-         *     Локально (TELEGRAM_CODES_DRIVER=log) код пишется в storage/logs/laravel-<дата>.log.
+         * Регистрация — проверить телефон
+         * @description Шаги регистрации: 1) имя и фамилия — на сайте; 2) этот запрос — номер +992 настоящий и свободен;
+         *     3) POST /auth/register/email — код на email; 4) POST /auth/register/email/verify — код → пропуск;
+         *     5) POST /auth/register — пароль, аккаунт создан и вход выполнен.
          */
         post: operations["auth.register.phone"];
         delete?: never;
@@ -29,7 +26,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register/phone/verify": {
+    "/auth/register/email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Регистрация — код на email
+         * @description Отправляет 6-значный код на адрес, если он настоящий и свободен. Повторно — не чаще раза в минуту.
+         *     Только при локальной разработке с почтой в лог ответ содержит и сам код (dev_code).
+         */
+        post: operations["auth.register.email"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register/email/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -40,10 +58,10 @@ export interface paths {
         put?: never;
         /**
          * Регистрация — проверить код
-         * @description Верный код из Telegram подтверждает номер и даёт пропуск (registration_token) на последний шаг.
+         * @description Верный код из письма подтверждает email и даёт пропуск (registration_token) на последний шаг.
          *     Пропуск действует 30 минут. После 5 неверных попыток код сгорает — запросите новый.
          */
-        post: operations["auth.register.phone.verify"];
+        post: operations["auth.register.email.verify"];
         delete?: never;
         options?: never;
         head?: never;
@@ -61,8 +79,8 @@ export interface paths {
         put?: never;
         /**
          * Регистрация — создать аккаунт
-         * @description Последний шаг: пропуск из шага с кодом, имя, фамилия, «кто вы», email и пароль.
-         *     Создаёт аккаунт покупателя (роль client) с подтверждённым телефоном и сразу возвращает токен.
+         * @description Последний шаг: пропуск из шага с кодом, имя, фамилия, телефон и пароль.
+         *     Создаёт аккаунт покупателя (роль client) с подтверждённым email и сразу возвращает токен.
          */
         post: operations["auth.register"];
         delete?: never;
@@ -540,7 +558,8 @@ export interface paths {
         head?: never;
         /**
          * Изменить профиль
-         * @description Можно передать только изменённые поля: имя, телефон, язык (ru, uz), тему (light, dark, system).
+         * @description Можно передать только изменённые поля: имя, телефон, язык (ru, tg, en), тему (light, dark, system).
+         *     Новый номер телефона считается неподтверждённым.
          */
         patch: operations["me.update"];
         trace?: never;
@@ -732,7 +751,11 @@ export interface paths {
         get: operations["me.sessions.index"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Выйти на всех других устройствах
+         * @description Удаляет все входы, кроме текущего. Ответ — сколько устройств вышло.
+         */
+        delete: operations["me.sessions.destroy-others"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1667,7 +1690,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/messages/{message}/read": {
+    "/admin/messages/read-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -1676,12 +1699,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Отметить все сообщения прочитанными
+         * @description Вызывается при открытии раздела «Сообщения». Ответ — сколько сообщений отмечено.
+         */
+        post: operations["admin.messages.read-all"];
         delete?: never;
         options?: never;
         head?: never;
-        /** Отметить сообщение прочитанным */
-        patch: operations["admin.messages.read"];
+        patch?: never;
         trace?: never;
     };
     "/admin/messages/{message}": {
@@ -2332,6 +2358,14 @@ export interface components {
             read_at: string | null;
             created_at: string;
         };
+        /** CheckRegistrationPhoneRequest */
+        CheckRegistrationPhoneRequest: {
+            /**
+             * @description Таджикский номер: +992 и 9 цифр (или только 9 цифр).
+             * @example +992931234567
+             */
+            phone: string;
+        };
         /** ContactMessageResource */
         ContactMessageResource: {
             id: number;
@@ -2809,18 +2843,17 @@ export interface components {
         ProductUnit: "piece" | "bag" | "kg" | "ton" | "m" | "m2" | "m3" | "pack" | "roll" | "sheet";
         /** RegisterRequest */
         RegisterRequest: {
-            /** @description Пропуск из шага с кодом (POST /auth/register/phone/verify), действует 30 минут. */
+            /** @description Пропуск из шага с кодом (POST /auth/register/email/verify), действует 30 минут. */
             registration_token: string;
             /** @example Фирдавс */
             first_name: string;
             /** @example Рахимов */
             last_name: string;
             /**
-             * Format: email
-             * @description Email для входа и чеков. Без кода — номер уже подтверждён в Telegram.
-             * @example client@gmail.com
+             * @description Таджикский номер: по нему менеджер связывается по заказам.
+             * @example +992931234567
              */
-            email: string;
+            phone: string;
             /**
              * @description Не короче 8 символов, буквы и цифры; символы (!, #, ?) — ещё надёжнее.
              * @example Stroy2026!
@@ -3073,13 +3106,14 @@ export interface components {
             /** @description Номер своего заказа. @example BS-000025 */
             order_number?: string | null;
         };
-        /** SendPhoneCodeRequest */
-        SendPhoneCodeRequest: {
+        /** SendRegistrationCodeRequest */
+        SendRegistrationCodeRequest: {
             /**
-             * @description Таджикский номер с Telegram: +992 и 9 цифр (или только 9 цифр). Код придёт в Telegram этого номера.
-             * @example +992931234567
+             * Format: email
+             * @description Email для входа: на него придёт код.
+             * @example client@gmail.com
              */
-            phone: string;
+            email: string;
         };
         /** SessionResource */
         SessionResource: {
@@ -3110,10 +3144,10 @@ export interface components {
              */
             phone?: string | null;
             /**
-             * @description Язык интерфейса: ru, uz.
+             * @description Язык интерфейса: ru, tg, en.
              * @enum {string}
              */
-            locale?: "ru" | "uz";
+            locale?: "ru" | "tg" | "en";
             /**
              * @description Тема: light, dark, system.
              * @enum {string}
@@ -3251,15 +3285,16 @@ export interface components {
             email_verified_at: string | null;
             created_at: string;
         };
-        /** VerifyPhoneCodeRequest */
-        VerifyPhoneCodeRequest: {
+        /** VerifyRegistrationCodeRequest */
+        VerifyRegistrationCodeRequest: {
             /**
-             * @description Тот же номер, на который отправлен код.
-             * @example +992931234567
+             * Format: email
+             * @description Тот же email, на который отправлен код.
+             * @example client@gmail.com
              */
-            phone: string;
+            email: string;
             /**
-             * @description 6-значный код из Telegram.
+             * @description 6-значный код из письма.
              * @example 123456
              */
             code: string;
@@ -3282,7 +3317,67 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SendPhoneCodeRequest"];
+                "application/json": components["schemas"]["CheckRegistrationPhoneRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @example +992931234567 */
+                            phone: string;
+                        };
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "auth.register.email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendRegistrationCodeRequest"];
             };
         };
         responses: {
@@ -3293,42 +3388,22 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: {
-                            /**
-                             * @example Код отправлен в Telegram.
-                             * @enum {string}
-                             */
-                            message: "Код отправлен в Telegram." | "Откройте бота Bakht Stroy в Telegram и поделитесь номером — бот пришлёт код.";
-                            /** @example +992931234567 */
-                            phone: string;
-                            /** @description true — код уже в Telegram; false — откройте bot_link и поделитесь номером, бот пришлёт код. */
-                            delivered: boolean;
-                            /**
-                             * @description Ссылка на @BakhtStroyBot (когда номер ещё не связан с ботом).
-                             * @example https://t.me/BakhtStroyBot?start=Ab12Cd34
-                             */
-                            bot_link: string | null;
+                            /** @example client@gmail.com */
+                            email: string;
                             /** @example 15 */
                             expires_in_minutes: number;
+                            dev_code: string | null;
                         };
                     };
                 };
             };
-            /**
-             * @description На этот номер не зарегистрирован Telegram. Укажите номер, на котором есть Telegram, — код придёт туда. (PHONE_NOT_ON_TELEGRAM)
-             *
-             *     Переданные данные некорректны. (VALIDATION_ERROR)
-             */
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @example На этот номер не зарегистрирован Telegram. Укажите номер, на котором есть Telegram, — код придёт туда. */
-                        message: string;
-                        /** @example PHONE_NOT_ON_TELEGRAM */
-                        code: string;
-                    } | {
                         /** @example Переданные данные некорректны. */
                         message: string;
                         /** @example VALIDATION_ERROR */
@@ -3354,9 +3429,23 @@ export interface operations {
                     };
                 };
             };
+            /** @description Не удалось отправить письмо с кодом. Проверьте адрес и попробуйте ещё раз через минуту. (EMAIL_NOT_DELIVERED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Не удалось отправить письмо с кодом. Проверьте адрес и попробуйте ещё раз через минуту. */
+                        message: string;
+                        /** @example EMAIL_NOT_DELIVERED */
+                        code: string;
+                    };
+                };
+            };
         };
     };
-    "auth.register.phone.verify": {
+    "auth.register.email.verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -3365,7 +3454,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VerifyPhoneCodeRequest"];
+                "application/json": components["schemas"]["VerifyRegistrationCodeRequest"];
             };
         };
         responses: {
@@ -6102,6 +6191,69 @@ export interface operations {
                         /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
                         message: string;
                         /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "me.sessions.destroy-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ended: unknown;
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
                         code: string;
                     };
                 };
@@ -10675,26 +10827,22 @@ export interface operations {
             };
         };
     };
-    "admin.messages.read": {
+    "admin.messages.read-all": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                /** @description The message ID */
-                message: number;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description `ContactMessageResource` */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["ContactMessageResource"];
+                        marked: number;
                     };
                 };
             };
@@ -10723,20 +10871,6 @@ export interface operations {
                         message: string;
                         /** @enum {string} */
                         code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
-                    };
-                };
-            };
-            /** @description Ресурс не найден. (NOT_FOUND) */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Ресурс не найден. */
-                        message: string;
-                        /** @example NOT_FOUND */
-                        code: string;
                     };
                 };
             };

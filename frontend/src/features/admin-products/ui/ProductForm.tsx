@@ -48,6 +48,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 /**
  * Create / edit a product. Prices are typed in somoni (75 or 75,50) and sent in dirams.
  * The article (SKU) is given automatically. Photos of a new product are picked right here and uploaded after "Создать".
+ * After saving, the list of products opens again.
  */
 export function ProductForm({ product, categories, aside }: { product?: AdminProduct; categories: CategoryOption[]; aside?: React.ReactNode }) {
   const { t } = useI18n();
@@ -109,7 +110,6 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
         const { data } = await bff<{ data: AdminProduct }>(`/api/proxy/admin/products/${product.id}`, { method: "PATCH", body });
         reset({ ...values, slug: data.slug });
         toast.success(t.admin.common.saved);
-        router.refresh();
       } else {
         const { data } = await bff<{ data: AdminProduct }>("/api/proxy/admin/products", { body });
         // Photos picked before saving go up right after the product exists (the first is the main one).
@@ -119,8 +119,9 @@ export function ProductForm({ product, categories, aside }: { product?: AdminPro
           await bff(`/api/proxy/admin/products/${data.id}/images`, { body: form }).catch((error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic));
         }
         toast.success(p.created);
-        router.replace(routes.adminProduct(data.id));
       }
+      router.push(routes.adminProducts);
+      router.refresh();
     } catch (error) {
       setFormError(applyApiErrors(error, setError, FIELDS, t.errors));
     }

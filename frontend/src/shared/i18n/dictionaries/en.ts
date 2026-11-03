@@ -1093,11 +1093,8 @@ export const en: Dictionary = {
     messages: {
       title: "Messages",
       lead: "Questions from the Contacts form.",
-      all: "All",
-      unread: "Unread",
       empty: "No messages",
       emptyText: "When someone writes through the form on the Contacts page, the message appears here.",
-      markRead: "Read",
       registered: "registered",
       deleteText: "The message will be deleted permanently.",
     },

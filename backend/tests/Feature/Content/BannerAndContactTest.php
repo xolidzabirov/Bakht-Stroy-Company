@@ -113,8 +113,8 @@ it('lets staff read and delete messages', function () {
     $this->withToken($this->token)->getJson('/api/v1/admin/messages')
         ->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('meta.unread_count', 2);
 
-    $this->withToken($this->token)->patchJson("/api/v1/admin/messages/{$first->id}/read")->assertOk()->assertJsonPath('data.is_read', true);
-    $this->withToken($this->token)->getJson('/api/v1/admin/messages?unread=1')->assertJsonCount(1, 'data');
+    $this->withToken($this->token)->postJson('/api/v1/admin/messages/read-all')->assertOk()->assertJsonPath('marked', 2);
+    $this->withToken($this->token)->getJson('/api/v1/admin/messages?unread=1')->assertJsonCount(0, 'data')->assertJsonPath('meta.unread_count', 0);
     $this->withToken($this->token)->deleteJson("/api/v1/admin/messages/{$first->id}")->assertNoContent();
 
     $this->app['auth']->forgetGuards();

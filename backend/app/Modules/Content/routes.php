@@ -26,6 +26,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'r
     Route::post('banners/{banner}/image', [BannerController::class, 'uploadImage'])->name('banners.image');
 
     Route::get('messages', [ContactController::class, 'index'])->name('messages.index');
-    Route::patch('messages/{message}/read', [ContactController::class, 'read'])->name('messages.read');
+    Route::post('messages/read-all', [ContactController::class, 'readAll'])->name('messages.read-all');
     Route::delete('messages/{message}', [ContactController::class, 'destroy'])->name('messages.destroy');
 });

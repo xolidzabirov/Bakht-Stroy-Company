@@ -40,9 +40,9 @@ export function CatalogMenu({ categories }: { categories: Category[] }) {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="inline-flex h-11 items-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-white transition hover:bg-ink/85 dark:bg-white dark:text-ink dark:hover:bg-white/85"
+        className="inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-on-brand transition hover:bg-brand-hover"
       >
-        {open ? <X className="size-4" /> : <LayoutGrid className="size-4 text-brand dark:text-ink" />}
+        {open ? <X className="size-4" /> : <LayoutGrid className="size-4" />}
         {t.header.catalog}
       </button>
 
