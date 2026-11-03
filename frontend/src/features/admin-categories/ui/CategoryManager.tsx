@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowDown, ArrowUp, Boxes, CornerDownRight, EyeOff, FolderPlus, FolderTree, ImagePlus, LoaderCircle, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -225,11 +225,9 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
               category={editing.category}
               parentId={editing.parentId}
               roots={tree}
-              onSaved={(saved, created) => {
+              onSaved={() => {
                 router.refresh();
-                // A new category stays open, so its image can be added right away.
-                if (created) setEditing({ category: saved, parentId: saved.parent_id });
-                else setEditing(null);
+                setEditing(null);
               }}
               onClose={() => setEditing(null)}
             />
@@ -283,12 +281,13 @@ function CategoryForm({
   category: Category | null;
   parentId: number | null;
   roots: Category[];
-  onSaved: (category: Category, created: boolean) => void;
+  onSaved: () => void;
   onClose: () => void;
 }) {
   const { t } = useI18n();
   const c = t.admin.categories;
   const [formError, setFormError] = useState<string | null>(null);
+  const [draftImage, setDraftImage] = useState<File | null>(null);
   const hasChildren = Boolean(category?.children?.length);
   const parents = roots.filter((root) => root.id !== category?.id);
   const {
@@ -321,8 +320,14 @@ function CategoryForm({
       const { data } = category
         ? await bff<{ data: Category }>(`/api/proxy/admin/categories/${category.id}`, { method: "PATCH", body })
         : await bff<{ data: Category }>("/api/proxy/admin/categories", { body });
+      // A picture chosen for a new category goes up right after the category exists.
+      if (draftImage) {
+        const form = new FormData();
+        form.append("image", draftImage);
+        await bff(`/api/proxy/admin/categories/${data.id}/image`, { body: form }).catch((error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic));
+      }
       toast.success(t.admin.common.saved);
-      onSaved(data, !category);
+      onSaved();
     } catch (error) {
       setFormError(applyApiErrors(error, setError, ["name", "slug", "description"], t.errors));
     }
@@ -376,7 +381,7 @@ function CategoryForm({
         )}
       />
 
-      {category && <CategoryImage category={category} />}
+      {category ? <CategoryImage category={category} /> : <CategoryImageDraft file={draftImage} onChange={setDraftImage} />}
 
       <DialogFooter className="gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
@@ -388,6 +393,58 @@ function CategoryForm({
         </Button>
       </DialogFooter>
     </form>
+  );
+}
+
+/** The picture of a category that is not saved yet: it waits in the browser and is uploaded after "Создать". */
+function CategoryImageDraft({ file, onChange }: { file: File | null; onChange: (file: File | null) => void }) {
+  const { t } = useI18n();
+  const c = t.admin.categories;
+  const input = useRef<HTMLInputElement>(null);
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
+
+  return (
+    <div>
+      <p className="mb-1.5 text-sm font-semibold">{c.image}</p>
+      <div className="flex items-center gap-3">
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="" className="size-20 rounded-xl bg-muted object-cover" />
+        ) : (
+          <span className="grid size-20 place-items-center rounded-xl bg-muted">
+            <ImagePlus className="size-6 text-muted-foreground" />
+          </span>
+        )}
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
+              <ImagePlus className="size-4" />
+              {c.uploadImage}
+            </Button>
+            {file && (
+              <Button type="button" size="sm" variant="ghost" onClick={() => onChange(null)}>
+                <X className="size-4" />
+                {c.removeImage}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{c.imageHint}</p>
+        </div>
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={(event) => {
+          const picked = event.target.files?.[0];
+          if (picked && picked.size > 5 * 1024 * 1024) toast.error(c.imageHint);
+          else if (picked) onChange(picked);
+          event.target.value = "";
+        }}
+      />
+    </div>
   );
 }
 
