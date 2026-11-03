@@ -12,7 +12,7 @@ export async function NewsSection({ news, title, subtitle }: { news: NewsItem[];
   const { t } = await getI18n();
 
   return (
-    <Container className="mt-16">
+    <Container className="mt-20 sm:mt-28">
       <SectionHeading title={title ?? t.home.newsTitle} subtitle={title ? subtitle : (subtitle ?? t.home.newsSubtitle)} href={routes.news} />
       <div className="grid gap-4 md:grid-cols-3">
         {news.map((item) => (

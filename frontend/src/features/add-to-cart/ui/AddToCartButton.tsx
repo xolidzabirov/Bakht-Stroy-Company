@@ -79,7 +79,7 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
         {t.cart.inCart}
       </Link>
     ) : (
-      <Button size="sm" onClick={submit} disabled={add.isPending} className={cn("w-full", className)}>
+      <Button size="sm" variant="outline" onClick={submit} disabled={add.isPending} className={cn("w-full group-hover:border-brand group-hover:bg-brand group-hover:text-on-brand hover:border-brand hover:bg-brand-hover hover:text-on-brand", className)}>
         {add.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <ShoppingCart className="size-4" />}
         {t.cart.add}
       </Button>

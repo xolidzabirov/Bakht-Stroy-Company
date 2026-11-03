@@ -14,10 +14,10 @@ export async function SectionHeading({ title, subtitle, href, linkText }: Props)
   const { t } = await getI18n();
 
   return (
-    <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
+    <div className="mb-7 flex items-end justify-between gap-4 sm:mb-10">
       <div>
-        <h2 className="text-2xl font-extrabold sm:text-3xl">{title}</h2>
-        {subtitle && <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">{subtitle}</p>}
+        <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h2>
+        {subtitle && <p className="mt-2 text-sm text-muted-foreground sm:text-base">{subtitle}</p>}
       </div>
       {href && (
         <Link

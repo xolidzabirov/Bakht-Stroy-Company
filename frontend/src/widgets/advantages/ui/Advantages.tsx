@@ -10,20 +10,18 @@ export async function Advantages({ title: heading }: { title?: string } = {}) {
   const { t } = await getI18n();
 
   return (
-    <Container className={heading ? "mt-16" : "mt-14"}>
+    <Container className={heading ? "mt-20 sm:mt-24" : "mt-16 sm:mt-20"}>
       {heading && <SectionHeading title={heading} />}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-x-8 gap-y-8 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-4">
         {t.advantages.map(({ title, text }, i) => {
           const Icon = icons[i];
           // Under a section heading the cards are h3; on the home page (no heading) they are top-level h2.
           const Title = heading ? "h3" : "h2";
 
           return (
-          <div key={title} className="rounded-[var(--radius-card)] border border-border bg-surface p-5 card-hover">
-            <span className="grid size-12 place-items-center rounded-2xl bg-brand text-on-brand">
-              <Icon className="size-6" />
-            </span>
-            <Title className="mt-4 font-display text-base font-bold">{title}</Title>
+          <div key={title}>
+            <Icon className="size-6 text-foreground" strokeWidth={1.75} />
+            <Title className="mt-4 font-display text-lg font-bold tracking-tight">{title}</Title>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{text}</p>
           </div>
           );

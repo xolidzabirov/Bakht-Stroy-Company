@@ -5,7 +5,6 @@ import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { plural } from "@/shared/i18n/format";
 import { getI18n } from "@/shared/i18n/server";
-import { CategoryIcon } from "./CategoryIcon";
 
 export async function CategoryCard({ category }: { category: Category }) {
   const { t, locale } = await getI18n();
@@ -13,7 +12,7 @@ export async function CategoryCard({ category }: { category: Category }) {
   return (
     <Link
       href={routes.category(category.slug)}
-      className="group flex overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover hover:!border-brand"
+      className="group flex items-stretch overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover"
     >
       <div className="relative w-28 shrink-0 overflow-hidden bg-surface-muted sm:w-36">
         {category.image && (
@@ -22,20 +21,18 @@ export async function CategoryCard({ category }: { category: Category }) {
             alt={category.name}
             fill
             sizes="144px"
-            className="object-cover transition duration-500 group-hover:scale-105"
+            className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
           />
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <CategoryIcon slug={category.slug} size="sm" />
-          <ArrowUpRight className="size-5 text-muted-foreground transition group-hover:text-ink" />
+      <div className="flex min-h-28 min-w-0 flex-1 items-center justify-between gap-3 p-4 sm:p-5">
+        <div className="min-w-0">
+          <h3 className="font-display text-base font-bold leading-snug tracking-tight sm:text-lg">{category.name}</h3>
+          {typeof category.products_count === "number" && (
+            <p className="mt-1 text-sm text-muted-foreground">{category.products_count} {plural(locale, category.products_count, t.common.products)}</p>
+          )}
         </div>
-        <h3 className="font-display text-base font-bold leading-snug sm:text-lg">{category.name}</h3>
-        {category.description && <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">{category.description}</p>}
-        {typeof category.products_count === "number" && (
-          <p className="mt-auto text-xs font-semibold text-foreground">{category.products_count} {plural(locale, category.products_count, t.common.products)}</p>
-        )}
+        <ArrowUpRight className="size-5 shrink-0 text-muted-foreground transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
       </div>
     </Link>
   );

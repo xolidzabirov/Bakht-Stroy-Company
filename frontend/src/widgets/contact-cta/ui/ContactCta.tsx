@@ -20,7 +20,7 @@ export async function ContactCta({ phone, whatsapp, telegram, telegramChat }: Pr
   );
 
   return (
-    <Container className="mt-16">
+    <Container className="mt-20 sm:mt-28">
       <div className="relative overflow-hidden rounded-[2rem] bg-brand px-6 py-10 text-on-brand sm:px-12 sm:py-14">
         <div
           aria-hidden

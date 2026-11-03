@@ -11,7 +11,7 @@ export async function CategoryGrid({ categories }: { categories: Category[] }) {
   const { t } = await getI18n();
 
   return (
-    <Container className="mt-16">
+    <Container className="mt-20 sm:mt-28">
       <SectionHeading title={t.home.catalogTitle} subtitle={t.home.catalogSubtitle} href={routes.catalog} linkText={t.common.allCatalog} />
       <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
         {categories.map((category) => (
