@@ -13,22 +13,23 @@ import { formatDate } from "@/shared/lib/format";
 import { useSessionName } from "@/shared/lib/useSession";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/shared/ui/kit/dropdown-menu";
 
-const SEEN_KEY = "bakht_news_seen";
+const NEWS_SEEN_KEY = "bakht_news_seen";
+const MESSAGES_SEEN_KEY = "bakht_notices_seen";
 const seenListeners = new Set<() => void>();
 
-function readSeen(): number {
+function readSeen(key: string): number {
   try {
-    return Number(localStorage.getItem(SEEN_KEY)) || 0;
+    return Number(localStorage.getItem(key)) || 0;
   } catch {
     return 0;
   }
 }
 
-function markNewsSeen() {
+function markSeen(key: string, time: number) {
   try {
-    localStorage.setItem(SEEN_KEY, String(Date.now()));
+    localStorage.setItem(key, String(time));
   } catch {
-    // Private mode: the dot simply comes back next time.
+    // Private mode: the number simply comes back next time.
   }
   seenListeners.forEach((listener) => listener());
 }
@@ -41,8 +42,10 @@ function subscribeSeen(listener: () => void) {
 type NoticePage = { data: AppNotification[]; meta: { unread_count: number } };
 
 /**
- * Bell with two tabs: news published on the site (new since the last look are counted)
- * and personal messages — order updates and, later, manager replies from the chat.
+ * Bell with two tabs: news published on the site and personal messages (order updates, manager replies).
+ * Opening the panel is seeing what is new: the number on the bell goes away at once and comes back only for something newer.
+ * Inside, the new rows keep their marks, and the other tab keeps its number until it is opened.
+ * A message stays unread until it is clicked; only the number goes.
  */
 export function NotificationBell({ className }: { className?: string }) {
   const { t, locale } = useI18n();
@@ -51,7 +54,11 @@ export function NotificationBell({ className }: { className?: string }) {
   const [tab, setTab] = useState<"news" | "messages">("news");
   // Controlled, so a click on a post or "Все новости" closes the panel while the page changes.
   const [open, setOpen] = useState(false);
-  const seen = useSyncExternalStore(subscribeSeen, readSeen, () => Number.MAX_SAFE_INTEGER);
+  const newsSeen = useSyncExternalStore(subscribeSeen, () => readSeen(NEWS_SEEN_KEY), () => Number.MAX_SAFE_INTEGER);
+  const messagesSeen = useSyncExternalStore(subscribeSeen, () => readSeen(MESSAGES_SEEN_KEY), () => Number.MAX_SAFE_INTEGER);
+  // How things looked when the panel was opened: what its rows and the other tab still show.
+  const [newsSeenBefore, setNewsSeenBefore] = useState(Number.MAX_SAFE_INTEGER);
+  const [tabCounts, setTabCounts] = useState({ news: 0, messages: 0 });
   const n = t.header.notices;
 
   const { data: news } = useQuery({
@@ -68,13 +75,33 @@ export function NotificationBell({ className }: { className?: string }) {
     refetchInterval: 60_000,
   });
 
-  const freshNews = (news ?? []).filter((item) => item.published_at && Date.parse(item.published_at) > seen).length;
-  const unreadMessages = signedIn ? (notices?.meta.unread_count ?? 0) : 0;
-  const total = freshNews + unreadMessages;
+  const freshNews = (news ?? []).filter((item) => item.published_at && Date.parse(item.published_at) > newsSeen).length;
+  // The server's own clock for messages, so a wrong clock on the computer cannot hide a new one.
+  const unread = signedIn ? (notices?.data ?? []).filter((item) => !item.is_read) : [];
+  // Never opened on this device: everything unread counts, even beyond the few loaded here.
+  const newMessages = messagesSeen === 0 ? (signedIn ? (notices?.meta.unread_count ?? 0) : 0) : unread.filter((item) => Date.parse(item.created_at) > messagesSeen).length;
+  const total = freshNews + newMessages;
+
+  const markAllSeen = () => {
+    markSeen(NEWS_SEEN_KEY, Date.now());
+    const newest = Math.max(0, ...(notices?.data ?? []).map((item) => Date.parse(item.created_at) || 0));
+    if (newest > messagesSeen) markSeen(MESSAGES_SEEN_KEY, newest);
+  };
 
   const onOpenChange = (open: boolean) => {
-    if (open) setTab(freshNews === 0 && unreadMessages > 0 ? "messages" : "news");
-    else if (tab === "news" || freshNews > 0) markNewsSeen();
+    if (open) {
+      const first = freshNews === 0 && newMessages > 0 ? "messages" : "news";
+      setTab(first);
+      setNewsSeenBefore(newsSeen);
+      setTabCounts({ news: first === "news" ? 0 : freshNews, messages: first === "messages" ? 0 : newMessages });
+    }
+    // Also on closing: whatever arrived while the panel was open has been seen too.
+    markAllSeen();
+  };
+
+  const openTab = (key: "news" | "messages") => {
+    setTab(key);
+    setTabCounts((counts) => ({ ...counts, [key]: 0 }));
   };
 
   const markRead = (id: string) => {
@@ -84,8 +111,8 @@ export function NotificationBell({ className }: { className?: string }) {
   };
 
   const tabs = [
-    { key: "news" as const, label: n.news, icon: Newspaper, count: freshNews },
-    { key: "messages" as const, label: n.messages, icon: MessageCircle, count: unreadMessages },
+    { key: "news" as const, label: n.news, icon: Newspaper, count: tabCounts.news },
+    { key: "messages" as const, label: n.messages, icon: MessageCircle, count: tabCounts.messages },
   ];
 
   return (
@@ -117,7 +144,7 @@ export function NotificationBell({ className }: { className?: string }) {
               type="button"
               role="tab"
               aria-selected={tab === key}
-              onClick={() => setTab(key)}
+              onClick={() => openTab(key)}
               className={cn(
                 "flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-sm font-semibold transition",
                 tab === key ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
@@ -136,7 +163,7 @@ export function NotificationBell({ className }: { className?: string }) {
               <Empty text={n.emptyNews} />
             ) : (
               news.map((item) => {
-                const fresh = item.published_at !== null && Date.parse(item.published_at) > seen;
+                const fresh = item.published_at !== null && Date.parse(item.published_at) > newsSeenBefore;
 
                 return (
                   <Link prefetch={false} onClick={() => setOpen(false)} key={item.id} href={routes.newsItem(item.slug)} className="flex gap-3 rounded-xl p-2 transition hover:bg-muted">
