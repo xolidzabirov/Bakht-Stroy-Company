@@ -686,6 +686,7 @@ export const ru = {
     create: { title: "Создать", product: "Товар", news: "Новость", user: "Пользователя" },
     common: {
       more: "Ещё",
+      filters: "Фильтры",
       search: "Поиск",
       all: "Все",
       save: "Сохранить",

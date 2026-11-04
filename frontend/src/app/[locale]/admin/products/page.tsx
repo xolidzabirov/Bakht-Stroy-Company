@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Boxes, Pencil, Plus } from "lucide-react";
 import { DeleteProduct, ProductFlag, StockEditor } from "@/features/admin-products/ui/ProductRowActions";
-import { ResetFilters, SearchFilter, SelectFilter } from "@/features/admin-filters/ui/Filters";
+import { MoreFilters, ResetFilters, SearchFilter, SelectFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
 import type { AdminProduct, Category, Paginated } from "@/shared/api/types";
@@ -55,6 +55,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
       <div className="mb-4 flex flex-wrap gap-2">
         <SearchFilter placeholder={p.searchPlaceholder} />
+        <MoreFilters names={["is_active", "sort", "category"]}>
         <SelectFilter
           name="is_active"
           label={p.visibility}
@@ -65,10 +66,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
         />
         <SelectFilter name="sort" label={p.sort} allLabel={p.sorts.new} options={Object.entries(p.sorts).filter(([value]) => value !== "new").map(([value, label]) => ({ value, label }))} />
         <ResetFilters />
-      </div>
 
       {/* Products split by category: one tap shows a category, the counts come with the tree. */}
-      <nav aria-label={p.category} className="mb-4 flex flex-wrap gap-2">
+      <nav aria-label={p.category} className="flex w-full flex-wrap gap-2 md:mt-1">
         {[{ slug: "", name: p.allCategories, count: undefined as number | undefined }, ...tree.map((c) => ({ slug: c.slug, name: c.name, count: c.products_count ?? undefined }))].map((c) => {
           const active = (search.category ?? "") === c.slug;
           const next = new URLSearchParams(query);
@@ -92,6 +92,8 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
           );
         })}
       </nav>
+        </MoreFilters>
+      </div>
 
       {products.data.length === 0 ? (
         <EmptyState icon={Boxes} title={t.admin.common.empty} text={t.admin.common.emptyText} action={addButton} />

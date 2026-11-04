@@ -685,6 +685,7 @@ export const tg: Dictionary = {
     create: { title: "Сохтан", product: "Мол", news: "Хабар", user: "Корбар" },
     common: {
       more: "Боз",
+      filters: "Филтрҳо",
       search: "Ҷустуҷӯ",
       all: "Ҳама",
       save: "Нигоҳ доштан",

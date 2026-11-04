@@ -685,6 +685,7 @@ export const en: Dictionary = {
     create: { title: "Create", product: "Product", news: "News post", user: "User" },
     common: {
       more: "More",
+      filters: "Filters",
       search: "Search",
       all: "All",
       save: "Save",

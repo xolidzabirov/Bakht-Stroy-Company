@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Package, PackageSearch, Phone } from "lucide-react";
 import { OrderStatusBadge, PaymentBadge } from "@/entities/order/ui/OrderStatus";
-import { DateFilter, ResetFilters, SearchFilter, SelectFilter, TabFilter } from "@/features/admin-filters/ui/Filters";
+import { DateFilter, MoreFilters, ResetFilters, SearchFilter, SelectFilter, TabFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
 import type { AdminOrder, Paginated } from "@/shared/api/types";
@@ -40,16 +40,18 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     <div>
       <PageHeader icon={Package} title={o.title} description={fmt(t.admin.common.total, { count: String(orders.meta.total) })} />
 
-      <div className="mb-4 space-y-3">
-        <TabFilter name="status" tabs={[{ value: null, label: t.admin.common.all }, ...Object.entries(o.statuses).map(([value, label]) => ({ value, label }))]} />
-        <div className="flex flex-wrap gap-2">
-          <SearchFilter placeholder={o.searchPlaceholder} />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <SearchFilter placeholder={o.searchPlaceholder} />
+        <MoreFilters names={["status", "payment_status", "delivery_type", "date_from", "date_to"]}>
+          <div className="w-full md:order-first md:mb-1">
+            <TabFilter name="status" tabs={[{ value: null, label: t.admin.common.all }, ...Object.entries(o.statuses).map(([value, label]) => ({ value, label }))]} />
+          </div>
           <SelectFilter name="payment_status" label={o.payment} options={Object.entries(o.payments).map(([value, label]) => ({ value, label }))} />
           <SelectFilter name="delivery_type" label={o.delivery} options={Object.entries(o.deliveries).map(([value, label]) => ({ value, label }))} />
           <DateFilter name="date_from" label={o.from} />
           <DateFilter name="date_to" label={o.to} />
           <ResetFilters />
-        </div>
+        </MoreFilters>
       </div>
 
       {orders.data.length === 0 ? (

@@ -1,13 +1,41 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, Search, X } from "lucide-react";
+import { ChevronDown, LoaderCircle, Search, SlidersHorizontal, X } from "lucide-react";
 import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { useQueryParams } from "@/shared/lib/useQueryParams";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 
 const ALL = "__all";
+
+/**
+ * On a phone the filters wait behind one button, so the list starts right under the search; the button counts the active ones.
+ * From tablets up the button is gone and the filters stand in the row as usual.
+ */
+export function MoreFilters({ names, children }: { names: string[]; children: React.ReactNode }) {
+  const { t } = useAdminI18n();
+  const { params } = useQueryParams();
+  const [open, setOpen] = useState(false);
+  const active = names.filter((name) => params.has(name)).length;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className={cn("inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors md:hidden", open || active > 0 ? "border-foreground/40 bg-surface" : "border-border bg-surface")}
+      >
+        <SlidersHorizontal className="size-4" />
+        {t.admin.common.filters}
+        {active > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[11px] font-bold text-ink tabular-nums">{active}</span>}
+        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform duration-200", open && "rotate-180")} />
+      </button>
+      <div className={cn("flex w-full flex-wrap gap-2 md:contents", open ? "max-md:animate-in max-md:fade-in-0 max-md:slide-in-from-top-1" : "max-md:hidden")}>{children}</div>
+    </>
+  );
+}
 
 /** Search box that updates ?search= half a second after typing stops. */
 export function SearchFilter({ placeholder, name = "search" }: { placeholder: string; name?: string }) {
@@ -24,7 +52,7 @@ export function SearchFilter({ placeholder, name = "search" }: { placeholder: st
   };
 
   return (
-    <label className="relative block min-w-56 flex-1">
+    <label className="relative block min-w-40 flex-1 sm:min-w-56">
       <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
       <input
         type="search"
