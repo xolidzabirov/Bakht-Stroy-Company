@@ -16,6 +16,7 @@ use App\Modules\Order\Exceptions\OrderCannotBeCancelledException;
 use App\Modules\Order\Http\Requests\CancelOrderRequest;
 use App\Modules\Order\Http\Requests\OrderIndexRequest;
 use App\Modules\Order\Http\Requests\PlaceOrderRequest;
+use App\Modules\Order\Http\Requests\QuickOrderRequest;
 use App\Modules\Order\Http\Resources\OrderListResource;
 use App\Modules\Order\Http\Resources\OrderResource;
 use App\Modules\Order\Models\Order;
@@ -50,6 +51,22 @@ final class OrderController extends Controller
             ->withQueryString();
 
         return OrderListResource::collection($orders);
+    }
+
+    /**
+     * Быстрый заказ одного товара
+     *
+     * Минуя корзину (она не меняется): количество, имя и телефон. Менеджер перезванивает и уточняет доставку и оплату.
+     *
+     * @throws CartHasProblemsException
+     */
+    public function quick(QuickOrderRequest $request, #[CurrentUser] User $user, PlaceOrder $placeOrder): JsonResponse
+    {
+        $order = $placeOrder->handleProduct($user, $request->toData(), $request->integer('product_id'), $request->integer('quantity'));
+
+        return OrderResource::make($order->load(['items.product.media', 'history']))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**

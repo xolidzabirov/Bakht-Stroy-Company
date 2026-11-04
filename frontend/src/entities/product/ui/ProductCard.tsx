@@ -6,6 +6,7 @@ import { getI18n } from "@/shared/i18n/server";
 import { fmt } from "@/shared/i18n/format";
 import { formatMoney } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui";
+import { CardGallery } from "./CardGallery";
 
 type Props = {
   product: Product;
@@ -20,6 +21,8 @@ type Props = {
 export async function ProductCard({ product, action, favorite, priority = false }: Props) {
   const { t, locale } = await getI18n();
   const image = product.image;
+  // Only what the slider needs travels with the page.
+  const images = (product.images ?? []).map(({ id, thumb, card }) => ({ id, thumb, card }));
 
   // Photos live on another server: the connection opens before the first of them is needed.
   if (image) preconnect(new URL(image.card).origin);
@@ -27,7 +30,9 @@ export async function ProductCard({ product, action, favorite, priority = false 
   return (
     <article className="lazy-render group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface card-hover">
       <div className="relative aspect-square overflow-hidden bg-surface-muted">
-        {image && (
+        {images.length > 1 ? (
+          <CardGallery images={images} href={routes.product(product.slug)} name={product.name} priority={priority} />
+        ) : image && (
           // eslint-disable-next-line @next/next/no-img-element -- ready WebP sizes from the backend; a plain tag costs the browser no script
           <img
             src={image.card}
@@ -40,12 +45,14 @@ export async function ProductCard({ product, action, favorite, priority = false 
             className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
           />
         )}
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+        <div className="pointer-events-none absolute left-3 top-3 z-[2] flex flex-col gap-1.5">
           {product.is_featured && <Badge>{t.common.hit}</Badge>}
           {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white">−{product.discount_percent}%</Badge> : null}
         </div>
+        <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 z-[2] h-[3px] w-full origin-left scale-x-0 bg-brand transition-transform duration-500 ease-out group-hover:scale-x-100" />
       </div>
-      {favorite && <div className="absolute right-3 top-3 z-10">{favorite}</div>}
+      {/* The heart comes on hover, and stays when the product is already in favorites. */}
+      {favorite && <div className="absolute right-3 top-3 z-10 transition duration-300 can-hover:-translate-y-1 can-hover:opacity-0 focus-within:translate-y-0 focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 has-[[aria-pressed=true]]:translate-y-0 has-[[aria-pressed=true]]:opacity-100">{favorite}</div>}
 
       <div className="flex flex-1 flex-col p-4">
         {product.category?.name && (
@@ -69,7 +76,7 @@ export async function ProductCard({ product, action, favorite, priority = false 
             <span aria-hidden className={`size-1.5 rounded-full ${product.in_stock ? "bg-success" : "bg-danger"}`} />
             {product.in_stock ? t.common.inStock : t.common.outOfStock}
           </p>
-          {action && <div className="relative z-10 mt-3">{action}</div>}
+          {action && <div className="relative z-10 mt-3 can-hover:absolute can-hover:inset-x-0 can-hover:bottom-0 can-hover:mt-0 can-hover:translate-y-full can-hover:bg-surface can-hover:px-4 can-hover:pb-3.5 can-hover:pt-2 can-hover:transition-transform can-hover:duration-300 can-hover:ease-out can-hover:focus-within:translate-y-0 can-hover:group-hover:translate-y-0">{action}</div>}
         </div>
       </div>
     </article>

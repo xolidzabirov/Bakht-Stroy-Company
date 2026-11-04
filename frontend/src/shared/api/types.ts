@@ -6,7 +6,7 @@ import type { components } from "./schema";
 type Schemas = components["schemas"];
 
 export type Category = Schemas["CategoryResource"];
-export type Product = Schemas["ProductListResource"];
+export type Product = Omit<Schemas["ProductListResource"], "images"> & { images?: { id: number; thumb: string; card: string }[] };
 export type ProductDetails = Schemas["ProductResource"];
 export type Image = Schemas["ImageResource"];
 export type NewsItem = Schemas["NewsListResource"];

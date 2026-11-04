@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Banknote, Check, MessageCircle, Phone, Truck, X } from "lucide-react";
 import { AddToCartButton } from "@/features/add-to-cart/ui/AddToCartButton";
+import { QuickOrderButton } from "@/features/quick-order/ui/QuickOrderButton";
 import { FavoriteButton } from "@/features/toggle-favorite/ui/FavoriteButton";
 import type { ProductDetails } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -68,6 +69,11 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
             </ul>
 
             <AddToCartButton product={product} variant="page" className="mt-6" />
+            <QuickOrderButton
+              variant="page"
+              className="mt-3 w-full"
+              product={{ id: product.id, name: product.name, price: product.price, unit: product.unit.label, image: product.images?.[0]?.thumb, min_order_qty: product.min_order_qty, stock: product.stock, in_stock: product.in_stock }}
+            />
             <div className="mt-3 flex flex-wrap gap-2">
               <FavoriteButton productId={product.id} withLabel />
               {whatsapp ? (

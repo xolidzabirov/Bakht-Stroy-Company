@@ -55,6 +55,18 @@ class ProductListResource extends JsonResource
             'is_favorite' => app(FavoriteProducts::class)->isFavorite($this->id),
             /** Главное фото или null. */
             'image' => $image ? ImageResource::make($image) : null,
+            /**
+             * Все фото для слайдера на карточке.
+             *
+             * @var list<array{id: int, thumb: string, card: string}>
+             */
+            'images' => $this->relationLoaded('media')
+                ? $this->getMedia(Product::IMAGES_COLLECTION)->map(fn ($media): array => [
+                    'id' => $media->id,
+                    'thumb' => $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $media->getUrl(),
+                    'card' => $media->hasGeneratedConversion('card') ? $media->getUrl('card') : $media->getUrl(),
+                ])->values()->all()
+                : [],
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id,
                 'name' => $this->category->name,

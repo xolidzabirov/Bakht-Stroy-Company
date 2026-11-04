@@ -8,6 +8,7 @@ Route::middleware(['auth:sanctum', 'active'])->prefix('orders')->name('orders.')
     Route::get('/', [OrderController::class, 'index'])->name('index');
     // Placing and repeating orders is for customers; the shop team works in the admin panel.
     Route::post('/', [OrderController::class, 'store'])->middleware(['customer', 'throttle:orders'])->name('store');
+    Route::post('quick', [OrderController::class, 'quick'])->middleware(['customer', 'throttle:orders'])->name('quick');
     Route::get('{number}', [OrderController::class, 'show'])->name('show');
     Route::post('{number}/cancel', [OrderController::class, 'cancel'])->name('cancel');
     Route::post('{number}/repeat', [OrderController::class, 'repeat'])->middleware('customer')->name('repeat');

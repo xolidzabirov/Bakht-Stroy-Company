@@ -520,6 +520,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders/quick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Быстрый заказ одного товара
+         * @description Минуя корзину (она не меняется): количество, имя и телефон. Менеджер перезванивает и уточняет доставку и оплату.
+         */
+        post: operations["orders.quick"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders/{number}": {
         parameters: {
             query?: never;
@@ -2265,6 +2285,7 @@ export interface components {
             /** @description В избранном у текущего пользователя (false для гостей). */
             is_favorite: string;
             image: components["schemas"]["ImageResource"] | null;
+            images?: components["schemas"]["ImageResource"][];
             category?: components["schemas"]["CategoryResource"];
             description: string | null;
             /** @description Характеристики. */
@@ -2272,7 +2293,6 @@ export interface components {
                 name: string;
                 value: string;
             }[];
-            images?: components["schemas"]["ImageResource"][];
             category_id: number;
             is_active: boolean;
             is_low_stock: boolean;
@@ -2943,6 +2963,12 @@ export interface components {
             /** @description В избранном у текущего пользователя (false для гостей). */
             is_favorite: string;
             image: components["schemas"]["ImageResource"] | null;
+            /** @description Все фото для слайдера на карточке. */
+            images: {
+                id: number;
+                thumb: string;
+                card: string;
+            }[];
             category?: {
                 id: number;
                 name: string;
@@ -2983,6 +3009,7 @@ export interface components {
             /** @description В избранном у текущего пользователя (false для гостей). */
             is_favorite: string;
             image: components["schemas"]["ImageResource"] | null;
+            images?: components["schemas"]["ImageResource"][];
             category?: components["schemas"]["CategoryResource"];
             description: string | null;
             /** @description Характеристики. */
@@ -2990,7 +3017,6 @@ export interface components {
                 name: string;
                 value: string;
             }[];
-            images?: components["schemas"]["ImageResource"][];
         };
         /**
          * ProductUnit
@@ -2998,6 +3024,17 @@ export interface components {
          * @enum {string}
          */
         ProductUnit: "piece" | "bag" | "kg" | "ton" | "m" | "m2" | "m3" | "pack" | "roll" | "sheet";
+        /** QuickOrderRequest */
+        QuickOrderRequest: {
+            /** @example 1 */
+            product_id: number;
+            /** @example 2 */
+            quantity: number;
+            /** @example Халид */
+            customer_name: string;
+            /** @example +992931234567 */
+            customer_phone: string;
+        };
         /** RefreshTokenRequest */
         RefreshTokenRequest: {
             /**
@@ -5345,6 +5382,106 @@ export interface operations {
                         /** @example CART_EMPTY */
                         code: string;
                     } | {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "orders.quick": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuickOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `OrderResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Некоторые товары в корзине нельзя заказать: проверьте количество или удалите их. (CART_HAS_PROBLEMS) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Некоторые товары в корзине нельзя заказать: проверьте количество или удалите их. */
+                        message: string;
+                        /** @example CART_HAS_PROBLEMS */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
                         /** @example Переданные данные некорректны. */
                         message: string;
                         /** @example VALIDATION_ERROR */

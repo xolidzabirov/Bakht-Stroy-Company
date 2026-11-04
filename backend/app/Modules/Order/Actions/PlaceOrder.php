@@ -27,12 +27,32 @@ final class PlaceOrder
 {
     public function handle(User $user, PlaceOrderData $data): Order
     {
-        $order = DB::transaction(function () use ($user, $data): Order {
+        return $this->place($user, $data, function () use ($user): Collection {
             $items = CartItem::query()->where('user_id', $user->id)->orderBy('id')->get();
 
             if ($items->isEmpty()) {
                 throw new CartEmptyException;
             }
+
+            return $items;
+        }, clearCart: true);
+    }
+
+    /** One product past the cart: the same checks and write-off, and the cart stays as it was. */
+    public function handleProduct(User $user, PlaceOrderData $data, int $productId, int $quantity): Order
+    {
+        $line = new CartItem(['user_id' => $user->id, 'product_id' => $productId, 'quantity' => $quantity]);
+
+        return $this->place($user, $data, fn (): Collection => new Collection([$line]), clearCart: false);
+    }
+
+    /**
+     * @param  callable(): Collection<int, CartItem>  $lines
+     */
+    private function place(User $user, PlaceOrderData $data, callable $lines, bool $clearCart): Order
+    {
+        $order = DB::transaction(function () use ($user, $data, $lines, $clearCart): Order {
+            $items = $lines();
 
             $products = $this->lockProducts($items);
             $this->ensureOrderable($items, $products);
@@ -77,7 +97,9 @@ final class PlaceOrder
 
             $order->history()->create(['status' => OrderStatus::New, 'changed_by' => $user->id]);
 
-            CartItem::query()->where('user_id', $user->id)->delete();
+            if ($clearCart) {
+                CartItem::query()->where('user_id', $user->id)->delete();
+            }
 
             return $order;
         });

@@ -215,6 +215,9 @@ h3 {
 @custom-variant shorter (@media (max-height: 740px));
 @custom-variant shortest (@media (max-height: 620px));
 
+/* A real mouse: only then things may wait for a hover. A phone always shows them. */
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+
 /* One hover for every card (products, categories, news, advantages): a slight lift, a soft shadow,
    a clearer edge. Calm, the same everywhere, off for people who prefer less motion. */
 @utility card-hover {
