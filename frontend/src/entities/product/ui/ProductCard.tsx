@@ -37,12 +37,12 @@ export async function ProductCard({ product, action, favorite, priority = false 
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : undefined}
             decoding="async"
-            className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+            className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
           />
         )}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-          {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white">−{product.discount_percent}%</Badge> : null}
           {product.is_featured && <Badge>{t.common.hit}</Badge>}
+          {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white">−{product.discount_percent}%</Badge> : null}
         </div>
       </div>
       {favorite && <div className="absolute right-3 top-3 z-10">{favorite}</div>}
@@ -52,14 +52,14 @@ export async function ProductCard({ product, action, favorite, priority = false 
           <p className="mb-1 text-xs text-muted-foreground">{product.category.name}</p>
         )}
         {/* One link for the whole card (it stretches over it): the buttons below sit above it. */}
-        <Link prefetch={false} href={routes.product(product.slug)} className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug after:absolute after:inset-0 hover:underline">
+        <Link prefetch={false} href={routes.product(product.slug)} className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug after:absolute after:inset-0">
           {product.name}
         </Link>
 
         <div className="mt-auto pt-4">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-xl font-bold tabular-nums">{formatMoney(product.price, locale)}</span>
-            {product.old_price ? <span className="text-sm text-muted-foreground line-through">{formatMoney(product.old_price, locale)}</span> : null}
+            <span className="font-display text-xl font-bold tabular-nums text-success">{formatMoney(product.price, locale)}</span>
+            {product.old_price ? <span className="text-sm text-danger line-through">{formatMoney(product.old_price, locale)}</span> : null}
           </div>
           <p className="text-xs text-muted-foreground">
             {fmt(t.common.perUnit, { unit: product.unit.label })}

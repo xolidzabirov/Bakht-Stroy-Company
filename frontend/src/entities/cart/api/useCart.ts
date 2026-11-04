@@ -28,6 +28,8 @@ function useCartMutation<T>(request: (input: T) => Promise<CartResponse | undefi
   const queryClient = useQueryClient();
 
   return useMutation({
+    // One at a time, in order: quick presses on "В корзину" must all count.
+    scope: { id: "cart" },
     mutationFn: request,
     onSuccess: (response) => {
       if (response?.data) queryClient.setQueryData(cartKey, response.data);
@@ -56,6 +58,8 @@ export function useClearCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // One at a time, in order: quick presses on "В корзину" must all count.
+    scope: { id: "cart" },
     mutationFn: () => bff("/api/proxy/cart", { method: "DELETE" }),
     onSuccess: () => queryClient.setQueryData(cartKey, emptyCart),
   });

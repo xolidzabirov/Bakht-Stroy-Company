@@ -24,7 +24,7 @@ type Props = {
 
 /**
  * "В корзину". Guests go to the login page and come back here; signed-in users get a toast
- * with a link to the cart. A product that is already in the cart shows "В корзине".
+ * with a link to the cart. On a card the button always stays the same: every press adds the product once more.
  * The shop team does not buy: on a card they see what customers see, but the button only explains that and offers
  * to edit the product; on the product page they get a link to the admin panel instead.
  */
@@ -55,7 +55,8 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
     add.mutate(
       { productId: product.id, quantity: variant === "page" ? quantity : Math.max(1, product.min_order_qty) },
       {
-        onSuccess: () => toast.success(t.cart.added, { action: { label: t.cart.goToCart, onClick: () => router.push(routes.cart) } }),
+        // One toast that stays up while the button is being pressed, not a pile of them.
+        onSuccess: () => toast.success(t.cart.added, { id: "cart-added", action: { label: t.cart.goToCart, onClick: () => router.push(routes.cart) } }),
         onError: (error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic),
       },
     );
@@ -79,14 +80,9 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
   }
 
   if (variant === "card") {
-    return inCart ? (
-      <Link href={routes.cart} className={buttonClasses({ variant: "outline", size: "sm", className: cn("w-full", className) })}>
-        <Check className="size-4 text-success" />
-        {t.cart.inCart}
-      </Link>
-    ) : (
-      <Button size="sm" variant="outline" onClick={submit} disabled={add.isPending} className={cn("w-full group-hover:border-brand group-hover:bg-brand group-hover:text-on-brand hover:border-brand hover:bg-brand-hover hover:text-on-brand", className)}>
-        {add.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <ShoppingCart className="size-4" />}
+    return (
+      <Button size="sm" variant="outline" onClick={submit} className={cn("w-full group-hover:border-brand group-hover:bg-brand group-hover:text-on-brand hover:border-brand hover:bg-brand-hover hover:text-on-brand", className)}>
+        <ShoppingCart className="size-4" />
         {t.cart.add}
       </Button>
     );
