@@ -25,6 +25,7 @@ export async function Header() {
 
   const sections = [
     { href: routes.home, label: t.nav.home },
+    { href: routes.catalog, label: t.nav.catalog },
     { href: routes.delivery, label: t.nav.delivery },
     { href: routes.news, label: t.nav.news },
     { href: routes.about, label: t.nav.about },

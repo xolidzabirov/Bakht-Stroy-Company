@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { getI18n } from "@/shared/i18n/server";
 import { Button } from "@/shared/ui";
 import { Checkbox } from "@/shared/ui/kit/checkbox";
+import { AutoFilterForm } from "./AutoFilterForm";
 
 type Props = {
   /** Page the form submits to: /catalog or /catalog/{slug}. */
@@ -18,13 +18,14 @@ const input =
   "h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/30";
 
 /**
- * Plain GET form — works without JavaScript; the state lives in the URL, so a filtered page can be shared.
+ * The fields are rendered here and apply by themselves (AutoFilterForm). The state lives in the URL, so a filtered page can be shared.
+ * Without JavaScript it is a plain GET form with a button of its own.
  */
 export async function FiltersForm({ action, search, sort, priceFrom, priceTo, inStock, featured }: Props) {
   const { t } = await getI18n();
 
   return (
-    <form action={action} className="space-y-6">
+    <AutoFilterForm action={action} resetLabel={t.catalog.reset} className="space-y-6">
       {sort !== "popular" && <input type="hidden" name="sort" value={sort} />}
 
       <div>
@@ -53,14 +54,11 @@ export async function FiltersForm({ action, search, sort, priceFrom, priceTo, in
         </label>
       </div>
 
-      <div className="flex gap-2">
-        <Button type="submit" className="flex-1">
+      <noscript>
+        <Button type="submit" className="w-full">
           {t.catalog.show}
         </Button>
-        <Link prefetch={false} href={action} className="inline-flex h-11 items-center rounded-xl px-4 text-sm font-semibold text-muted-foreground hover:text-foreground">
-          {t.catalog.reset}
-        </Link>
-      </div>
-    </form>
+      </noscript>
+    </AutoFilterForm>
   );
 }
