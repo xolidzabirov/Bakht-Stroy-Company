@@ -48,7 +48,7 @@ export function OrderStatusActions({ orderId, next, paid }: { orderId: number; n
       close();
       router.refresh();
       // The "new orders" badge in the menu.
-      void queryClient.invalidateQueries({ queryKey: ["admin-badge-orders"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-badge-new-orders"] });
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.errors.generic);
     } finally {

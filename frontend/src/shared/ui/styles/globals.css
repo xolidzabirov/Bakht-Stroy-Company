@@ -8,6 +8,14 @@
  */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+}
+
 :root {
   --brand: #ffb800;
   --brand-hover: #f0ab00;
@@ -333,6 +341,13 @@ h3 {
 }
 .admin-ui ::-webkit-scrollbar-thumb:hover {
   background-color: color-mix(in oklab, var(--foreground) 38%, transparent);
+}
+/* The panel's thin bars must not come back where a row asks for none. */
+.admin-ui .no-scrollbar {
+  scrollbar-width: none;
+}
+.admin-ui .no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 /* On the dark menu the scrollbar is light and almost invisible until you need it. */
 .admin-ui .admin-nav-scroll {

@@ -259,7 +259,7 @@ export function CategoryManager({ tree, header }: { tree: Category[]; header: { 
       )}
 
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-lg">
+        <DialogContent className="rounded-2xl sm:max-w-lg">
           {editing && (
             <CategoryForm
               key={editing.category?.id ?? `new-${editing.parentId}`}

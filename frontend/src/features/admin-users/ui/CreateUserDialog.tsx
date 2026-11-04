@@ -113,7 +113,7 @@ export function CreateUserDialog() {
       </Button>
 
       <Dialog open={open} onOpenChange={close}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-lg">
+        <DialogContent className="rounded-2xl sm:max-w-lg">
           {result ? (
             <>
               <DialogTitle className="text-xl font-extrabold">{u.created}</DialogTitle>

@@ -30,7 +30,7 @@ export function ImageViewer({ images, index, onIndex, onClose }: { images: Viewe
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent showCloseButton={false} className="grid h-dvh max-h-dvh w-screen max-w-none place-items-center rounded-none border-0 bg-black/95 p-0 sm:max-w-none">
+      <DialogContent showCloseButton={false} className="grid h-dvh max-h-dvh w-screen max-w-none overflow-hidden place-items-center rounded-none border-0 bg-black/95 p-0 sm:max-w-none">
         <DialogTitle className="sr-only">{image.name}</DialogTitle>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image.url} alt={image.name} className="max-h-[88dvh] max-w-[94vw] select-none object-contain" />

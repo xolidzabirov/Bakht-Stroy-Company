@@ -166,7 +166,7 @@ export function BannerManager({ banners, placement }: { banners: Banner[]; place
       )}
 
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent className="max-h-[92dvh] overflow-y-auto rounded-2xl sm:max-w-xl">
+        <DialogContent className="rounded-2xl sm:max-w-xl">
           {editing !== null && (
             <BannerForm
               key={editing === "new" ? "new" : editing.id}
