@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Account\Actions;
 
+use App\Modules\Auth\Exceptions\EmailNotDeliveredException;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use App\Modules\Account\Notifications\EmailChangeCodeNotification;
 use App\Modules\Auth\Exceptions\CodeRecentlySentException;
 use App\Modules\Auth\Exceptions\InvalidVerificationCodeException;
@@ -27,8 +30,16 @@ final class ChangeEmail
             throw new CodeRecentlySentException($wait);
         }
 
-        Notification::route('mail', $newEmail)
-            ->notify(new EmailChangeCodeNotification($codes->issue($newEmail), VerificationCodes::ttlMinutes()));
+        $code = $codes->issue($newEmail);
+
+        try {
+            Notification::route('mail', $newEmail)->notifyNow(new EmailChangeCodeNotification($code, VerificationCodes::ttlMinutes()));
+        } catch (TransportExceptionInterface $exception) {
+            $codes->forget($newEmail);
+            Log::error('Email change code failed: '.$exception->getMessage());
+
+            throw new EmailNotDeliveredException;
+        }
     }
 
     public function confirm(User $user, string $newEmail, string $code, string $password): User

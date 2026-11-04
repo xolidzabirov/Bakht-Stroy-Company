@@ -48,6 +48,7 @@ export type StoreSettings = {
   delivery: { price: number; free_from: number; pickup_address: string | null; note: string | null };
   payment: { card_number: string | null; card_holder: string | null; bank: string | null; note: string | null };
   currency: { code: string; name: string; symbol: string; minor_units: number };
+  auth?: { google: boolean };
 };
 
 /** Cart line (written by hand: the generated schema has the totals as strings). */

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Actions;
 
+use App\Modules\Auth\Exceptions\EmailNotDeliveredException;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use App\Modules\Auth\Notifications\PasswordResetCodeNotification;
 use App\Modules\Auth\Support\VerificationCodes;
 use App\Modules\User\Models\User;
@@ -23,8 +26,16 @@ final class SendPasswordResetCode
             return;
         }
 
-        $code = VerificationCodes::passwordReset()->issue($user->email);
+        $codes = VerificationCodes::passwordReset();
+        $code = $codes->issue($user->email);
 
-        $user->notify(new PasswordResetCodeNotification($code, VerificationCodes::ttlMinutes()));
+        try {
+            $user->notifyNow(new PasswordResetCodeNotification($code, VerificationCodes::ttlMinutes()));
+        } catch (TransportExceptionInterface $exception) {
+            $codes->forget($user->email);
+            Log::error('Password reset email failed: '.$exception->getMessage());
+
+            throw new EmailNotDeliveredException;
+        }
     }
 }

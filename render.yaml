@@ -83,6 +83,12 @@ services:
         value: database
 
       # ---- First start: admin + demo data (no console on the free plan) ----
+      # ---- Google: sign-in and the Gmail that sends letters (mailbox is connected in the admin panel) ----
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
       - key: SHOP_BOOTSTRAP
         value: "true"
       - key: ADMIN_NAME

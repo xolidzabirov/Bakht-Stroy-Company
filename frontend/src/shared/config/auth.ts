@@ -11,6 +11,9 @@ export const REFRESH_COOKIE = "bakht_refresh";
 /** httpOnly: set for managers, so that /admin sends them to their own address (proxy.ts). */
 export const MANAGER_COOKIE = "bakht_manager";
 
+/** httpOnly, for ten minutes: what Google's page has to bring back (shared/api, app/api/auth/google). */
+export const GOOGLE_STATE_COOKIE = "bakht_google_state";
+
 /** The panel of managers is the same pages at its own address: /manager instead of /admin. */
 export const managerPath = (path: string) => path.replace(/^\/admin(?=\/|$)/, "/manager");
 export const adminPath = (path: string) => path.replace(/^\/manager(?=\/|$)/, "/admin");

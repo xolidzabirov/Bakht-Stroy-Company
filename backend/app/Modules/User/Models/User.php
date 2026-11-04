@@ -27,6 +27,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $locale
  * @property string $theme
  * @property Carbon|null $email_verified_at
+ * @property string|null $google_id
  * @property Carbon|null $phone_verified_at
  * @property Carbon|null $blocked_at
  * @property Carbon|null $last_seen_at
@@ -37,7 +38,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 #[UseFactory(UserFactory::class)]
 #[Fillable(['name', 'email', 'phone', 'password', 'locale', 'theme'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'google_id'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */

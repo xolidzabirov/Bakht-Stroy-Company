@@ -165,6 +165,11 @@ export function applyRenewal<T extends NextResponse>(response: T, renewal: Renew
   return response;
 }
 
+/** Where Google brings people back: this address must be in the Google Cloud project. */
+export function googleRedirectUri(request: NextRequest): string {
+  return `${request.nextUrl.origin}/api/auth/google/callback`;
+}
+
 /** Passes the Laravel answer to the browser as is (status, JSON error format). */
 export async function relay(upstream: Response): Promise<NextResponse> {
   if (upstream.status === 204) return new NextResponse(null, { status: 204 });

@@ -15,12 +15,13 @@ use Illuminate\Support\Facades\Notification;
 
 /**
  * Notifies the client and the staff about order events.
+ * A letter that cannot be sent is written to the log: the order itself has already happened.
  */
 final class SendOrderNotifications
 {
     public function orderPlaced(OrderPlaced $event): void
     {
-        $event->order->user->notify(new OrderPlacedNotification($event->order));
+        rescue(fn () => $event->order->user->notify(new OrderPlacedNotification($event->order)));
 
         $staff = User::query()
             ->role(array_map(fn (Role $role) => $role->value, Role::staff()))
@@ -37,6 +38,6 @@ final class SendOrderNotifications
             return;
         }
 
-        $event->order->user->notify(new OrderStatusChangedNotification($event->order, $event->to));
+        rescue(fn () => $event->order->user->notify(new OrderStatusChangedNotification($event->order, $event->to)));
     }
 }

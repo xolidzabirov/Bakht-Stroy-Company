@@ -14,7 +14,8 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    // Gmail API by default: it works on hosting with closed mail ports. Locally .env says log.
+    'default' => env('MAIL_MAILER', 'gmail'),
 
     /*
     |--------------------------------------------------------------------------
@@ -59,6 +60,10 @@ return [
             // 'client' => [
             //     'timeout' => 5,
             // ],
+        ],
+
+        'gmail' => [
+            'transport' => 'gmail',
         ],
 
         'resend' => [

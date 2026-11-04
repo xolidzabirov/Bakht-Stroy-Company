@@ -35,7 +35,7 @@ async function sendEmailCode(email: string): Promise<string | null> {
  * Registration in 5 steps: 1) first and last name — 2) Tajik phone — 3) email, a code goes there —
  * 4) the 6-digit code from the letter — 5) password twice → the account is created and signed in.
  */
-export function RegisterWizard({ next }: { next: string }) {
+export function RegisterWizard({ next, firstStepExtra }: { next: string; firstStepExtra?: React.ReactNode }) {
   const { t } = useI18n();
   const [step, setStep] = useState(1);
   const [name, setName] = useState<RegNameValues>({ first_name: "", last_name: "" });
@@ -72,14 +72,17 @@ export function RegisterWizard({ next }: { next: string }) {
 
       <div key={step} className="animate-in fade-in slide-in-from-right-4 duration-300">
         {step === 1 && (
-          <NameStep
-            initial={name}
-            next={next}
-            onDone={(values) => {
-              setName(values);
-              go(2);
-            }}
-          />
+          <>
+            <NameStep
+              initial={name}
+              next={next}
+              onDone={(values) => {
+                setName(values);
+                go(2);
+              }}
+            />
+            {firstStepExtra && <div className="mt-5">{firstStepExtra}</div>}
+          </>
         )}
         {step === 2 && (
           <PhoneStep

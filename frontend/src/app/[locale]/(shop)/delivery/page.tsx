@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Banknote, Building2, CalendarClock, Check, Clock, CreditCard, MapPin, Navigation, Store, Truck, Wallet } from "lucide-react";
+import { Banknote, Building2, CalendarClock, Check, Clock, MapPin, Navigation, Store, Truck, Wallet } from "lucide-react";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { routes } from "@/shared/config/site";
 import { fmt } from "@/shared/i18n/format";
@@ -10,7 +10,7 @@ import { Container } from "@/shared/ui";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 
-const paymentIcons = { cash: Banknote, card_transfer: CreditCard, transfer: Building2 } as const;
+const paymentIcons = { cash: Banknote, transfer: Building2 } as const;
 const STATUS_FLOW = ["new", "confirmed", "assembling", "delivering", "completed"] as const;
 
 type Props = { params: Promise<{ locale: string }> };
@@ -118,7 +118,7 @@ export default async function DeliveryPage({ params }: Props) {
         <section className="mt-12">
           <h2 className="text-2xl font-extrabold sm:text-3xl">{t.delivery.paymentTitle}</h2>
           <p className="mt-2 text-muted-foreground">{t.delivery.paymentLead}</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
             {(Object.keys(paymentIcons) as (keyof typeof paymentIcons)[]).map((key) => {
               const Icon = paymentIcons[key];
               const method = t.checkout.payments[key];

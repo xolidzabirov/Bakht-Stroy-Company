@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Auth\Http\Controllers\AuthController;
+use App\Modules\Auth\Http\Controllers\GoogleAuthController;
 use App\Modules\Auth\Http\Controllers\PasswordResetController;
 use App\Modules\Auth\Http\Controllers\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,11 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('register', [AuthController::class, 'register'])->middleware('throttle:register')->name('register');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login');
     Route::post('refresh', [AuthController::class, 'refresh'])->middleware('throttle:refresh-token')->name('refresh');
+
+    Route::middleware('throttle:google-sign-in')->group(function () {
+        Route::get('google/url', [GoogleAuthController::class, 'url'])->name('google.url');
+        Route::post('google', [GoogleAuthController::class, 'signIn'])->name('google');
+    });
 
     Route::middleware('throttle:password-reset')->group(function () {
         Route::post('forgot-password', [PasswordResetController::class, 'forgot'])->name('password.forgot');

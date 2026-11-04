@@ -2,6 +2,7 @@
 
 use App\Modules\Content\Http\Controllers\BannerController;
 use App\Modules\Content\Http\Controllers\ContactController;
+use App\Modules\Content\Http\Controllers\MailConnectionController;
 use App\Modules\Content\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,15 @@ Route::post('contact', [ContactController::class, 'store'])->middleware('throttl
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
     Route::get('settings', [SettingsController::class, 'show'])->name('settings.show');
+
+    Route::middleware('role:admin')->prefix('mail')->name('mail.')->group(function () {
+        Route::get('/', [MailConnectionController::class, 'show'])->name('show');
+        Route::get('google/url', [MailConnectionController::class, 'url'])->name('google.url');
+        Route::post('google', [MailConnectionController::class, 'connect'])->name('google.connect');
+        Route::delete('google', [MailConnectionController::class, 'disconnect'])->name('google.disconnect');
+        Route::post('test', [MailConnectionController::class, 'test'])->name('test');
+    });
+
     Route::put('settings', [SettingsController::class, 'update'])->middleware('role:admin')->name('settings.update');
 
     Route::get('banners', [BannerController::class, 'index'])->name('banners.index');

@@ -7,7 +7,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Banknote, Building2, Check, CreditCard, LoaderCircle, MapPin, PackageCheck, Plus, Store, Truck } from "lucide-react";
+import { Banknote, Building2, Check, LoaderCircle, MapPin, PackageCheck, Plus, Store, Truck } from "lucide-react";
 import { cartKey } from "@/entities/cart/api/useCart";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
@@ -49,7 +49,7 @@ function createSchema(t: BrowserDictionary) {
       apartment: z.string().trim().max(20),
       address_comment: z.string().trim().max(500),
       save_address: z.boolean(),
-      payment_method: z.enum(["cash", "card_transfer", "transfer"]),
+      payment_method: z.enum(["cash", "transfer"]),
       comment: z.string().trim().max(1000),
     })
     .superRefine((data, ctx) => {
@@ -146,7 +146,6 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
 
   const payments = [
     { value: "cash" as const, icon: Banknote },
-    { value: "card_transfer" as const, icon: CreditCard },
     { value: "transfer" as const, icon: Building2 },
   ];
 
@@ -257,7 +256,7 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
             control={control}
             name="payment_method"
             render={({ field }) => (
-              <div role="radiogroup" className="grid gap-3 sm:grid-cols-3">
+              <div role="radiogroup" className="grid gap-3 sm:grid-cols-2">
                 {payments.map(({ value, icon }) => (
                   <Choice key={value} active={field.value === value} onSelect={() => field.onChange(value)} icon={icon} title={t.checkout.payments[value].title} text={t.checkout.payments[value].text} vertical />
                 ))}

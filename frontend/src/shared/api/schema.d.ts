@@ -131,6 +131,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/google/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Вход через Google — адрес
+         * @description Куда отправить человека: страница выбора аккаунта Google. Назад он вернётся на redirect_uri с кодом.
+         */
+        get: operations["auth.google.url"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Вход через Google
+         * @description Код от Google меняется на токены сайта. Покупателя без аккаунта сразу регистрирует: email уже подтверждён Google.
+         *     Сотрудники магазина входят только по паролю.
+         */
+        post: operations["auth.google"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -1635,6 +1676,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Почта: состояние */
+        get: operations["admin.mail.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/mail/google/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Почта: адрес подключения
+         * @description Страница Google, где владелец почты разрешает магазину отправлять письма.
+         */
+        get: operations["admin.mail.google.url"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/mail/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Почта: подключить Gmail */
+        post: operations["admin.mail.google.connect"];
+        /** Почта: отключить Gmail */
+        delete: operations["admin.mail.google.disconnect"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/mail/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Почта: проверочное письмо */
+        post: operations["admin.mail.test"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/banners": {
         parameters: {
             query?: never;
@@ -2481,6 +2594,22 @@ export interface components {
              * @example client@gmail.com
              */
             email: string;
+        };
+        /** GoogleCodeRequest */
+        GoogleCodeRequest: {
+            /** @description Код, с которым Google вернул человека на сайт. */
+            code: string;
+            /**
+             * Format: uri
+             * @description Тот же адрес возврата, что и при запросе адреса Google.
+             * @example https://bakht-stroy-company.vercel.app/api/auth/google/callback
+             */
+            redirect_uri: string;
+            /**
+             * @description Название устройства для списка сессий.
+             * @example Chrome Windows
+             */
+            device_name?: string | null;
         };
         /** ImageResource */
         ImageResource: {
@@ -3764,6 +3893,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "auth.google.url": {
+        parameters: {
+            query: {
+                /**
+                 * @description Адрес возврата. Google принимает только адреса, записанные в настройках проекта.
+                 * @example https://bakht-stroy-company.vercel.app/api/auth/google/callback
+                 */
+                redirect_uri: string;
+                /** @description Случайная строка: сайт сверяет её при возврате. */
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            url: string;
+                        };
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Вход через Google ещё не настроен. (GOOGLE_NOT_CONFIGURED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Вход через Google ещё не настроен. */
+                        message: string;
+                        /** @example GOOGLE_NOT_CONFIGURED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "auth.google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description `AuthTokenResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuthTokenResource"];
+                    };
+                };
+            };
+            /**
+             * @description Сотрудники магазина входят по email и паролю. (STAFF_PASSWORD_ONLY)
+             *
+             *     Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED)
+             */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Сотрудники магазина входят по email и паролю. */
+                        message: string;
+                        /** @example STAFF_PASSWORD_ONLY */
+                        code: string;
+                    } | {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /**
+             * @description Не удалось войти через Google. Попробуйте ещё раз. (GOOGLE_SIGN_IN_FAILED)
+             *
+             *     Переданные данные некорректны. (VALIDATION_ERROR)
+             */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Не удалось войти через Google. Попробуйте ещё раз. */
+                        message: string;
+                        /** @example GOOGLE_SIGN_IN_FAILED */
+                        code: string;
+                    } | {
                         /** @example Переданные данные некорректны. */
                         message: string;
                         /** @example VALIDATION_ERROR */
@@ -7033,6 +7329,10 @@ export interface operations {
                         data: {
                             /** @description Валюта: все суммы в API — в дирамах (minor_units = 100). */
                             currency: string;
+                            /** @description Какие способы входа доступны на сайте. */
+                            auth: {
+                                google: boolean;
+                            };
                         } & {
                             [key: string]: string;
                         };
@@ -10384,6 +10684,10 @@ export interface operations {
                         data: {
                             /** @description Валюта: все суммы в API — в дирамах (minor_units = 100). */
                             currency: string;
+                            /** @description Какие способы входа доступны на сайте. */
+                            auth: {
+                                google: boolean;
+                            };
                         } & {
                             [key: string]: string;
                         };
@@ -10442,6 +10746,10 @@ export interface operations {
                         data: {
                             /** @description Валюта: все суммы в API — в дирамах (minor_units = 100). */
                             currency: string;
+                            /** @description Какие способы входа доступны на сайте. */
+                            auth: {
+                                google: boolean;
+                            };
                         } & {
                             [key: string]: string;
                         };
@@ -10491,6 +10799,357 @@ export interface operations {
                         errors: {
                             [key: string]: string[];
                         };
+                    };
+                };
+            };
+        };
+    };
+    "admin.mail.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @description Ключи Google добавлены на сервере. */
+                            configured: boolean;
+                            connected: boolean;
+                            /** @example shop@gmail.com */
+                            email: string | null;
+                            /** @description Google отозвал доступ: нужно подключить заново. */
+                            broken: boolean;
+                            /** @description Письма идут через Gmail (а не другим способом из настроек сервера). */
+                            active: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+        };
+    };
+    "admin.mail.google.url": {
+        parameters: {
+            query: {
+                /**
+                 * @description Адрес возврата. Google принимает только адреса, записанные в настройках проекта.
+                 * @example https://bakht-stroy-company.vercel.app/api/auth/google/callback
+                 */
+                redirect_uri: string;
+                /** @description Случайная строка: сайт сверяет её при возврате. */
+                state: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            url: string;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Вход через Google ещё не настроен. (GOOGLE_NOT_CONFIGURED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Вход через Google ещё не настроен. */
+                        message: string;
+                        /** @example GOOGLE_NOT_CONFIGURED */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "admin.mail.google.connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleCodeRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @description Ключи Google добавлены на сервере. */
+                            configured: boolean;
+                            connected: boolean;
+                            /** @example shop@gmail.com */
+                            email: string | null;
+                            /** @description Google отозвал доступ: нужно подключить заново. */
+                            broken: boolean;
+                            /** @description Письма идут через Gmail (а не другим способом из настроек сервера). */
+                            active: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /**
+             * @description Не удалось подключить Gmail: разрешите отправку писем на странице Google и попробуйте ещё раз. (GMAIL_CONNECT_FAILED)
+             *
+             *     Переданные данные некорректны. (VALIDATION_ERROR)
+             */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Не удалось подключить Gmail: разрешите отправку писем на странице Google и попробуйте ещё раз. */
+                        message: string;
+                        /** @example GMAIL_CONNECT_FAILED */
+                        code: string;
+                    } | {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin.mail.google.disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+        };
+    };
+    "admin.mail.test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            sent_to: string;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Письмо не отправилось. Проверьте подключение Gmail и попробуйте ещё раз. (GMAIL_SEND_FAILED) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Письмо не отправилось. Проверьте подключение Gmail и попробуйте ещё раз. */
+                        message: string;
+                        /** @example GMAIL_SEND_FAILED */
+                        code: string;
                     };
                 };
             };

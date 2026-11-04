@@ -50,6 +50,8 @@ final class AuthServiceProvider extends ModuleServiceProvider
         // Every open tab of a visitor may renew at the same moment, and a shop can have many people behind one address.
         RateLimiter::for('refresh-token', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
 
+        RateLimiter::for('google-sign-in', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
 
         // Is this number free? Answers about registered numbers, so not too often.

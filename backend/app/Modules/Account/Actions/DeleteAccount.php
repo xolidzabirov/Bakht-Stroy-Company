@@ -52,6 +52,7 @@ final class DeleteAccount
                 'name' => 'Удалённый пользователь',
                 'email' => "deleted-{$user->id}@deleted.invalid",
                 'phone' => null,
+                'google_id' => null,
             ])->save();
 
             $user->delete();

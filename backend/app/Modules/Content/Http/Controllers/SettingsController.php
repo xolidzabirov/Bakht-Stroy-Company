@@ -7,12 +7,13 @@ namespace App\Modules\Content\Http\Controllers;
 use App\Modules\Content\Http\Requests\UpdateSettingsRequest;
 use App\Modules\Content\Support\DatabaseShopSettings;
 use App\Shared\Http\Controllers\Controller;
+use App\Shared\Support\GoogleOAuth;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
 final class SettingsController extends Controller
 {
-    public function __construct(private DatabaseShopSettings $settings) {}
+    public function __construct(private DatabaseShopSettings $settings, private GoogleOAuth $google) {}
 
     /**
      * Контакты и условия доставки
@@ -63,6 +64,8 @@ final class SettingsController extends Controller
             ...collect(DatabaseShopSettings::GROUPS)->mapWithKeys(fn (string $group) => [$group => $this->settings->get($group)])->all(),
             /** Валюта: все суммы в API — в дирамах (minor_units = 100). */
             'currency' => config('shop.currency'),
+            /** Какие способы входа доступны на сайте. */
+            'auth' => ['google' => $this->google->isConfigured()],
         ];
     }
 }
