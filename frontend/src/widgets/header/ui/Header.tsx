@@ -38,7 +38,7 @@ export async function Header() {
         <MobileMenu nav={[sections[0], { href: routes.catalog, label: t.nav.catalog }, ...sections.slice(1)]} phone={mainPhone} />
 
         <Link prefetch={false} href={routes.home} title={t.header.homeAria} className="shrink-0">
-          <Logo />
+          <Logo className="max-[359px]:[&>span:last-child]:hidden" />
         </Link>
 
         {/* On phones the catalog is in the ☰ menu, so the top bar fits 360 px. */}

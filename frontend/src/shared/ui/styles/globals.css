@@ -210,6 +210,11 @@ h3 {
   }
 }
 
+/* Low screens (a laptop with zoom, a phone on its side): the panel's menu tightens up so that it needs no scrolling. */
+@custom-variant short (@media (max-height: 800px));
+@custom-variant shorter (@media (max-height: 740px));
+@custom-variant shortest (@media (max-height: 620px));
+
 /* One hover for every card (products, categories, news, advantages): a slight lift, a soft shadow,
    a clearer edge. Calm, the same everywhere, off for people who prefer less motion. */
 @utility card-hover {

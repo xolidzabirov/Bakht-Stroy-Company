@@ -73,7 +73,7 @@ export function TabFilter({ name, tabs }: { name: string; tabs: { value: string 
   const current = params.get(name);
 
   return (
-    <div role="tablist" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+    <div role="tablist" className="flex flex-wrap gap-1.5 pb-1">
       {tabs.map((tab) => {
         const active = (tab.value ?? null) === current;
         return (

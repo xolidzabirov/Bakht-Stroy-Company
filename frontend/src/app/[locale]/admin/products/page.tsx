@@ -68,7 +68,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </div>
 
       {/* Products split by category: one tap shows a category, the counts come with the tree. */}
-      <nav aria-label={p.category} className="no-scrollbar -mx-3 mb-4 flex gap-2 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:px-0">
+      <nav aria-label={p.category} className="mb-4 flex flex-wrap gap-2">
         {[{ slug: "", name: p.allCategories, count: undefined as number | undefined }, ...tree.map((c) => ({ slug: c.slug, name: c.name, count: c.products_count ?? undefined }))].map((c) => {
           const active = (search.category ?? "") === c.slug;
           const next = new URLSearchParams(query);

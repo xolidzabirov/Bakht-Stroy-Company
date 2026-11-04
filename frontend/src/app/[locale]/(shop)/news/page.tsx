@@ -63,7 +63,7 @@ export default async function NewsPage({ searchParams }: Props) {
       </header>
 
       {tabs.length > 2 && (
-        <nav aria-label={t.news.title} className="no-scrollbar -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+        <nav aria-label={t.news.title} className="mt-6 flex flex-wrap gap-2 sm:px-0">
           {tabs.map((tab) => {
             const active = tab.value === type;
 

@@ -130,11 +130,11 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
 
   return (
     <nav aria-label={t.admin.menu} className="flex h-full flex-col">
-      <div className="admin-nav-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3">
+      <div className="admin-nav-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3 short:space-y-2 short:py-2 shorter:space-y-1.5">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35">{group.label}</p>
-            <ul className="space-y-0.5">
+            <p className="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35 short:mb-0.5 shorter:hidden">{group.label}</p>
+            <ul className="space-y-0.5 short:space-y-0">
               {group.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = isActive(href, exact);
                 return (
@@ -144,7 +144,7 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
                       onClick={onNavigate}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                        "group relative flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors short:h-8 shortest:h-7",
                         active ? "bg-white/[0.09] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white",
                       )}
                     >
@@ -163,14 +163,14 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
       </div>
 
       {/* Who is signed in — the card opens their profile — and the way back to the shop. */}
-      <div className="border-t border-white/10 p-3">
+      <div className="border-t border-white/10 p-3 short:p-2">
         <Link
           href={profile}
           onClick={onNavigate}
           aria-current={pathname === profile ? "page" : undefined}
           title={t.admin.nav.profile}
           className={cn(
-            "group relative flex items-center gap-3 rounded-xl p-2 transition-colors",
+            "group relative flex items-center gap-3 rounded-xl p-2 transition-colors short:p-1.5",
             pathname === profile ? "bg-white/[0.12]" : "bg-white/[0.05] hover:bg-white/[0.09]",
           )}
         >
@@ -186,7 +186,7 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
         <Link
           href={routes.home}
           onClick={onNavigate}
-          className="mt-2 flex h-9 items-center justify-center gap-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 transition hover:border-brand/50 hover:text-brand"
+          className="mt-2 flex h-9 items-center justify-center short:mt-1 short:h-8 gap-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 transition hover:border-brand/50 hover:text-brand"
         >
           <Store className="size-4" />
           {t.admin.nav.toSite}

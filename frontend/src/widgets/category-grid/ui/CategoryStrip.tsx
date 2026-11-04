@@ -12,10 +12,10 @@ export function CategoryStrip({ categories }: { categories: Category[] }) {
 
   return (
     <Container className="mt-10">
-      <ul className="-mx-4 flex snap-x gap-5 overflow-x-auto px-4 pb-2 pt-2 [scrollbar-width:none] sm:gap-7 lg:justify-between">
+      <ul className="-mx-4 flex snap-x gap-5 overflow-x-auto px-4 pb-2 pt-2 [scrollbar-width:none] sm:gap-7 lg:mx-0 lg:grid lg:auto-cols-fr lg:grid-flow-col lg:gap-3 lg:overflow-visible lg:px-0">
         {categories.map((category) => (
           <li key={category.id} className="snap-start">
-            <Link prefetch={false} href={routes.category(category.slug)} className="group flex w-24 flex-col items-center gap-3 text-center sm:w-28">
+            <Link prefetch={false} href={routes.category(category.slug)} className="group flex w-24 flex-col items-center gap-3 text-center sm:w-28 lg:w-full">
               <CategoryIcon slug={category.slug} size="lg" className="transition group-hover:-translate-y-1 group-hover:shadow-lg" />
               <span className="text-xs font-semibold leading-tight sm:text-sm">{category.name}</span>
             </Link>

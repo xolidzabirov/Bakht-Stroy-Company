@@ -37,7 +37,7 @@ export default async function AccountOrdersPage({ searchParams }: Props) {
     <div>
       <h1 className="text-3xl font-extrabold">{t.acc.orders.title}</h1>
 
-      <div className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
+      <div className="mt-5 flex flex-wrap gap-2 pb-1">
         {FILTERS.map((value) => (
           <Link
             key={value}

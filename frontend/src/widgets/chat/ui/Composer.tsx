@@ -128,7 +128,7 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
   return (
     <div className="border-t border-border bg-surface p-2.5 sm:p-3">
       {suggestions && suggestions.length > 0 && !editing && text === "" && files.length === 0 && (
-        <div className="-mx-1 mb-2 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
+        <div className="mb-2 flex flex-wrap gap-1.5 pb-0.5">
           {suggestions.map((phrase) => (
             <button
               key={phrase}
@@ -174,7 +174,7 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
       )}
 
       {files.length > 0 && !editing && (
-        <ul className="mb-2 flex gap-2 overflow-x-auto pb-1">
+        <ul className="mb-2 flex flex-wrap gap-2 pb-1">
           {files.map((file, index) => (
             <li key={`${file.name}-${index}`} className="relative shrink-0">
               {file.type.startsWith("image/") ? (

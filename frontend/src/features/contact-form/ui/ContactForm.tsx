@@ -87,7 +87,7 @@ export function ContactForm() {
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       {formError && <FormAlert>{formError}</FormAlert>}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         <Field label={c.name} error={errors.name?.message}>
           {(id, describedBy) => <TextInput id={id} autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={describedBy} {...register("name")} />}
         </Field>

@@ -60,12 +60,12 @@ export default async function AdminOrderPage({ params }: Props) {
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           <Panel title={o.items}>
-            <div className="-mx-4 overflow-x-auto sm:-mx-5">
-              <table className="w-full min-w-[560px] text-sm">
+            <div className="-mx-4 sm:-mx-5">
+              <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <tr className="border-b border-border">
                     <th className="px-4 pb-2 font-semibold sm:px-5">{t.admin.products.product}</th>
-                    <th className="px-2 pb-2 text-right font-semibold">{o.price}</th>
+                    <th className="hidden px-2 pb-2 text-right font-semibold sm:table-cell">{o.price}</th>
                     <th className="px-2 pb-2 text-right font-semibold">{o.qty}</th>
                     <th className="px-4 pb-2 text-right font-semibold sm:px-5">{o.sum}</th>
                   </tr>
@@ -77,9 +77,9 @@ export default async function AdminOrderPage({ params }: Props) {
                         <span className="flex items-center gap-3">
                           {item.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={item.image} alt="" className="size-11 shrink-0 rounded-lg bg-muted object-cover" />
+                            <img src={item.image} alt="" className="hidden size-11 shrink-0 rounded-lg bg-muted object-cover sm:block" />
                           ) : (
-                            <span className="size-11 shrink-0 rounded-lg bg-muted" />
+                            <span className="hidden size-11 shrink-0 rounded-lg bg-muted sm:block" />
                           )}
                           <span className="min-w-0">
                             {item.product_id ? (
@@ -90,10 +90,11 @@ export default async function AdminOrderPage({ params }: Props) {
                               <span className="font-medium">{item.name}</span>
                             )}
                             {item.sku && <span className="block text-xs text-muted-foreground">{item.sku}</span>}
+                            <span className="block text-xs tabular-nums text-muted-foreground sm:hidden">{money(item.price)}</span>
                           </span>
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-2 py-3 text-right tabular-nums">{money(item.price)}</td>
+                      <td className="hidden whitespace-nowrap px-2 py-3 text-right tabular-nums sm:table-cell">{money(item.price)}</td>
                       <td className="whitespace-nowrap px-2 py-3 text-right tabular-nums">
                         {item.quantity} {t.admin.product.units[item.unit.value] ?? item.unit.label}
                       </td>
