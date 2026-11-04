@@ -1,0 +1,18 @@
+# The free Render instance sleeps after 15 minutes without requests, and the first visitor then waits ~50 s.
+# A light request every 10 minutes keeps the API awake. /up does not touch the database, so Neon still sleeps when idle.
+name: Keep the API awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping the API health check
+        run: curl --fail --silent --show-error --max-time 90 --retry 2 --retry-delay 10 https://bakhtstroy-api.onrender.com/up
