@@ -5,6 +5,7 @@ import { site } from "@/shared/config/site";
 import { forBrowser } from "@/shared/i18n/browserDictionary";
 import { locales, THEME_COOKIE } from "@/shared/i18n/config";
 import { getI18n, setLocaleFrom } from "@/shared/i18n/server";
+import { HeadScript } from "@/shared/ui/HeadScript";
 import "@/shared/ui/styles/globals.css";
 import { Providers } from "./providers";
 
@@ -66,8 +67,8 @@ export default async function RootLayout({ children, params }: Props) {
   return (
     <html lang={locale} className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        {process.env.NODE_ENV === "development" && <script dangerouslySetInnerHTML={{ __html: extensionNoiseScript }} />}
+        <HeadScript code={themeScript} ran="theme" />
+        {process.env.NODE_ENV === "development" && <HeadScript code={extensionNoiseScript} />}
       </head>
       <body className="min-h-dvh">
         <Providers locale={locale} dictionary={forBrowser(t)}>

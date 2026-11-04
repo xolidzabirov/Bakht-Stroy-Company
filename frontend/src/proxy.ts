@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { applyRenewal, canRenew, isRenewalDue, renewSession } from "@/shared/api/bff";
+import { applyRenewal, canRenew, isRenewalDue, type Renewal, renewSession } from "@/shared/api/bff";
 import { AUTH_COOKIE, GUEST_ONLY_PATHS, PROTECTED_PATHS, REFRESH_COOKIE, safeNext, USER_COOKIE } from "@/shared/config/auth";
 import { defaultLocale, isLocale, LOCALE_COOKIE } from "@/shared/i18n/config";
 
@@ -28,7 +28,10 @@ export async function proxy(request: NextRequest) {
   }
 
   const isProtected = matches(pathname, PROTECTED_PATHS);
-  const renewal = isRenewalDue(request) ? await renewSession(request, isProtected ? 25_000 : 3_000) : null;
+  // A session is whole or it is not there. The header knows the visitor only by the name cookie: without it
+  // it shows "Войти", and that person must really be a guest, or the button leads straight into the account.
+  const broken = request.cookies.has(USER_COOKIE) !== (request.cookies.has(AUTH_COOKIE) || canRenew(request));
+  const renewal: Renewal | null = broken ? { status: "rejected" } : isRenewalDue(request) ? await renewSession(request, isProtected ? 25_000 : 3_000) : null;
 
   // This request's page must already see what the browser will get.
   if (renewal?.status === "renewed") request.cookies.set(AUTH_COOKIE, renewal.data.token);

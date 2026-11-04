@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CalendarDays, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { LogoutButton } from "@/features/auth/ui/LogoutButton";
 import { AppearanceSection, PersonalSection, SessionsSection, SignInSection } from "@/features/admin-profile/ui/ProfileSections";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
@@ -59,6 +60,7 @@ export default async function AdminProfilePage() {
               </li>
             </ul>
           </div>
+          <LogoutButton className="shrink-0 self-start border-white/20 bg-white/5 text-white hover:border-white/40 hover:bg-white/10 hover:text-white sm:self-center" />
         </div>
       </section>
 
