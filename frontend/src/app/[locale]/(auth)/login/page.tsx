@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSettings } from "@/entities/settings/api/getSettings";
-import { GoogleButton } from "@/features/auth/ui/GoogleButton";
 import { LoginForm } from "@/features/auth/ui/LoginForm";
+import { SocialButtons } from "@/features/auth/ui/SocialButtons";
 import { safeNext } from "@/shared/config/auth";
 import { getI18n } from "@/shared/i18n/server";
 import { FormAlert } from "@/shared/ui";
@@ -30,13 +30,12 @@ export default async function LoginPage({ searchParams }: Props) {
           <FormAlert>{googleError}</FormAlert>
         </div>
       )}
-      {settings.auth?.google && (
-        <div className="mt-8">
-          <GoogleButton label={t.auth.googleLogin} or={t.auth.or} next={target} separator="below" />
-        </div>
-      )}
-      <div className={settings.auth?.google ? "mt-5" : "mt-8"}>
-        <LoginForm next={target} notice={reset ? t.auth.passwordChanged : undefined} />
+      <div className="mt-8">
+        <LoginForm
+          next={target}
+          notice={reset ? t.auth.passwordChanged : undefined}
+          social={settings.auth?.google ? <SocialButtons or={t.auth.or} next={target} googleLabel={t.auth.googleLogin} appleLabel={t.auth.appleLogin} appleSoon={t.auth.appleSoon} /> : undefined}
+        />
       </div>
     </>
   );

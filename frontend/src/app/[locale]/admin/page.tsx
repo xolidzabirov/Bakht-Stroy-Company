@@ -18,6 +18,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const PERIODS = ["7", "30", "90"] as const;
 
+// Each status keeps the color of its badge in the orders list.
+const STATUS_BARS: Record<string, string> = {
+  new: "bg-brand",
+  confirmed: "bg-sky-600 dark:bg-sky-400",
+  assembling: "bg-violet-600 dark:bg-violet-400",
+  delivering: "bg-orange-500 dark:bg-orange-400",
+  completed: "bg-success",
+  cancelled: "bg-destructive",
+};
+
 /** Numbers of the store: money, orders, customers, catalog; charts by day; what is running out. */
 export default async function AdminDashboardPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   await requireStaff(routes.admin);
@@ -110,6 +120,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             title={d.orderCount}
             points={stats.charts.map((day) => ({ label: dayLabel(day.date), value: day.orders }))}
             kind="count"
+            barClass="bg-sky-600 dark:bg-sky-400"
             locale={locale}
             tableLabels={{ date: t.admin.orders.date, value: d.orderCount, show: d.showTable }}
           />
@@ -119,6 +130,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             title={d.amount}
             points={stats.charts.map((day) => ({ label: dayLabel(day.date), value: day.amount }))}
             kind="money"
+            barClass="bg-emerald-600 dark:bg-emerald-400"
             locale={locale}
             tableLabels={{ date: t.admin.orders.date, value: d.amount, show: d.showTable }}
           />
@@ -128,6 +140,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             title={d.registrations}
             points={stats.charts.map((day) => ({ label: dayLabel(day.date), value: day.registrations }))}
             kind="count"
+            barClass="bg-violet-600 dark:bg-violet-400"
             locale={locale}
             tableLabels={{ date: t.admin.orders.date, value: d.registrations, show: d.showTable }}
           />
@@ -142,7 +155,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                 <Link href={`${routes.adminOrders}?status=${status.value}`} className="group grid grid-cols-[6.5rem_1fr_2.5rem] items-center sm:grid-cols-[8rem_1fr_2.5rem] gap-3 text-sm">
                   <span className="truncate font-medium group-hover:underline">{status.label}</span>
                   <span className="h-2.5 rounded-full bg-muted">
-                    <span className="block h-full rounded-full bg-chart-1" style={{ width: `${(status.count / statusMax) * 100}%` }} />
+                    <span className={`block h-full rounded-full transition-[width] duration-500 ease-out ${STATUS_BARS[status.value] ?? "bg-foreground"}`} style={{ width: `${(status.count / statusMax) * 100}%` }} />
                   </span>
                   <span className="text-right font-semibold tabular-nums">{status.count}</span>
                 </Link>

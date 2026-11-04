@@ -28,6 +28,7 @@ export function ColumnChart({
   title,
   points,
   kind,
+  barClass,
   locale,
   tableLabels,
 }: {
@@ -35,6 +36,8 @@ export function ColumnChart({
   points: Point[];
   /** money: values in dirams, shown in somoni. */
   kind: "count" | "money";
+  /** The color of the columns: the same as the figure this series belongs to. */
+  barClass: string;
   locale: Locale;
   tableLabels: { date: string; value: string; show: string };
 }) {
@@ -83,7 +86,7 @@ export function ColumnChart({
                 className="group flex h-full min-w-0 flex-1 items-end justify-center outline-none"
               >
                 <span
-                  className={cn("block w-full max-w-6 rounded-t-[4px] bg-chart-1 transition-opacity", active !== null && active !== index && "opacity-40")}
+                  className={cn("block w-full max-w-6 rounded-t-[4px] transition-opacity", barClass, active !== null && active !== index && "opacity-40")}
                   style={{ height: point.value > 0 ? `max(2px, ${(point.value / max) * 100}%)` : 0 }}
                 />
               </button>

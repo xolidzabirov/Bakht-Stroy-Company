@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSettings } from "@/entities/settings/api/getSettings";
-import { GoogleButton } from "@/features/auth/ui/GoogleButton";
 import { RegisterWizard } from "@/features/auth/ui/RegisterWizard";
+import { SocialButtons } from "@/features/auth/ui/SocialButtons";
 import { safeNext } from "@/shared/config/auth";
 import { getI18n } from "@/shared/i18n/server";
 
@@ -18,7 +18,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <RegisterWizard
       next={target}
-      firstStepExtra={settings.auth?.google ? <GoogleButton label={t.auth.googleRegister} or={t.auth.or} next={target} separator="above" /> : undefined}
+      firstStepExtra={settings.auth?.google ? <SocialButtons or={t.auth.or} next={target} googleLabel={t.auth.googleRegister} appleLabel={t.auth.appleRegister} appleSoon={t.auth.appleSoon} /> : undefined}
     />
   );
 }

@@ -17,9 +17,11 @@ type Props = {
   /** Where to go after signing in (already checked by safeNext). */
   next: string;
   notice?: string;
+  /** Other ways in, under the main button. */
+  social?: React.ReactNode;
 };
 
-export function LoginForm({ next, notice }: Props) {
+export function LoginForm({ next, notice, social }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
@@ -104,6 +106,8 @@ export function LoginForm({ next, notice }: Props) {
         {t.auth.submitLogin}
         {!isSubmitting && <ArrowRight className="size-5" />}
       </Button>
+
+      {social}
 
       <p className="text-center text-sm text-muted-foreground">
         {t.auth.noAccount}{" "}
