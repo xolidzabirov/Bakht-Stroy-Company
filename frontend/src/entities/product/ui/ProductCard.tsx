@@ -45,9 +45,9 @@ export async function ProductCard({ product, action, favorite, priority = false 
             className="absolute inset-0 size-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
           />
         )}
-        <div className="pointer-events-none absolute left-3 top-3 z-[2] flex flex-col gap-1.5">
-          {product.is_featured && <Badge>{t.common.hit}</Badge>}
-          {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white">−{product.discount_percent}%</Badge> : null}
+        <div className="pointer-events-none absolute left-3 right-14 top-3 z-[2] flex flex-wrap items-center gap-1.5">
+          {product.is_featured && <Badge className="max-sm:px-1.5 max-sm:text-[11px]">{t.common.hit}</Badge>}
+          {product.discount_percent ? <Badge tone="danger" className="bg-danger text-white max-sm:px-1.5 max-sm:text-[11px]">−{product.discount_percent}%</Badge> : null}
         </div>
         <span aria-hidden className="pointer-events-none absolute bottom-0 left-0 z-[2] h-[3px] w-full origin-left scale-x-0 bg-brand transition-transform duration-500 ease-out group-hover:scale-x-100" />
       </div>

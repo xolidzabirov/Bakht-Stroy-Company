@@ -1,11 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Zap } from "lucide-react";
 import { useMe } from "@/shared/api/useMe";
-import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
@@ -15,24 +13,18 @@ import type { QuickOrderProduct } from "./QuickOrderDialog";
 const QuickOrderDialog = dynamic(() => import("./QuickOrderDialog").then((m) => m.QuickOrderDialog), { ssr: false });
 
 /**
- * "Беру сразу": one product, straight to the manager, past the cart. A dark button with a yellow bolt and a light
+ * "Беру сразу": the quantity, then the usual checkout with this one product, past the cart. A dark button with a yellow bolt and a light
  * running over it, so it is not mistaken for "В корзину".
  */
 export function QuickOrderButton({ product, variant = "card", className }: { product: QuickOrderProduct & { in_stock: boolean }; variant?: "card" | "page"; className?: string }) {
   const { t } = useI18n();
-  const router = useRouter();
-  const pathname = usePathname();
-  const { signedIn, isStaff } = useMe();
+  const { isStaff } = useMe();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   if (isStaff || !product.in_stock) return null;
 
   const start = () => {
-    if (!signedIn) {
-      router.push(`${routes.login}?next=${encodeURIComponent(pathname)}`);
-      return;
-    }
     setMounted(true);
     setOpen(true);
   };

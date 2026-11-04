@@ -16,7 +16,6 @@ use App\Modules\Order\Exceptions\OrderCannotBeCancelledException;
 use App\Modules\Order\Http\Requests\CancelOrderRequest;
 use App\Modules\Order\Http\Requests\OrderIndexRequest;
 use App\Modules\Order\Http\Requests\PlaceOrderRequest;
-use App\Modules\Order\Http\Requests\QuickOrderRequest;
 use App\Modules\Order\Http\Resources\OrderListResource;
 use App\Modules\Order\Http\Resources\OrderResource;
 use App\Modules\Order\Models\Order;
@@ -54,25 +53,9 @@ final class OrderController extends Controller
     }
 
     /**
-     * Быстрый заказ одного товара
-     *
-     * Минуя корзину (она не меняется): количество, имя и телефон. Менеджер перезванивает и уточняет доставку и оплату.
-     *
-     * @throws CartHasProblemsException
-     */
-    public function quick(QuickOrderRequest $request, #[CurrentUser] User $user, PlaceOrder $placeOrder): JsonResponse
-    {
-        $order = $placeOrder->handleProduct($user, $request->toData(), $request->integer('product_id'), $request->integer('quantity'));
-
-        return OrderResource::make($order->load(['items.product.media', 'history']))
-            ->response()
-            ->setStatusCode(201);
-    }
-
-    /**
      * Оформить заказ
      *
-     * Создаёт заказ из всей корзины: проверяет наличие (409 CART_HAS_PROBLEMS — в details список
+     * Создаёт заказ из всей корзины или, если передан product_id, из одного товара (корзина тогда не меняется): проверяет наличие (409 CART_HAS_PROBLEMS — в details список
      * проблемных позиций), фиксирует цены, списывает остатки и очищает корзину.
      * Доставка бесплатна при самовывозе и для заказов от DELIVERY_FREE_FROM сум.
      *
@@ -81,7 +64,10 @@ final class OrderController extends Controller
      */
     public function store(PlaceOrderRequest $request, #[CurrentUser] User $user, PlaceOrder $placeOrder): JsonResponse
     {
-        $order = $placeOrder->handle($user, $request->toData($user));
+        $data = $request->toData($user);
+        $order = $request->filled('product_id')
+            ? $placeOrder->handleProduct($user, $data, $request->integer('product_id'), $request->integer('quantity'))
+            : $placeOrder->handle($user, $data);
 
         return OrderResource::make($order->load(['items.product.media', 'history']))
             ->response()

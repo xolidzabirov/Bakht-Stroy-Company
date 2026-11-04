@@ -11,7 +11,7 @@ import { routes } from "@/shared/config/site";
 import { I18nProvider } from "@/shared/i18n/client";
 import { SkipLink } from "@/shared/ui/SkipLink";
 import { getI18n } from "@/shared/i18n/server";
-import { AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
+import { AdminBottomNav, AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
 import { AdminScope } from "@/widgets/admin-shell/ui/AdminScope";
 import { QuickCreate } from "@/widgets/admin-shell/ui/QuickCreate";
 import { NotificationBell } from "@/widgets/header/ui/NotificationBell";
@@ -71,6 +71,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
         <main id="content" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto outline-none">
           <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5 lg:p-8">{children}</div>
         </main>
+        <AdminBottomNav isAdmin={admin} />
       </div>
     </div>
     </I18nProvider>

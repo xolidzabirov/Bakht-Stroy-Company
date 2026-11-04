@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, CalendarDays, MessagesSquare, Package, Phone, Search, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, Info, MessagesSquare, Package, Phone, Search, Wallet } from "lucide-react";
 import { inboxKey, type InboxFilter, STAFF_CHAT_LIMITS, useInbox } from "@/entities/chat/api/useInbox";
 import { useChatThread } from "@/entities/chat/api/useChatThread";
 import type { ChatMessage, InboxConversation, InboxDetails } from "@/entities/chat/model/types";
@@ -18,6 +18,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatDate, formatMoney, formatPhone } from "@/shared/lib/format";
 import { playMessageSound } from "@/shared/lib/sound";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/kit/sheet";
 import { chatTime, dayLabel, presence } from "../lib/format";
 import { ChatThreadView } from "./ChatThreadView";
 
@@ -33,8 +34,9 @@ function Avatar({ name, online, size = "size-11" }: { name: string; online?: boo
 }
 
 /**
- * Manager's inbox: conversations on the left (unread first, search, filters), the open conversation
- * in the middle, the customer card with orders on the right. On phones the list and the conversation take turns.
+ * Manager's inbox, Telegram-like in the shop's colors. It fills the panel and stands still; each column scrolls on its own, with no bars:
+ * conversations on the left (unread first, search, filters), the open conversation
+ * in the middle, the customer card with orders opens from the name. On phones the list and the conversation take turns, and the conversation takes the whole screen.
  */
 export function StaffChats({ me, conversationId }: { me: Me; conversationId: number | null }) {
   const { t, locale } = useI18n();
@@ -59,9 +61,9 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
   };
 
   return (
-    <div className="grid h-full min-h-0 overflow-hidden rounded-2xl border border-border bg-surface md:grid-cols-[340px_1fr]">
+    <div className="-m-3 grid h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] grid-rows-[minmax(0,1fr)] lg:h-[calc(100dvh-4rem)] overflow-hidden bg-surface sm:-m-5 md:grid-cols-[340px_minmax(0,1fr)] lg:-m-8">
       <aside className={cn("flex min-h-0 flex-col border-border md:border-r", conversationId !== null && "max-md:hidden")}>
-        <div className="space-y-3 border-b border-border p-3">
+        <div className="space-y-3 p-3 pb-2">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-extrabold">{c.inbox}</h1>
             {inbox && inbox.meta.unread_conversations > 0 && (
@@ -79,7 +81,7 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
               className="h-10 w-full rounded-full border border-border bg-muted/60 pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:bg-surface"
             />
           </label>
-          <div role="tablist" className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+          <div role="tablist" className="flex border-b border-border">
             {(["all", "unread", "mine"] as const).map((key) => (
               <button
                 key={key}
@@ -87,7 +89,7 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
                 role="tab"
                 aria-selected={filter === key}
                 onClick={() => setFilter(key)}
-                className={cn("rounded-lg py-1.5 text-xs font-semibold transition", filter === key ? "bg-surface shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                className={cn("-mb-px flex-auto whitespace-nowrap border-b-2 px-1 pb-2 text-[13px] font-semibold transition-colors duration-200", filter === key ? "border-brand text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}
               >
                 {c.filters[key]}
               </button>
@@ -95,7 +97,7 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
           </div>
         </div>
 
-        <ul className="min-h-0 flex-1 overflow-y-auto">
+        <ul className="no-scrollbar min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-2">
           {isLoading ? (
             <li className="p-6 text-center text-sm text-muted-foreground">…</li>
           ) : !inbox?.data.length ? (
@@ -113,23 +115,23 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
                 <li key={row.id}>
                   <Link
                     href={routes.adminChat(row.id)}
-                    className={cn("flex gap-3 border-b border-border/60 px-3 py-3 transition hover:bg-muted/60", row.id === conversationId && "bg-brand-soft hover:bg-brand-soft")}
+                    className={cn("flex items-center gap-3 rounded-xl px-2.5 py-2 transition-colors duration-150", row.id === conversationId ? "bg-brand text-ink" : "hover:bg-muted/70")}
                   >
-                    <Avatar name={row.client.name} online={row.client.is_online} />
+                    <Avatar name={row.client.name} online={row.client.is_online} size="size-12" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline gap-2">
                         <b className="min-w-0 flex-1 truncate text-sm">{row.client.name}</b>
-                        <span className={cn("shrink-0 text-[11px]", row.unread_count ? "font-bold text-primary" : "text-muted-foreground")}>{when}</span>
+                        <span className={cn("shrink-0 text-[11px]", row.id === conversationId ? "text-ink/70" : row.unread_count ? "font-bold text-foreground" : "text-muted-foreground")}>{when}</span>
                       </span>
                       <span className="mt-0.5 flex items-center gap-2">
-                        <span className={cn("min-w-0 flex-1 truncate text-[13px]", row.unread_count ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                        <span className={cn("min-w-0 flex-1 truncate text-[13px]", row.id === conversationId ? "text-ink/75" : row.unread_count ? "font-semibold text-foreground" : "text-muted-foreground")}>
                           {preview(row)}
                         </span>
                         {row.unread_count > 0 && (
-                          <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-ink">{row.unread_count}</span>
+                          <span className={cn("grid h-5 min-w-5 shrink-0 place-items-center rounded-full px-1.5 text-[11px] font-bold", row.id === conversationId ? "bg-ink text-brand" : "bg-brand text-ink")}>{row.unread_count}</span>
                         )}
                       </span>
-                      {row.manager && row.manager.id !== me.id && <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">→ {row.manager.name}</span>}
+                      {row.manager && row.manager.id !== me.id && <span className={cn("mt-0.5 block truncate text-[11px]", row.id === conversationId ? "text-ink/70" : "text-muted-foreground")}>→ {row.manager.name}</span>}
                     </span>
                   </Link>
                 </li>
@@ -139,13 +141,13 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
         </ul>
       </aside>
 
-      <section className={cn("min-h-0", conversationId === null && "max-md:hidden")}>
+      <section className={cn("min-h-0", conversationId === null ? "chat-wall max-md:hidden" : "max-md:fixed max-md:inset-0 max-md:z-40 max-md:bg-surface")}>
         {conversationId === null ? (
-          <div className="grid h-full place-items-center p-6 text-center text-muted-foreground">
-            <div>
-              <MessagesSquare className="mx-auto size-12" />
-              <p className="mt-3 font-semibold">{c.pick}</p>
-            </div>
+          <div className="grid h-full place-items-center p-6 text-center">
+            <p className="inline-flex items-center gap-2 rounded-full bg-black/35 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur-sm dark:bg-white/15">
+              <MessagesSquare className="size-4" />
+              {c.pick}
+            </p>
           </div>
         ) : (
           <StaffConversation key={conversationId} id={conversationId} me={me} onBack={() => router.push(routes.adminChats)} />
@@ -160,6 +162,7 @@ function StaffConversation({ id, me, onBack }: { id: number; me: Me; onBack: () 
   const c = t.chat;
   const queryClient = useQueryClient();
   const detailsKey = ["chat-details", id] as const;
+  const [cardOpen, setCardOpen] = useState(false);
 
   const { data: details, isError } = useQuery({
     queryKey: detailsKey,
@@ -175,12 +178,13 @@ function StaffConversation({ id, me, onBack }: { id: number; me: Me; onBack: () 
   const client = details?.client;
 
   return (
-    <div className="grid h-full min-h-0 xl:grid-cols-[1fr_300px]">
-      <div className="flex min-h-0 flex-col">
-        <header className="flex items-center gap-3 border-b border-border px-3 py-2.5 sm:px-4">
+    <>
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="z-10 flex shrink-0 items-center gap-3 border-b border-border bg-surface px-3 py-2 sm:px-4">
           <button type="button" onClick={onBack} aria-label={c.back} className="grid size-9 place-items-center rounded-full hover:bg-muted md:hidden">
             <ArrowLeft className="size-5" />
           </button>
+          <button type="button" onClick={() => setCardOpen(true)} aria-label={c.clientCard} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left">
           {client && <Avatar name={client.name} online={client.is_online} size="size-10" />}
           <span className="min-w-0 flex-1">
             <b className="block truncate">{client?.name ?? "…"}</b>
@@ -188,11 +192,15 @@ function StaffConversation({ id, me, onBack }: { id: number; me: Me; onBack: () 
               {thread.typing ? c.typing : client ? presence(client.is_online, client.last_seen_at, locale, c) : ""}
             </span>
           </span>
+          </button>
           {client?.phone && (
             <a href={`tel:${client.phone}`} aria-label={c.call} title={formatPhone(client.phone)} className="grid size-9 place-items-center rounded-full bg-success/10 text-success transition hover:bg-success/20">
               <Phone className="size-4" />
             </a>
           )}
+          <button type="button" onClick={() => setCardOpen(true)} aria-label={c.clientCard} title={c.clientCard} className="grid size-9 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            <Info className="size-5" />
+          </button>
         </header>
 
         <ChatThreadView
@@ -208,8 +216,15 @@ function StaffConversation({ id, me, onBack }: { id: number; me: Me; onBack: () 
         />
       </div>
 
-      {details && <ClientCard details={details} me={me} onAssigned={() => void queryClient.invalidateQueries({ queryKey: detailsKey })} />}
-    </div>
+      {details && (
+        <Sheet open={cardOpen} onOpenChange={setCardOpen}>
+          <SheetContent side="right" className="w-full gap-0 border-border bg-surface p-0 sm:max-w-sm">
+            <SheetTitle className="sr-only">{c.clientCard}</SheetTitle>
+            <ClientCard details={details} me={me} onAssigned={() => void queryClient.invalidateQueries({ queryKey: detailsKey })} />
+          </SheetContent>
+        </Sheet>
+      )}
+    </>
   );
 }
 
@@ -236,7 +251,7 @@ function ClientCard({ details, me, onAssigned }: { details: InboxDetails; me: Me
   };
 
   return (
-    <aside className="hidden min-h-0 overflow-y-auto border-l border-border p-4 xl:block">
+    <aside className="no-scrollbar h-full min-h-0 overflow-y-auto overscroll-contain p-5">
       <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{c.clientCard}</p>
       <div className="mt-3 text-center">
         <span className="mx-auto grid size-16 place-items-center rounded-full bg-ink font-display text-2xl font-extrabold text-brand">{details.client.name.charAt(0)}</span>

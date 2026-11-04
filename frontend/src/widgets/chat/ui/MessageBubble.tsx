@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, memo } from "react";
+import { Fragment, memo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCheck, Clock3, Copy, CornerUpLeft, FileText, MoreVertical, Package, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import type { ChatAttachment, ChatMessage } from "@/entities/chat/model/types";
 import { routes } from "@/shared/config/site";
@@ -17,6 +17,8 @@ type Props = {
   outgoing: boolean;
   /** Author's name above the bubble (staff side shows which manager wrote). */
   author?: string | null;
+  /** The last message of a run: it gets the tail, like in Telegram. */
+  tail?: boolean;
   canEdit: boolean;
   /** Linked orders open in the account (customer) or in the admin panel (staff). */
   orderHref: (number: string) => string;
@@ -49,12 +51,13 @@ function Linkified({ text }: { text: string }) {
 
 /**
  * One message: quote, photos (grid), documents, product card, order link, text, time and ticks.
- * Actions (reply, copy, edit, delete) open from the "⋮" button or a right click.
+ * Actions (reply, copy, edit, delete) open from the "⋮" button, a right click or a long press.
  */
 export const MessageBubble = memo(function MessageBubble({
   message,
   outgoing,
   author,
+  tail = true,
   canEdit,
   orderHref,
   highlighted,
@@ -69,10 +72,20 @@ export const MessageBubble = memo(function MessageBubble({
 }: Props) {
   const { t, locale } = useI18n();
   const c = t.chat;
+  // A phone has no hover: a long press opens the actions, like in Telegram and WhatsApp.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const press = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const held = useRef(false);
+  const release = () => {
+    if (press.current) clearTimeout(press.current);
+    press.current = null;
+  };
   const images = message.attachments.filter((a) => a.is_image);
   const files = message.attachments.filter((a) => !a.is_image);
   const isLocal = message.pending !== undefined;
   const onlyImages = images.length > 0 && !message.body && files.length === 0 && !message.reply_to && !message.product && !message.order;
+
+  const hasTail = tail && !onlyImages;
 
   const meta = (
     <span className={cn("ml-auto inline-flex shrink-0 items-center gap-1 pl-3 text-[11px] leading-none", outgoing ? "text-ink/60" : "text-muted-foreground", onlyImages && "rounded-full bg-black/45 px-2 py-1 text-white")}>
@@ -94,7 +107,7 @@ export const MessageBubble = memo(function MessageBubble({
   if (message.is_deleted) {
     return (
       <div className={cn("flex", outgoing ? "justify-end" : "justify-start")}>
-        <p className="inline-flex items-center gap-2 rounded-2xl border border-dashed border-border px-3.5 py-2 text-sm italic text-muted-foreground">
+        <p className="inline-flex items-center gap-2 rounded-[18px] bg-surface/75 px-3.5 py-2 text-sm italic text-muted-foreground">
           <Trash2 className="size-3.5" />
           {c.deleted}
           <span className="text-[11px] not-italic">{chatTime(message.created_at, locale)}</span>
@@ -104,10 +117,10 @@ export const MessageBubble = memo(function MessageBubble({
   }
 
   const menu = !isLocal && (
-    <DropdownMenu modal={false}>
+    <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
       <DropdownMenuTrigger
         aria-label={c.menu}
-        className="grid size-7 shrink-0 place-items-center self-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 max-md:opacity-60"
+        className="grid size-7 shrink-0 place-items-center self-center rounded-full text-muted-foreground opacity-0 transition hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 max-md:pointer-events-none max-md:size-0 max-md:overflow-hidden"
       >
         <MoreVertical className="size-4" />
       </DropdownMenuTrigger>
@@ -140,16 +153,38 @@ export const MessageBubble = memo(function MessageBubble({
   );
 
   return (
-    <div className={cn("group flex items-end gap-1", outgoing ? "flex-row-reverse" : "flex-row")}>
+    <div className={cn("group flex items-end gap-2.5", outgoing ? "flex-row-reverse" : "flex-row")}>
+      <div className="relative min-w-0 max-w-[85%] sm:max-w-[72%]">
       <div
         className={cn(
-          "relative max-w-[85%] overflow-hidden rounded-2xl text-[15px] leading-relaxed shadow-sm transition sm:max-w-[75%]",
-          outgoing ? "rounded-br-md bg-brand text-ink" : "rounded-bl-md border border-border bg-surface text-foreground",
+          "relative overflow-hidden rounded-[18px] text-[15px] leading-snug max-md:select-none shadow-[0_1px_1px_rgb(0_0_0/0.13)] transition",
+          outgoing ? "bg-brand text-ink" : "bg-surface text-foreground dark:bg-[#26262b]",
+          outgoing ? (hasTail ? "rounded-br-none" : "rounded-br-md") : hasTail ? "rounded-bl-none" : "rounded-bl-md",
           onlyImages ? "p-1" : "px-3 py-2",
           highlighted && "ring-2 ring-sky-500 ring-offset-2 ring-offset-background",
           message.pending === "sending" && "opacity-80",
         )}
         onDoubleClick={() => !isLocal && onReply(message)}
+        onContextMenu={(event) => {
+          if (isLocal) return;
+          event.preventDefault();
+          setMenuOpen(true);
+        }}
+        onTouchStart={() => {
+          if (isLocal) return;
+          held.current = false;
+          press.current = setTimeout(() => {
+            held.current = true;
+            setMenuOpen(true);
+          }, 450);
+        }}
+        onTouchMove={release}
+        onTouchEnd={(event) => {
+          release();
+          // Lifting the finger must not count as a tap outside the menu it has just opened.
+          if (held.current) event.preventDefault();
+        }}
+        onTouchCancel={release}
       >
         {author && <p className={cn("mb-0.5 text-xs font-bold", outgoing ? "text-ink/70" : "text-primary")}>{author}</p>}
 
@@ -255,6 +290,12 @@ export const MessageBubble = memo(function MessageBubble({
             </button>
           </div>
         )}
+      </div>
+      {hasTail && (
+        <svg aria-hidden viewBox="0 0 11 20" className={cn("absolute bottom-0 h-5 w-[11px]", outgoing ? "-right-[9px] text-brand" : "-left-[9px] -scale-x-100 text-surface dark:text-[#26262b]")}>
+          <path fill="currentColor" d="M0 0c1 10 4 16 11 20H0z" />
+        </svg>
+      )}
       </div>
       {menu}
     </div>

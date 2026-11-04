@@ -36,8 +36,8 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
           name={product.name}
           badges={
             <>
-              {product.discount_percent ? <Badge tone="danger" className="bg-danger text-sm text-white">−{product.discount_percent}%</Badge> : null}
               {product.is_featured && <Badge className="text-sm">{t.common.hitLong}</Badge>}
+              {product.discount_percent ? <Badge tone="danger" className="bg-danger text-sm text-white">−{product.discount_percent}%</Badge> : null}
             </>
           }
         />
@@ -72,7 +72,7 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
             <QuickOrderButton
               variant="page"
               className="mt-3 w-full"
-              product={{ id: product.id, name: product.name, price: product.price, unit: product.unit.label, image: product.images?.[0]?.thumb, min_order_qty: product.min_order_qty, stock: product.stock, in_stock: product.in_stock }}
+              product={{ slug: product.slug, name: product.name, price: product.price, unit: product.unit.label, image: product.images?.[0]?.thumb, min_order_qty: product.min_order_qty, stock: product.stock, in_stock: product.in_stock }}
             />
             <div className="mt-3 flex flex-wrap gap-2">
               <FavoriteButton productId={product.id} withLabel />

@@ -191,7 +191,7 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
 
   return (
     <div
-      className={cn("relative flex min-h-0 flex-col bg-background", className)}
+      className={cn("chat-wall relative flex min-h-0 flex-col", className)}
       onDragEnter={(event) => {
         if (event.dataTransfer.types.includes("Files")) setDragging(true);
       }}
@@ -212,7 +212,7 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
         </p>
       )}
 
-      <div ref={scroller} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5" role="log" aria-live="polite">
+      <div ref={scroller} onScroll={onScroll} className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 sm:px-6" role="log" aria-live="polite">
         {thread.isLoading ? (
           <div className="grid h-full place-items-center">
             <LoaderCircle className="size-6 animate-spin text-muted-foreground" />
@@ -239,7 +239,7 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
               </div>
             )}
             {!thread.hasOlder && <div className="h-2" />}
-            <ol className="space-y-1.5">
+            <ol className="mx-auto w-full max-w-3xl space-y-0.5">
               {messages.map((message, index) => {
                 const previous = messages[index - 1];
                 const newDay = !previous || !sameDay(previous.created_at, message.created_at);
@@ -247,29 +247,28 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
                 // On the staff side, colleagues' replies are signed; the customer sees the manager's name once per run.
                 const showAuthor =
                   message.from_staff && message.sender && (!previous || previous.from_staff !== message.from_staff || previous.sender?.id !== message.sender.id || newDay);
+                const next = messages[index + 1];
+                const endsRun = !next || !sameDay(message.created_at, next.created_at) || outgoing(next) !== isOut || next.sender?.id !== message.sender?.id || next.id === firstUnreadId;
                 const author = showAuthor ? (viewer === "staff" && message.sender!.id === myId ? null : message.sender!.name) : null;
 
                 return (
                   <Fragment key={message.localKey ?? message.id}>
                     {newDay && (
                       <li className="sticky top-0 z-10 flex justify-center py-2">
-                        <span className="rounded-full bg-surface/90 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm ring-1 ring-border backdrop-blur">
+                        <span className="rounded-full bg-black/35 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm dark:bg-white/15">
                           {dayLabel(message.created_at, locale, c)}
                         </span>
                       </li>
                     )}
                     {message.id === firstUnreadId && (
-                      <li className="flex items-center gap-3 py-2 text-xs font-bold text-primary">
-                        <span className="h-px flex-1 bg-primary/40" />
-                        {c.newMessages}
-                        <span className="h-px flex-1 bg-primary/40" />
-                      </li>
+                      <li className="-mx-6 my-2 bg-surface/70 py-1 text-center text-xs font-bold text-foreground backdrop-blur-sm">{c.newMessages}</li>
                     )}
-                    <li data-id={message.id} className={cn(!newDay && previous && outgoing(previous) !== isOut && "pt-2")}>
+                    <li data-id={message.id} className={cn(!newDay && previous && outgoing(previous) !== isOut && "pt-2.5")}>
                       <MessageBubble
                         message={message}
                         outgoing={isOut}
                         author={author}
+                        tail={endsRun}
                         canEdit={canEdit(message)}
                         orderHref={orderHref}
                         highlighted={highlight === message.id}
@@ -291,8 +290,8 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
         )}
 
         {typing && (
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-flex gap-1 rounded-2xl rounded-bl-md border border-border bg-surface px-3 py-2.5">
+          <div className="mx-auto mt-2 flex w-full max-w-3xl items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex gap-1 rounded-[18px] rounded-bl-md bg-surface px-3 py-2.5 shadow-[0_1px_1px_rgb(0_0_0/0.13)]">
               {[0, 150, 300].map((delay) => (
                 <span key={delay} className="size-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: `${delay}ms` }} />
               ))}

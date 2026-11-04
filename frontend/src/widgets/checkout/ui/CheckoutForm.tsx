@@ -11,7 +11,7 @@ import { Banknote, Building2, Check, LoaderCircle, MapPin, PackageCheck, Plus, S
 import { cartKey } from "@/entities/cart/api/useCart";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
-import type { Address, Cart, Order } from "@/shared/api/types";
+import type { Address, Order } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
 import { useI18n } from "@/shared/i18n/client";
 import type { BrowserDictionary } from "@/shared/i18n/browserDictionary";
@@ -24,8 +24,17 @@ import { Checkbox } from "@/shared/ui/kit/checkbox";
 import { Separator } from "@/shared/ui/kit/separator";
 import { PhoneInput } from "@/shared/ui/PhoneInput";
 
+/** What the summary shows: the whole cart or the one product of "Беру сразу". */
+export type CheckoutLines = {
+  items: { id: number; product: { name: string; image?: { thumb: string } | null } | null; quantity: number; price: number; total: number }[];
+  items_count: number;
+  subtotal: number;
+};
+
 type Props = {
-  cart: Cart;
+  cart: CheckoutLines;
+  /** One product past the cart: the cart is not touched. */
+  buyNow?: { product_id: number; quantity: number };
   addresses: Address[];
   user: { name: string; phone: string | null };
   delivery: { price: number; free_from: number; pickup_address: string | null } | null;
@@ -64,9 +73,9 @@ type Values = z.infer<ReturnType<typeof createSchema>>;
 
 /**
  * Checkout on one page: contacts → delivery or pickup → payment (always before delivery) → comment,
- * with the order summary on the right. The API makes the order from the cart.
+ * with the order summary on the right. The API makes the order from the cart, or from the one product of "Беру сразу".
  */
-export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Props) {
+export function CheckoutForm({ cart, buyNow, addresses, user, delivery, workHours }: Props) {
   const { t, locale } = useI18n();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -131,12 +140,18 @@ export function CheckoutForm({ cart, addresses, user, delivery, workHours }: Pro
           address_id: addressId,
           address: newAddress && !addressId ? address : null,
           comment: values.comment || null,
+          ...buyNow,
         },
       });
 
-      queryClient.setQueryData(cartKey, { items: [], items_count: 0, subtotal: 0, has_problems: false, can_checkout: false });
+      if (!buyNow) queryClient.setQueryData(cartKey, { items: [], items_count: 0, subtotal: 0, has_problems: false, can_checkout: false });
       router.push(routes.orderPlaced(response.data.number));
     } catch (error) {
+      if (buyNow && error instanceof ApiError && error.code === "CART_HAS_PROBLEMS") {
+        setFormError(t.cart.quickNoStock);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       const message = applyApiErrors(error, setError, ["customer_name", "comment"], t.errors);
       if (error instanceof ApiError && error.errors?.customer_phone) setError("phone", { type: "server", message: error.errors.customer_phone[0] });
       setFormError(message ?? (error instanceof ApiError && error.errors ? Object.values(error.errors)[0]?.[0] ?? null : null));

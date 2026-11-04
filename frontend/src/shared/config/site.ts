@@ -28,6 +28,8 @@ export const routes = {
   newsItem: (slug: string) => `/news/${slug}`,
   cart: "/cart",
   checkout: "/checkout",
+  /** Checkout of one product, past the cart. */
+  buyNow: (slug: string, quantity: number) => `/checkout?product=${encodeURIComponent(slug)}&qty=${quantity}`,
   orderPlaced: (number: string) => `/checkout/success/${number}`,
   favorites: "/favorites",
   login: "/login",

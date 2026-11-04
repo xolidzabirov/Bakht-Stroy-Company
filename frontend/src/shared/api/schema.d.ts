@@ -509,31 +509,11 @@ export interface paths {
         put?: never;
         /**
          * Оформить заказ
-         * @description Создаёт заказ из всей корзины: проверяет наличие (409 CART_HAS_PROBLEMS — в details список
+         * @description Создаёт заказ из всей корзины или, если передан product_id, из одного товара (корзина тогда не меняется): проверяет наличие (409 CART_HAS_PROBLEMS — в details список
          *     проблемных позиций), фиксирует цены, списывает остатки и очищает корзину.
          *     Доставка бесплатна при самовывозе и для заказов от DELIVERY_FREE_FROM сум.
          */
         post: operations["orders.store"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/orders/quick": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Быстрый заказ одного товара
-         * @description Минуя корзину (она не меняется): количество, имя и телефон. Менеджер перезванивает и уточняет доставку и оплату.
-         */
-        post: operations["orders.quick"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2894,6 +2874,16 @@ export interface components {
         PaymentStatus: "pending" | "paid" | "refunded";
         /** PlaceOrderRequest */
         PlaceOrderRequest: {
+            /**
+             * @description «Беру сразу»: заказать один этот товар мимо корзины. Без него заказ делается из всей корзины.
+             * @example 1
+             */
+            product_id?: number | null;
+            /**
+             * @description Количество для product_id.
+             * @example 2
+             */
+            quantity?: number | null;
             /** @description delivery — доставка, pickup — самовывоз со склада (бесплатно). */
             delivery_type: components["schemas"]["DeliveryType"];
             /** @description Оплата до доставки: cash — наличными в офисе, card_transfer — переводом на карту, transfer — безнал для юрлиц. */
@@ -3024,17 +3014,6 @@ export interface components {
          * @enum {string}
          */
         ProductUnit: "piece" | "bag" | "kg" | "ton" | "m" | "m2" | "m3" | "pack" | "roll" | "sheet";
-        /** QuickOrderRequest */
-        QuickOrderRequest: {
-            /** @example 1 */
-            product_id: number;
-            /** @example 2 */
-            quantity: number;
-            /** @example Халид */
-            customer_name: string;
-            /** @example +992931234567 */
-            customer_phone: string;
-        };
         /** RefreshTokenRequest */
         RefreshTokenRequest: {
             /**
@@ -5382,106 +5361,6 @@ export interface operations {
                         /** @example CART_EMPTY */
                         code: string;
                     } | {
-                        /** @example Переданные данные некорректны. */
-                        message: string;
-                        /** @example VALIDATION_ERROR */
-                        code: string;
-                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
-                        errors: {
-                            [key: string]: string[];
-                        };
-                    };
-                };
-            };
-            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Слишком много запросов. Попробуйте позже. */
-                        message: string;
-                        /** @example TOO_MANY_REQUESTS */
-                        code: string;
-                    };
-                };
-            };
-        };
-    };
-    "orders.quick": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QuickOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description `OrderResource` */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["OrderResource"] & Record<string, never>;
-                    };
-                };
-            };
-            /** @description Требуется авторизация. (UNAUTHENTICATED) */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Требуется авторизация. */
-                        message: string;
-                        /** @example UNAUTHENTICATED */
-                        code: string;
-                    };
-                };
-            };
-            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
-                        message: string;
-                        /** @example ACCOUNT_BLOCKED */
-                        code: string;
-                    };
-                };
-            };
-            /** @description Некоторые товары в корзине нельзя заказать: проверьте количество или удалите их. (CART_HAS_PROBLEMS) */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Некоторые товары в корзине нельзя заказать: проверьте количество или удалите их. */
-                        message: string;
-                        /** @example CART_HAS_PROBLEMS */
-                        code: string;
-                    };
-                };
-            };
-            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
                         /** @example Переданные данные некорректны. */
                         message: string;
                         /** @example VALIDATION_ERROR */

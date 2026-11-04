@@ -126,9 +126,9 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
   };
 
   return (
-    <div className="border-t border-border bg-surface p-2.5 sm:p-3">
+    <div className="mx-auto w-full max-w-3xl shrink-0 px-3 pb-3 pt-1 sm:px-6">
       {suggestions && suggestions.length > 0 && !editing && text === "" && files.length === 0 && (
-        <div className="mb-2 flex flex-wrap gap-1.5 pb-0.5">
+        <div className="no-scrollbar -mx-3 mb-2 flex gap-1.5 overflow-x-auto px-3 pb-0.5 sm:mx-0 sm:px-0">
           {suggestions.map((phrase) => (
             <button
               key={phrase}
@@ -137,7 +137,7 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
                 setText(phrase);
                 field.current?.focus();
               }}
-              className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-semibold transition hover:border-primary hover:bg-brand-soft"
+              className="shrink-0 whitespace-nowrap rounded-full bg-surface px-3 py-1.5 text-xs font-semibold shadow-[0_1px_1px_rgb(0_0_0/0.13)] transition hover:bg-brand-soft dark:bg-[#26262b]"
             >
               {phrase}
             </button>
@@ -216,13 +216,13 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
                 event.target.value = "";
               }}
             />
-            <button type="button" onClick={() => picker.current?.click()} aria-label={c.attach} title={c.attach} className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            <button type="button" onClick={() => picker.current?.click()} aria-label={c.attach} title={c.attach} className="grid size-11 shrink-0 place-items-center rounded-full bg-surface text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.14)] transition hover:bg-muted hover:text-foreground">
               <Paperclip className="size-5" />
             </button>
           </>
         )}
 
-        <div className="flex min-w-0 flex-1 items-end rounded-3xl border border-border bg-muted/60 pl-4 transition focus-within:border-primary focus-within:bg-surface focus-within:ring-2 focus-within:ring-primary/20">
+        <div className="flex min-w-0 flex-1 items-end rounded-3xl border border-transparent bg-surface pl-4 shadow-[0_1px_2px_rgb(0_0_0/0.14)] transition focus-within:border-brand">
           <textarea
             ref={field}
             rows={1}
@@ -272,8 +272,8 @@ export function Composer({ limits, files, onFilesChange, replyTo, editing, onCan
           disabled={!canSend || saving}
           aria-label={editing ? c.save : c.send}
           className={cn(
-            "grid size-11 shrink-0 place-items-center rounded-full transition",
-            canSend ? "bg-brand text-ink shadow-sm hover:bg-brand-hover active:scale-95" : "bg-muted text-muted-foreground",
+            "grid size-11 shrink-0 place-items-center rounded-full shadow-[0_1px_2px_rgb(0_0_0/0.14)] transition duration-200",
+            canSend ? "bg-brand text-ink hover:bg-brand-hover active:scale-95" : "bg-surface text-muted-foreground",
           )}
         >
           {saving ? <LoaderCircle className="size-5 animate-spin" /> : editing ? <Pencil className="size-5" /> : <SendHorizontal className="size-5" />}

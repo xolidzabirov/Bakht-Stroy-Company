@@ -94,7 +94,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                   </span>
                 </span>
                 <span className="mt-2 flex items-center gap-2">
-                  <b className="font-display text-2xl font-extrabold tracking-tight tabular-nums sm:text-[28px]">{value}</b>
+                  <b className="font-display text-xl font-extrabold tracking-tight tabular-nums sm:text-[28px]">{value}</b>
                   {accent && <span aria-hidden className="size-2 animate-pulse rounded-full bg-destructive" />}
                 </span>
                 {hint && <span className="mt-1 block text-xs text-muted-foreground">{hint}</span>}

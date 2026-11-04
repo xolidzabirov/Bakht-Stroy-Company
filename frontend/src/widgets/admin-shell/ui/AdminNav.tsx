@@ -18,28 +18,49 @@ type Item = { href: string; label: string; icon: typeof Package; exact?: boolean
 type Group = { label: string; items: Item[] };
 export type AdminUser = { name: string; isAdmin: boolean };
 
-const CHATS_SEEN_KEY = "bakht_chats_seen";
-
-function readChatsSeen(): number {
+function readSeen(key: string): number {
   try {
-    return Number(window.localStorage.getItem(CHATS_SEEN_KEY)) || 0;
+    return Number(window.localStorage.getItem(key)) || 0;
   } catch {
     return 0;
   }
+}
+
+/**
+ * Coming into a section is seeing it: its badge goes away at once and stays away until something newer arrives.
+ * The things themselves stay as they are (a new order stays new, a conversation stays unread until it is opened).
+ */
+function useUnseen(key: string, times: number[] | undefined, here: boolean): number {
+  // The moment of the newest thing this person has already seen here.
+  const [seen, setSeen] = useState(() => (typeof window === "undefined" ? 0 : readSeen(key)));
+  const newest = Math.max(0, ...(times ?? []));
+
+  if (here && newest > seen) setSeen(newest);
+
+  useEffect(() => {
+    if (!seen) return;
+    try {
+      window.localStorage.setItem(key, String(seen));
+    } catch {
+      // Private window: the badge simply comes back on the next visit.
+    }
+  }, [key, seen]);
+
+  return here ? 0 : (times ?? []).filter((time) => time > seen).length;
 }
 
 /** New orders and unread chats for the menu badges (refreshed every minute, or more often without WebSocket). */
 function useBadges() {
   const connected = useRealtimeConnected();
   const interval = connected ? 60_000 : 20_000;
-  const onChats = adminPath(usePathname()).startsWith(routes.adminChats);
-  // The moment of the newest message this person has already seen in the chats.
-  const [chatsSeen, setChatsSeen] = useState(() => (typeof window === "undefined" ? 0 : readChatsSeen()));
+  const path = adminPath(usePathname());
+  const onChats = path.startsWith(routes.adminChats);
+  const onOrders = path.startsWith(routes.adminOrders);
 
-  const { data: awaiting } = useQuery({
+  const { data: newOrders } = useQuery({
     queryKey: ["admin-badge-orders"],
-    queryFn: async () => (await bff<{ meta: { total: number } }>("/api/proxy/admin/orders?status=new&per_page=1", { method: "GET" })).meta.total,
-    refetchInterval: interval,
+    queryFn: async () => (await bff<{ data: { created_at: string }[] }>("/api/proxy/admin/orders?status=new&per_page=50", { method: "GET" })).data.map((order) => Date.parse(order.created_at) || 0),
+    refetchInterval: onOrders ? 8_000 : interval,
   });
   const { data: unreadChats } = useQuery({
     queryKey: ["admin-badge-chats"],
@@ -53,24 +74,7 @@ function useBadges() {
     refetchInterval: interval,
   });
 
-  // Coming into the chats is seeing them: the badge goes away at once and stays away until something newer arrives.
-  // The conversations themselves stay unread (the customer's ticks, the "Непрочитанные" tab) until they are opened.
-  const newest = Math.max(0, ...(unreadChats ?? []));
-
-  if (onChats && newest > chatsSeen) setChatsSeen(newest);
-
-  useEffect(() => {
-    if (!chatsSeen) return;
-    try {
-      window.localStorage.setItem(CHATS_SEEN_KEY, String(chatsSeen));
-    } catch {
-      // Private window: the badge simply comes back on the next visit.
-    }
-  }, [chatsSeen]);
-
-  const unread = onChats ? 0 : (unreadChats ?? []).filter((time) => time > chatsSeen).length;
-
-  return { awaiting: awaiting ?? 0, unread, letters: letters ?? 0 };
+  return { awaiting: useUnseen("bakht_orders_seen", newOrders, onOrders), unread: useUnseen("bakht_chats_seen", unreadChats, onChats), letters: letters ?? 0 };
 }
 
 /** The menu in groups, like the work goes: sales, catalog, content, and (administrators only) management. */
@@ -130,10 +134,10 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
 
   return (
     <nav aria-label={t.admin.menu} className="flex h-full flex-col">
-      <div className="admin-nav-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3 short:space-y-2 short:py-2 shorter:space-y-1.5">
+      <div className="admin-nav-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-3 short:space-y-2.5 short:py-2 shortest:space-y-1.5">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35 short:mb-0.5 shorter:hidden">{group.label}</p>
+            <p className="mb-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white/35 short:mb-0.5">{group.label}</p>
             <ul className="space-y-0.5 short:space-y-0">
               {group.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = isActive(href, exact);
@@ -220,6 +224,44 @@ export function AdminSidebar({ user }: { user: AdminUser }) {
         <NavList user={user} />
       </div>
     </aside>
+  );
+}
+
+/** The tabs under the page on phones and tablets, like in a messenger: the daily work is one thumb away. */
+export function AdminBottomNav({ isAdmin }: { isAdmin: boolean }) {
+  const { t } = useAdminI18n();
+  const n = t.admin.nav;
+  const pathname = usePathname();
+  const { awaiting, unread, letters } = useBadges();
+  const tabs: Item[] = [
+    { href: routes.admin, label: n.dashboard, icon: LayoutDashboard, exact: true },
+    { href: routes.adminOrders, label: n.orders, icon: Package, badge: awaiting },
+    { href: routes.adminChats, label: n.chats, icon: MessagesSquare, badge: unread },
+    { href: routes.adminMessages, label: n.messages, icon: Inbox, badge: letters },
+    { href: routes.adminProducts, label: n.products, icon: Boxes },
+  ];
+
+  return (
+    <nav aria-label={t.admin.menu} className="shrink-0 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <ul className="grid h-[calc(3.5rem-1px)] grid-cols-5">
+        {tabs.map(({ href, label, icon: Icon, exact, badge }) => {
+          const target = isAdmin ? href : managerPath(href);
+          const active = exact ? pathname === target : pathname === target || pathname.startsWith(`${target}/`);
+
+          return (
+            <li key={href} className="min-w-0">
+              <Link href={target} aria-current={active ? "page" : undefined} className={cn("flex h-full flex-col items-center justify-center gap-0.5 transition-colors", active ? "text-foreground" : "text-muted-foreground")}>
+                <span className={cn("relative grid h-7 w-12 place-items-center rounded-full transition-colors duration-200", active && "bg-brand text-ink")}>
+                  <Icon className="size-[18px]" />
+                  {badge ? <span className="absolute -right-0.5 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold tabular-nums text-white">{badge > 99 ? "99+" : badge}</span> : null}
+                </span>
+                <span className="w-full truncate px-0.5 text-center text-[10.5px] font-semibold">{label}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 

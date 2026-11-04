@@ -37,6 +37,18 @@ final class PlaceOrderRequest extends FormRequest
         $addressRequired = Rule::requiredIf($needsAddress);
 
         return [
+            /**
+             * «Беру сразу»: заказать один этот товар мимо корзины. Без него заказ делается из всей корзины.
+             *
+             * @example 1
+             */
+            'product_id' => ['nullable', 'integer', 'exists:products,id'],
+            /**
+             * Количество для product_id.
+             *
+             * @example 2
+             */
+            'quantity' => ['required_with:product_id', 'nullable', 'integer', 'min:1', 'max:100000'],
             /** delivery — доставка, pickup — самовывоз со склада (бесплатно). */
             'delivery_type' => ['required', Rule::enum(DeliveryType::class)],
             /** Оплата до доставки: cash — наличными в офисе, card_transfer — переводом на карту, transfer — безнал для юрлиц. */

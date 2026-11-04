@@ -11,8 +11,8 @@ import type { Product } from "@/shared/api/types";
  * The button gets only what it needs: everything passed here travels inside the page.
  */
 export function ShopProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
-  const { id, name, price, min_order_qty, stock, in_stock } = product;
-  const quick = { id, name, price, unit: product.unit.label, image: product.image?.thumb, min_order_qty, stock, in_stock };
+  const { id, slug, name, price, min_order_qty, stock, in_stock } = product;
+  const quick = { slug, name, price, unit: product.unit.label, image: product.image?.thumb, min_order_qty, stock, in_stock };
 
   return (
     <Suspense>

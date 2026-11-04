@@ -167,41 +167,38 @@ it('orders one product past the cart and leaves the cart alone', function () {
     Notification::fake();
     fillCart($this->user, [[$this->brick, 500]]);
 
-    $this->withToken($this->token)->postJson('/api/v1/orders/quick', [
-        'product_id' => $this->cement->id,
-        'quantity' => 3,
-        'customer_name' => 'Сафар',
-        'customer_phone' => '+992931234567',
-    ])->assertCreated();
+    checkout($this, ['product_id' => $this->cement->id, 'quantity' => 3])->assertCreated();
 
     $order = Order::query()->sole();
-    expect($order->total)->toBe(207000)
-        ->and($order->delivery_price)->toBe(0)
-        ->and($order->customer_name)->toBe('Сафар')
-        ->and($order->customer_phone)->toBe('+992931234567')
+    expect($order->subtotal)->toBe(207000)
+        ->and($order->delivery_type->value)->toBe('delivery')
+        ->and($order->address['street'])->toBe('ул. Амира Темура')
         ->and($order->items)->toHaveCount(1)
+        ->and($order->items->first()->product_id)->toBe($this->cement->id)
         ->and($this->cement->fresh()->stock)->toBe(97)
+        ->and($this->brick->fresh()->stock)->toBe(5000)
         ->and(CartItem::query()->where('user_id', $this->user->id)->count())->toBe(1);
     Notification::assertSentTo($this->user, OrderPlacedNotification::class);
 });
 
-it('refuses a quick order for more than the stock or below the minimum', function () {
+it('orders one product with an empty cart', function () {
     Notification::fake();
-    $body = ['customer_name' => 'Сафар', 'customer_phone' => '+992931234567'];
 
-    $this->withToken($this->token)->postJson('/api/v1/orders/quick', [...$body, 'product_id' => $this->cement->id, 'quantity' => 101])
-        ->assertStatus(409);
-    $this->withToken($this->token)->postJson('/api/v1/orders/quick', [...$body, 'product_id' => $this->brick->id, 'quantity' => 2])
-        ->assertStatus(409);
+    checkout($this, ['product_id' => $this->cement->id, 'quantity' => 1])->assertCreated();
+
+    expect(Order::query()->count())->toBe(1);
+});
+
+it('refuses one product for more than the stock or below the minimum', function () {
+    Notification::fake();
+
+    checkout($this, ['product_id' => $this->cement->id, 'quantity' => 101])->assertStatus(409);
+    checkout($this, ['product_id' => $this->brick->id, 'quantity' => 2])->assertStatus(409);
 
     expect(Order::query()->count())->toBe(0)->and($this->cement->fresh()->stock)->toBe(100);
 });
 
-it('asks for a name and a phone on a quick order', function () {
-    $this->withToken($this->token)->postJson('/api/v1/orders/quick', ['product_id' => $this->cement->id, 'quantity' => 1])
-        ->assertUnprocessable()->assertJsonValidationErrors(['customer_name', 'customer_phone']);
-});
-
-it('closes the quick order to guests', function () {
-    $this->postJson('/api/v1/orders/quick', [])->assertUnauthorized();
+it('asks how many of the one product', function () {
+    checkout($this, ['product_id' => $this->cement->id])
+        ->assertUnprocessable()->assertJsonValidationErrors(['quantity']);
 });

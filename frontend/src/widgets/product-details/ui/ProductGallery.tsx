@@ -44,7 +44,7 @@ export function ProductGallery({ images, name, badges }: { images: ProductImage[
         ) : (
           <span className="grid size-full place-items-center text-muted-foreground">{t.product.noPhoto}</span>
         )}
-        {badges && <div className="absolute left-4 top-4 z-10 flex flex-col gap-2">{badges}</div>}
+        {badges && <div className="absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center gap-2">{badges}</div>}
         {many && <SlideArrows onBack={() => go(-1)} onForward={() => go(1)} backLabel={t.common.back} forwardLabel={t.common.forward} />}
       </div>
 
