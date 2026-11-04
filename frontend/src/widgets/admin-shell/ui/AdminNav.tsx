@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Boxes, FolderTree, GalleryHorizontalEnd, Inbox, LayoutDashboard, Menu, MessagesSquare, Newspaper, Package, Settings, SlidersHorizontal, Store, Users } from "lucide-react";
 import { bff } from "@/shared/api/client";
+import { adminPath, managerPath } from "@/shared/config/auth";
 import { routes } from "@/shared/config/site";
 import { useAdminI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
@@ -17,20 +18,33 @@ type Item = { href: string; label: string; icon: typeof Package; exact?: boolean
 type Group = { label: string; items: Item[] };
 export type AdminUser = { name: string; isAdmin: boolean };
 
+const CHATS_SEEN_KEY = "bakht_chats_seen";
+
+function readChatsSeen(): number {
+  try {
+    return Number(window.localStorage.getItem(CHATS_SEEN_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 /** New orders and unread chats for the menu badges (refreshed every minute, or more often without WebSocket). */
 function useBadges() {
   const connected = useRealtimeConnected();
   const interval = connected ? 60_000 : 20_000;
+  const onChats = adminPath(usePathname()).startsWith(routes.adminChats);
+  // The moment of the newest message this person has already seen in the chats.
+  const [chatsSeen, setChatsSeen] = useState(() => (typeof window === "undefined" ? 0 : readChatsSeen()));
 
   const { data: awaiting } = useQuery({
     queryKey: ["admin-badge-orders"],
     queryFn: async () => (await bff<{ meta: { total: number } }>("/api/proxy/admin/orders?status=new&per_page=1", { method: "GET" })).meta.total,
     refetchInterval: interval,
   });
-  const { data: unread } = useQuery({
+  const { data: unreadChats } = useQuery({
     queryKey: ["admin-badge-chats"],
-    queryFn: async () => (await bff<{ meta: { unread_conversations: number } }>("/api/proxy/admin/chats?filter=unread&per_page=1", { method: "GET" })).meta.unread_conversations,
-    refetchInterval: interval,
+    queryFn: async () => (await bff<{ data: { last_message_at: string | null }[] }>("/api/proxy/admin/chats?filter=unread", { method: "GET" })).data.map((chat) => Date.parse(chat.last_message_at ?? "") || 0),
+    refetchInterval: onChats ? 8_000 : interval,
   });
 
   const { data: letters } = useQuery({
@@ -39,7 +53,24 @@ function useBadges() {
     refetchInterval: interval,
   });
 
-  return { awaiting: awaiting ?? 0, unread: unread ?? 0, letters: letters ?? 0 };
+  // Coming into the chats is seeing them: the badge goes away at once and stays away until something newer arrives.
+  // The conversations themselves stay unread (the customer's ticks, the "Непрочитанные" tab) until they are opened.
+  const newest = Math.max(0, ...(unreadChats ?? []));
+
+  if (onChats && newest > chatsSeen) setChatsSeen(newest);
+
+  useEffect(() => {
+    if (!chatsSeen) return;
+    try {
+      window.localStorage.setItem(CHATS_SEEN_KEY, String(chatsSeen));
+    } catch {
+      // Private window: the badge simply comes back on the next visit.
+    }
+  }, [chatsSeen]);
+
+  const unread = onChats ? 0 : (unreadChats ?? []).filter((time) => time > chatsSeen).length;
+
+  return { awaiting: awaiting ?? 0, unread, letters: letters ?? 0 };
 }
 
 /** The menu in groups, like the work goes: sales, catalog, content, and (administrators only) management. */
@@ -49,7 +80,7 @@ function useGroups(isAdmin: boolean): Group[] {
   const g = t.admin.groups;
   const { awaiting, unread, letters } = useBadges();
 
-  return [
+  const groups: Group[] = [
     { label: g.overview, items: [{ href: routes.admin, label: n.dashboard, icon: LayoutDashboard, exact: true }] },
     {
       label: g.sales,
@@ -85,6 +116,8 @@ function useGroups(isAdmin: boolean): Group[] {
         ]
       : []),
   ];
+
+  return isAdmin ? groups : groups.map((group) => ({ ...group, items: group.items.map((item) => ({ ...item, href: managerPath(item.href) })) }));
 }
 
 function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => void }) {
@@ -93,6 +126,7 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
   const groups = useGroups(user.isAdmin);
   const isActive = (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
   const role = t.acc.profile.roles[user.isAdmin ? "admin" : "manager"];
+  const profile = user.isAdmin ? routes.adminProfile : managerPath(routes.adminProfile);
 
   return (
     <nav aria-label={t.admin.menu} className="flex h-full flex-col">
@@ -131,16 +165,16 @@ function NavList({ user, onNavigate }: { user: AdminUser; onNavigate?: () => voi
       {/* Who is signed in — the card opens their profile — and the way back to the shop. */}
       <div className="border-t border-white/10 p-3">
         <Link
-          href={routes.adminProfile}
+          href={profile}
           onClick={onNavigate}
-          aria-current={pathname === routes.adminProfile ? "page" : undefined}
+          aria-current={pathname === profile ? "page" : undefined}
           title={t.admin.nav.profile}
           className={cn(
             "group relative flex items-center gap-3 rounded-xl p-2 transition-colors",
-            pathname === routes.adminProfile ? "bg-white/[0.12]" : "bg-white/[0.05] hover:bg-white/[0.09]",
+            pathname === profile ? "bg-white/[0.12]" : "bg-white/[0.05] hover:bg-white/[0.09]",
           )}
         >
-          <span aria-hidden className={cn("absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-brand transition-opacity", pathname === routes.adminProfile ? "opacity-100" : "opacity-0")} />
+          <span aria-hidden className={cn("absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-brand transition-opacity", pathname === profile ? "opacity-100" : "opacity-0")} />
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-ink">{user.name.charAt(0).toUpperCase()}</span>
           <span className="min-w-0 flex-1 leading-tight">
             <b className="block truncate text-sm text-white">{user.name}</b>
@@ -167,7 +201,7 @@ function AdminBrand({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useAdminI18n();
 
   return (
-    <Link href={routes.admin} className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
+    <Link href={isAdmin ? routes.admin : managerPath(routes.admin)} className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
       <LogoMark className="size-9 shrink-0" />
       <span className="min-w-0 leading-tight">
         <span className="block text-[15px] font-bold tracking-tight text-white">BAKHT STROY</span>

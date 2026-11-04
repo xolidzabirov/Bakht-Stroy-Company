@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Search } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
 import { isAdmin, requireStaff } from "@/shared/api/requireUser";
 import { getCurrentUser } from "@/shared/api/session";
+import { adminPath, managerPath } from "@/shared/config/auth";
 import { routes } from "@/shared/config/site";
 import { I18nProvider } from "@/shared/i18n/client";
 import { SkipLink } from "@/shared/ui/SkipLink";
@@ -29,6 +32,10 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   const [user, { t, locale }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
   const admin = isAdmin(user);
   const shell = { name: user.name, isAdmin: admin };
+  const path = (await headers()).get("x-pathname") ?? routes.admin;
+
+  // The wrong panel's address: a session from before /manager or a changed role. A new token brings the right cookie.
+  if (admin === path.startsWith("/manager")) redirect(`/api/auth/refresh?next=${encodeURIComponent(admin ? adminPath(path) : managerPath(path))}`);
 
   return (
     <I18nProvider locale={locale} dictionary={t}>

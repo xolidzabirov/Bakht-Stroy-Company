@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE, REFRESH_COOKIE, RENEW_BEFORE_SECONDS, USER_COOKIE } from "@/shared/config/auth";
+import { AUTH_COOKIE, MANAGER_COOKIE, REFRESH_COOKIE, RENEW_BEFORE_SECONDS, USER_COOKIE } from "@/shared/config/auth";
 import { env } from "@/shared/config/env";
 
 /**
@@ -43,7 +43,7 @@ export function deviceName(request: NextRequest): string {
 }
 
 type AuthData = {
-  user: { name: string };
+  user: { name: string; roles?: string[] };
   token: string;
   expires_at?: string | null;
   refresh_token?: string;
@@ -72,6 +72,12 @@ function setSessionCookies(response: NextResponse, data: AuthData, remember: boo
   response.cookies.set(AUTH_COOKIE, data.token, { httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: remember ? secondsUntil(data.expires_at) : undefined });
   response.cookies.set(USER_COOKIE, data.user.name.split(" ")[0], { secure, sameSite: "lax", path: "/", maxAge: refreshMaxAge });
 
+  if (data.user.roles?.includes("manager") && !data.user.roles.includes("admin")) {
+    response.cookies.set(MANAGER_COOKIE, "1", { httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: refreshMaxAge });
+  } else {
+    response.cookies.delete(MANAGER_COOKIE);
+  }
+
   if (data.refresh_token) {
     const tokenEndsAt = data.expires_at ? Math.floor(new Date(data.expires_at).getTime() / 1000) : 0;
 
@@ -93,6 +99,7 @@ export function clearSession(response: NextResponse): NextResponse {
   response.cookies.delete(AUTH_COOKIE);
   response.cookies.delete(REFRESH_COOKIE);
   response.cookies.delete(USER_COOKIE);
+  response.cookies.delete(MANAGER_COOKIE);
 
   return response;
 }

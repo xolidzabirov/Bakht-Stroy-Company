@@ -608,7 +608,7 @@ export const en: Dictionary = {
       emptyText: "Order news will appear here: confirmation, payment, delivery.",
       openOrder: "Open order",
     },
-    profile: { title: "Profile", since: "With us since {date}", verified: "Verified", noPhone: "No phone number", roles: { client: "Customer", manager: "Manager", admin: "Administrator" } },
+    profile: { personalText: "The manager uses your name and phone to contact you about an order.", signInText: "The email and password you sign in to the site with.", title: "Profile", since: "With us since {date}", verified: "Verified", noPhone: "No phone number", roles: { client: "Customer", manager: "Manager", admin: "Administrator" } },
     settings: {
       title: "Settings",
       appearance: "Language and appearance", appearanceText: "Site language and light or dark theme are remembered on this device.",

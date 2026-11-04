@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Boxes, ChevronDown, Newspaper, Plus, UserPlus } from "lucide-react";
+import { managerPath } from "@/shared/config/auth";
 import { routes } from "@/shared/config/site";
 import { useAdminI18n } from "@/shared/i18n/client";
 import { buttonClasses } from "@/shared/ui";
@@ -12,8 +13,8 @@ export function QuickCreate({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useAdminI18n();
   const c = t.admin.create;
   const items = [
-    { href: routes.adminProductNew, label: c.product, icon: Boxes },
-    { href: routes.adminNewsNew, label: c.news, icon: Newspaper },
+    { href: isAdmin ? routes.adminProductNew : managerPath(routes.adminProductNew), label: c.product, icon: Boxes },
+    { href: isAdmin ? routes.adminNewsNew : managerPath(routes.adminNewsNew), label: c.news, icon: Newspaper },
     ...(isAdmin ? [{ href: routes.adminUsers, label: c.user, icon: UserPlus }] : []),
   ];
 

@@ -57,7 +57,7 @@ function useReturnFocus(open: boolean) {
 
 /* ---------- Name and phone ---------- */
 
-export function PersonalSection({ name, phone, phoneVerified }: { name: string; phone: string | null; phoneVerified: boolean }) {
+export function PersonalSection({ name, phone, phoneVerified, description }: { name: string; phone: string | null; phoneVerified: boolean; description?: string }) {
   const { t } = useAdminI18n();
   const p = t.admin.profile;
   const c = t.admin.common;
@@ -106,7 +106,7 @@ export function PersonalSection({ name, phone, phoneVerified }: { name: string; 
       <SettingsSection
         id="profile-personal"
         title={p.personal}
-        description={p.personalText}
+        description={description ?? p.personalText}
         editing={editing}
         action={<EditButton buttonRef={editButton} label={c.edit} onClick={() => setEditing(true)} />}
         footer={<EditFooter cancelLabel={c.cancel} saveLabel={c.save} onCancel={cancel} saving={isSubmitting} error={formError} />}
@@ -170,7 +170,7 @@ export function PersonalSection({ name, phone, phoneVerified }: { name: string; 
 
 type SignInEditing = "email" | "password" | null;
 
-export function SignInSection({ email, emailVerified }: { email: string; emailVerified: boolean }) {
+export function SignInSection({ email, emailVerified, description }: { email: string; emailVerified: boolean; description?: string }) {
   const { t } = useAdminI18n();
   const p = t.admin.profile;
   const [editing, setEditing] = useState<SignInEditing>(null);
@@ -179,7 +179,7 @@ export function SignInSection({ email, emailVerified }: { email: string; emailVe
 
   // Each row opens its own small form in place; the other row waits until it closes.
   return (
-    <SettingsSection id="profile-sign-in" title={p.signIn} description={p.signInText} editing={editing !== null} flush={editing === "password"}>
+    <SettingsSection id="profile-sign-in" title={p.signIn} description={description ?? p.signInText} editing={editing !== null} flush={editing === "password"}>
       {editing === "email" ? (
         <EmailEditor email={email} onDone={() => setEditing(null)} />
       ) : (

@@ -6,7 +6,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
-import { BadgeCheck, LoaderCircle, LogOut, Mail, MonitorSmartphone, Trash2 } from "lucide-react";
+import { LoaderCircle, LogOut, MonitorSmartphone, Trash2 } from "lucide-react";
 import { newPasswordSchema } from "@/features/auth/model/schemas";
 import { PasswordStrength } from "@/features/auth/ui/PasswordStrength";
 import { ApiError } from "@/shared/api/http";
@@ -15,8 +15,8 @@ import type { Session } from "@/shared/api/types";
 import { useI18n } from "@/shared/i18n/client";
 import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
-import { formatDate, formatPhone } from "@/shared/lib/format";
-import { Button, Field, FormAlert, PasswordInput, TextInput } from "@/shared/ui";
+import { formatDate } from "@/shared/lib/format";
+import { Button, Field, FormAlert, PasswordInput } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 
 function Section({ title, children, danger = false }: { title: string; children: React.ReactNode; danger?: boolean }) {
@@ -29,145 +29,6 @@ function Section({ title, children, danger = false }: { title: string; children:
 }
 
 /* ---------- Profile ---------- */
-
-export function ProfileForm({ name, phone, phoneVerified }: { name: string; phone: string | null; phoneVerified: boolean }) {
-  const { t } = useI18n();
-  const router = useRouter();
-  const s = t.acc.settings;
-  const [formError, setFormError] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting, isDirty },
-    reset,
-  } = useForm<{ name: string }>({ defaultValues: { name } });
-
-  const onSubmit = handleSubmit(async (values) => {
-    setFormError(null);
-    try {
-      await bff("/api/proxy/me", { method: "PATCH", body: { name: values.name.trim() } });
-      reset(values);
-      toast.success(s.saved);
-      router.refresh();
-    } catch (error) {
-      setFormError(applyApiErrors(error, setError, ["name"], t.errors));
-    }
-  });
-
-  return (
-    <Section title={s.profile}>
-      <form onSubmit={onSubmit} noValidate className="grid gap-4 sm:grid-cols-2">
-        {formError && <div className="sm:col-span-2"><FormAlert>{formError}</FormAlert></div>}
-        <Field label={s.name} error={errors.name?.message}>
-          {(id, describedBy) => <TextInput id={id} autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={describedBy} {...register("name", { required: true, minLength: 2 })} />}
-        </Field>
-        <Field label={s.phone}>
-          {(id) => (
-            <div id={id} className="flex h-12 items-center gap-2 rounded-xl border border-border bg-muted px-4 text-[15px]">
-              <span className="flex-1">{phone ? formatPhone(phone) : "—"}</span>
-              {phone && phoneVerified && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
-                  <BadgeCheck className="size-4" />
-                  {s.phoneVerified}
-                </span>
-              )}
-            </div>
-          )}
-        </Field>
-        <div className="sm:col-span-2">
-          <Button type="submit" disabled={isSubmitting || !isDirty}>
-            {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
-            {s.save}
-          </Button>
-        </div>
-      </form>
-    </Section>
-  );
-}
-
-/* ---------- Email ---------- */
-
-export function EmailForm({ email }: { email: string }) {
-  const { t } = useI18n();
-  const router = useRouter();
-  const s = t.acc.settings;
-  const [newEmail, setNewEmail] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const {
-    register,
-    handleSubmit,
-    setError,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<{ email: string; code: string; password: string }>({ defaultValues: { email: "", code: "", password: "" } });
-
-  const onSubmit = handleSubmit(async (values) => {
-    setFormError(null);
-    try {
-      if (!newEmail) {
-        await bff("/api/proxy/me/email/send-code", { body: { email: values.email } });
-        setNewEmail(values.email);
-        return;
-      }
-      await bff("/api/proxy/me/email", { method: "PUT", body: { email: newEmail, code: values.code, password: values.password } });
-      toast.success(s.emailChanged);
-      setNewEmail(null);
-      reset();
-      router.refresh();
-    } catch (error) {
-      setFormError(applyApiErrors(error, setError, ["email", "code", "password"], t.errors));
-    }
-  });
-
-  return (
-    <Section title={s.email}>
-      <p className="mb-4 flex items-center gap-2 text-sm">
-        <Mail className="size-4 text-muted-foreground" />
-        <b className="break-all">{email}</b>
-      </p>
-      <form onSubmit={onSubmit} noValidate className="space-y-4">
-        {formError && <FormAlert>{formError}</FormAlert>}
-        {!newEmail ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <Field label={s.newEmail} error={errors.email?.message}>
-                {(id, describedBy) => <TextInput id={id} type="email" inputMode="email" placeholder={t.auth.emailPlaceholder} aria-invalid={Boolean(errors.email)} aria-describedby={describedBy} {...register("email", { required: true })} />}
-              </Field>
-            </div>
-            <Button type="submit" variant="outline" disabled={isSubmitting} className="h-12">
-              {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
-              {s.sendCode}
-            </Button>
-          </div>
-        ) : (
-          <>
-            <FormAlert tone="info">{fmt(s.codeSentTo, { email: newEmail })}</FormAlert>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={s.code} error={errors.code?.message}>
-                {(id, describedBy) => <TextInput id={id} inputMode="numeric" maxLength={6} placeholder="••••••" aria-invalid={Boolean(errors.code)} aria-describedby={describedBy} {...register("code", { required: true })} />}
-              </Field>
-              <Field label={s.currentPassword} error={errors.password?.message}>
-                {(id, describedBy) => <PasswordInput id={id} autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby={describedBy} {...register("password", { required: true })} />}
-              </Field>
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
-                {s.confirm}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => setNewEmail(null)}>
-                {s.cancel}
-              </Button>
-            </div>
-          </>
-        )}
-      </form>
-    </Section>
-  );
-}
-
-/* ---------- Password ---------- */
 
 export function PasswordForm() {
   const { t } = useI18n();

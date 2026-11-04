@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { applyRenewal, canRenew, isRenewalDue, type Renewal, renewSession } from "@/shared/api/bff";
-import { AUTH_COOKIE, GUEST_ONLY_PATHS, PROTECTED_PATHS, REFRESH_COOKIE, safeNext, USER_COOKIE } from "@/shared/config/auth";
+import { adminPath, AUTH_COOKIE, GUEST_ONLY_PATHS, MANAGER_COOKIE, managerPath, PROTECTED_PATHS, REFRESH_COOKIE, safeNext, USER_COOKIE } from "@/shared/config/auth";
 import { defaultLocale, isLocale, LOCALE_COOKIE } from "@/shared/i18n/config";
 
 const matches = (pathname: string, paths: string[]) => paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -10,7 +10,8 @@ const matches = (pathname: string, paths: string[]) => paths.some((path) => path
  *    Whether the token is still valid, the page itself checks on the server.
  * 2. A token that is ending is replaced here, before the page renders, so nobody is sent to the login page for it.
  *    A public page does not wait long for that: if the API sleeps, the next request tries again.
- * 3. Language: addresses have no language prefix (/catalog), the visitor's choice lives in a cookie.
+ * 3. Managers have their own address: /manager is the panel of /admin, and /admin sends them there.
+ * 4. Language: addresses have no language prefix (/catalog), the visitor's choice lives in a cookie.
  *    The request is rewritten to the hidden segment (/ru/catalog), so every language is its own
  *    prerendered page and public pages are served from the cache.
  */
@@ -50,6 +51,10 @@ export async function proxy(request: NextRequest) {
     return applyRenewal(NextResponse.redirect(new URL(safeNext(request.nextUrl.searchParams.get("next"), "/account"), request.url)), renewal);
   }
 
+  if (signedIn && request.cookies.has(MANAGER_COOKIE) && matches(pathname, ["/admin"])) {
+    return applyRenewal(NextResponse.redirect(new URL(`${managerPath(pathname)}${search}`, request.url)), renewal);
+  }
+
   const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
   const locale = isLocale(cookie) ? cookie : defaultLocale;
 
@@ -57,7 +62,7 @@ export async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set("x-pathname", pathname);
 
-  return applyRenewal(NextResponse.rewrite(new URL(`/${locale}${pathname === "/" ? "" : pathname}${search}`, request.url), { request: { headers } }), renewal);
+  return applyRenewal(NextResponse.rewrite(new URL(`/${locale}${pathname === "/" ? "" : adminPath(pathname)}${search}`, request.url), { request: { headers } }), renewal);
 }
 
 export const config = {
