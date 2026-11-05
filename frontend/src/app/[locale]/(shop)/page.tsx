@@ -12,6 +12,7 @@ import { CategoryStrip } from "@/widgets/category-grid/ui/CategoryStrip";
 import { ContactCta } from "@/widgets/contact-cta/ui/ContactCta";
 import { Hero } from "@/widgets/hero/ui/Hero";
 import { NewsSection } from "@/widgets/news-section/ui/NewsSection";
+import { WorksGallery } from "@/widgets/works-gallery/ui/WorksGallery";
 import { ProductGrid } from "@/widgets/product-grid/ui/ProductGrid";
 
 /** Title and description come from the root layout; the home page only states its address. */
@@ -19,10 +20,11 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   await setLocaleFrom(params);
-  const [banners, heroSlides, categories, featured, discounted, news, settings] =
+  const [banners, heroSlides, works, categories, featured, discounted, news, settings] =
     await Promise.all([
       getBanners(),
       getBanners("hero"),
+      getBanners("works"),
       getCategories(),
       getProducts({ featured: true, per_page: 8 }),
       getProducts({ sort: "popular", per_page: 60 }),
@@ -61,6 +63,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           products={sale.slice(0, 4)}
         />
       )}
+      <WorksGallery photos={works} />
       <div className="reveal">
         <NewsSection news={news?.data ?? []} />
       </div>

@@ -121,3 +121,25 @@ it('lets staff read and delete messages', function () {
     $this->withToken(User::factory()->client()->create()->createToken('Pest')->plainTextToken)
         ->getJson('/api/v1/admin/messages')->assertForbidden();
 });
+
+it('keeps the photos of work in a place of their own', function () {
+    Storage::fake('public');
+    Banner::factory()->create(['title' => 'Баннер']);
+
+    $id = $this->withToken($this->token)->postJson('/api/v1/admin/banners', ['title' => 'Наша работа', 'subtitle' => 'Асфальт во дворе', 'placement' => 'works'])
+        ->assertCreated()
+        ->assertJsonPath('data.placement', 'works')
+        ->assertJsonPath('data.image_work', null)
+        ->json('data.id');
+
+    // A photo of work is cut to the 3:2 frame of the strip.
+    $this->withToken($this->token)
+        ->post("/api/v1/admin/banners/{$id}/image", ['image' => UploadedFile::fake()->image('work.jpg', 1600, 1200)])
+        ->assertOk()
+        ->assertJsonPath('data.image_work', fn (string $url) => str_contains($url, 'work') && str_ends_with($url, '.webp'))
+        ->assertJsonPath('data.image_hero', null);
+
+    expect(collect($this->getJson('/api/v1/banners')->json('data'))->pluck('title')->all())->toBe(['Баннер'])
+        ->and(collect($this->getJson('/api/v1/banners?placement=works')->json('data'))->pluck('subtitle')->all())->toBe(['Асфальт во дворе'])
+        ->and(collect($this->withToken($this->token)->getJson('/api/v1/admin/banners?placement=works')->json('data'))->pluck('id')->all())->toBe([$id]);
+});

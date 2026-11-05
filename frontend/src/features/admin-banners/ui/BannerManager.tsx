@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, CalendarClock, ExternalLink, ImageOff, ImagePlus, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarClock, Camera, ExternalLink, ImageOff, ImagePlus, LoaderCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { ApiError } from "@/shared/api/http";
 import { applyApiErrors, bff } from "@/shared/api/client";
 import type { Banner } from "@/shared/api/types";
@@ -14,6 +14,8 @@ import { cn } from "@/shared/lib/cn";
 import { Button, Field, FormAlert, TextInput } from "@/shared/ui";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 import { Switch } from "@/shared/ui/kit/switch";
+
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 
 /** ISO date from the API → value of <input type="datetime-local"> in the browser's time zone. */
 function toLocalInput(iso: string | null | undefined): string {
@@ -26,20 +28,24 @@ function toLocalInput(iso: string | null | undefined): string {
 /** datetime-local value → ISO with the time zone, so the server stores the moment the admin meant. */
 const fromLocalInput = (value: string) => (value ? new Date(value).toISOString() : null);
 
-type Placement = "hero" | "promo";
+type Placement = "hero" | "promo" | "works";
 
-/** Preview of a slide: the first screen photo (5:4) or the wide banner picture. */
-const previewOf = (banner: Banner) => (banner.placement === "hero" ? (banner.image_hero?.large ?? banner.image) : banner.image);
+/** Preview of a slide: the first screen photo (5:4), the photo of work (3:2) or the wide banner picture. */
+const previewOf = (banner: Banner) => (banner.placement === "hero" ? (banner.image_hero?.large ?? banner.image) : banner.placement === "works" ? (banner.image_work ?? banner.image) : banner.image);
 
 /**
- * Home page slides of one carousel — the main slider of the first screen ("hero") or the banners strip ("promo"):
+ * Home page slides of one carousel — the main slider of the first screen ("hero"), the banners strip ("promo")
+ * or the photos of work ("works", a grid: several photos go up at once):
  * preview, on/off, order with arrows, edit in a dialog (texts, link, schedule, pictures).
  */
 export function BannerManager({ banners, placement }: { banners: Banner[]; placement: Placement }) {
   const hero = placement === "hero";
+  const works = placement === "works";
   const { t, locale } = useAdminI18n();
   const b = t.admin.banners;
   const router = useRouter();
+  const picker = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
   const [editing, setEditing] = useState<Banner | "new" | null>(null);
   const [deleting, setDeleting] = useState<Banner | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
@@ -91,17 +97,110 @@ export function BannerManager({ banners, placement }: { banners: Banner[]; place
     }
   };
 
+  /** Photos of work go up in one go: each one becomes a slide of its own, one that fails leaves nothing behind. */
+  const uploadWorks = async (files: File[]) => {
+    const fitting = files.filter((file) => file.size <= MAX_IMAGE_SIZE);
+    if (fitting.length < files.length) toast.error(b.worksImageHint);
+    if (fitting.length === 0) return;
+
+    let sort = banners.at(-1)?.sort_order ?? 0;
+    setUploading({ done: 0, total: fitting.length });
+    for (const [i, file] of fitting.entries()) {
+      sort += 10;
+      try {
+        const { data } = await bff<{ data: Banner }>("/api/proxy/admin/banners", { body: { title: b.worksDefaultTitle, placement, sort_order: sort, is_active: true } });
+        const form = new FormData();
+        form.append("image", file);
+        form.append("variant", "desktop");
+        await bff(`/api/proxy/admin/banners/${data.id}/image`, { body: form }).catch(async (error) => {
+          await bff(`/api/proxy/admin/banners/${data.id}`, { method: "DELETE" }).catch(() => undefined);
+          throw error;
+        });
+      } catch (error) {
+        fail(error);
+      }
+      setUploading({ done: i + 1, total: fitting.length });
+    }
+    setUploading(null);
+    router.refresh();
+  };
+
   return (
     <>
       <div className="mb-4 flex justify-end">
-        <Button onClick={() => setEditing("new")}>
-          <Plus className="size-4" />
-          {hero ? b.heroAdd : b.add}
-        </Button>
+        {works ? (
+          <>
+            <Button onClick={() => picker.current?.click()} disabled={uploading !== null}>
+              {uploading ? <LoaderCircle className="size-4 animate-spin" /> : <Plus className="size-4" />}
+              {uploading ? fmt(b.worksUploading, { done: uploading.done, total: uploading.total }) : b.worksAdd}
+            </Button>
+            <input
+              ref={picker}
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                event.target.value = "";
+                void uploadWorks(files);
+              }}
+            />
+          </>
+        ) : (
+          <Button onClick={() => setEditing("new")}>
+            <Plus className="size-4" />
+            {hero ? b.heroAdd : b.add}
+          </Button>
+        )}
       </div>
 
       {banners.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{hero ? b.heroEmpty : b.empty}</p>
+        works ? (
+          <button type="button" onClick={() => picker.current?.click()} className="grid w-full place-items-center rounded-2xl border-2 border-dashed border-border bg-surface px-6 py-16 text-center transition hover:border-foreground/30">
+            <Camera className="size-8 text-muted-foreground" />
+            <span className="mt-3 font-semibold">{b.worksEmpty}</span>
+            <span className="mt-1 text-sm text-muted-foreground">{b.worksImageHint}</span>
+          </button>
+        ) : (
+          <p className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">{hero ? b.heroEmpty : b.empty}</p>
+        )
+      ) : works ? (
+        <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+          {banners.map((banner, index) => (
+            <li key={banner.id} className={cn("flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-opacity", !banner.is_active && "opacity-60")}>
+              <div className="relative aspect-[3/2] bg-muted">
+                {previewOf(banner) ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={previewOf(banner) ?? undefined} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+                ) : (
+                  <span className="grid size-full place-items-center text-muted-foreground">
+                    <ImageOff className="size-6" />
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col gap-2 p-3">
+                <p className={cn("line-clamp-2 min-h-10 text-sm", banner.subtitle ? "font-medium" : "text-muted-foreground")}>{banner.subtitle ?? b.worksNoCaption}</p>
+                <div className="mt-auto flex flex-wrap items-center gap-0.5 border-t border-border pt-2">
+                  <IconButton label={t.admin.categories.moveUp} disabled={busy !== null || index === 0} onClick={() => void move(index, -1)}>
+                    <ArrowLeft className="size-4" />
+                  </IconButton>
+                  <IconButton label={t.admin.categories.moveDown} disabled={busy !== null || index === banners.length - 1} onClick={() => void move(index, 1)}>
+                    <ArrowRight className="size-4" />
+                  </IconButton>
+                  <span className="flex-1" />
+                  <Switch checked={banner.is_active} onCheckedChange={(next) => void patch(banner, { is_active: next })} disabled={busy === banner.id} aria-label={b.isActive} className="mr-1" />
+                  <IconButton label={t.admin.common.edit} onClick={() => setEditing(banner)}>
+                    <Pencil className="size-4" />
+                  </IconButton>
+                  <IconButton label={t.admin.common.delete} danger onClick={() => setDeleting(banner)}>
+                    <Trash2 className="size-4" />
+                  </IconButton>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul className="space-y-3">
           {banners.map((banner, index) => {
@@ -185,7 +284,7 @@ export function BannerManager({ banners, placement }: { banners: Banner[]; place
 
       <Dialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <DialogContent className="rounded-2xl sm:max-w-md">
-          <DialogTitle className="text-xl font-extrabold">{deleting && fmt(t.admin.common.confirmDelete, { name: deleting.title })}</DialogTitle>
+          <DialogTitle className="text-xl font-extrabold">{deleting && (works ? b.worksDeleteTitle : fmt(t.admin.common.confirmDelete, { name: deleting.title }))}</DialogTitle>
           <DialogDescription>{b.deleteText}</DialogDescription>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDeleting(null)}>
@@ -238,6 +337,7 @@ function BannerForm({
   const { t } = useAdminI18n();
   const b = t.admin.banners;
   const hero = placement === "hero";
+  const works = placement === "works";
   const [formError, setFormError] = useState<string | null>(null);
   // Pictures of a banner that is not saved yet: they wait in the browser and go up right after "Создать".
   const [draft, setDraft] = useState<{ desktop: File | null; mobile: File | null }>({ desktop: null, mobile: null });
@@ -293,7 +393,7 @@ function BannerForm({
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <DialogTitle className="text-xl font-extrabold">{hero ? (banner ? b.heroEdit : b.heroNew) : banner ? b.editTitle : b.newTitle}</DialogTitle>
+      <DialogTitle className="text-xl font-extrabold">{works ? b.worksEdit : hero ? (banner ? b.heroEdit : b.heroNew) : banner ? b.editTitle : b.newTitle}</DialogTitle>
       {formError && <FormAlert>{formError}</FormAlert>}
 
       {/* On the first screen the label is the yellow badge above the title. */}
@@ -302,12 +402,19 @@ function BannerForm({
           {(id, describedBy) => <TextInput id={id} placeholder={b.heroLabelPlaceholder} maxLength={40} aria-describedby={describedBy} {...register("subtitle")} />}
         </Field>
       )}
+      {works && (
+        <Field label={b.worksCaption} error={errors.subtitle?.message} hint={b.worksCaptionHint}>
+          {(id, describedBy) => <TextInput id={id} placeholder={b.worksCaptionPlaceholder} maxLength={120} aria-describedby={describedBy} {...register("subtitle")} />}
+        </Field>
+      )}
+      {!works && (
       <Field label={b.bannerTitle} error={errors.title?.message}>
         {(id, describedBy) => (
           <TextInput id={id} placeholder={hero ? b.heroTitlePlaceholder : undefined} aria-invalid={Boolean(errors.title)} aria-describedby={describedBy} {...register("title", { required: t.admin.common.required })} />
         )}
       </Field>
-      {!hero && (
+      )}
+      {!hero && !works && (
         <Field label={b.subtitle} error={errors.subtitle?.message}>
           {(id, describedBy) => <TextInput id={id} aria-describedby={describedBy} {...register("subtitle")} />}
         </Field>
@@ -317,6 +424,7 @@ function BannerForm({
           {(id, describedBy) => <TextInput id={id} placeholder="/catalog" aria-describedby={describedBy} {...register("link")} />}
         </Field>
       )}
+      {!works && (
       <div className="grid gap-4 sm:grid-cols-2">
         {!hero && (
           <Field label={b.buttonText} error={errors.button_text?.message}>
@@ -335,6 +443,7 @@ function BannerForm({
           {(id, describedBy) => <TextInput id={id} type="datetime-local" aria-describedby={describedBy} {...register("ends_at")} />}
         </Field>
       </div>
+      )}
       <Controller
         control={control}
         name="is_active"
@@ -346,7 +455,9 @@ function BannerForm({
         )}
       />
 
-      {hero ? (
+      {works ? (
+        banner && <BannerImage banner={banner} variant="work" />
+      ) : hero ? (
         banner ? (
           <BannerImage banner={banner} variant="hero" />
         ) : (
@@ -376,8 +487,6 @@ function BannerForm({
     </form>
   );
 }
-
-const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 
 /** A picture of a banner that is not saved yet: a preview now, the upload after "Создать". */
 function BannerImageDraft({ variant, file, onChange }: { variant: "desktop" | "mobile" | "hero"; file: File | null; onChange: (file: File | null) => void }) {
@@ -427,12 +536,12 @@ function BannerImageDraft({ variant, file, onChange }: { variant: "desktop" | "m
 }
 
 /** desktop / mobile — the banner pictures; hero — the first screen photo (uploaded as the main picture, cut to 5:4). */
-function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" | "mobile" | "hero" }) {
+function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" | "mobile" | "hero" | "work" }) {
   const { t } = useAdminI18n();
   const b = t.admin.banners;
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
-  const pick = (data: Banner) => (variant === "hero" ? previewOf(data) : variant === "desktop" ? data.image : data.image_mobile);
+  const pick = (data: Banner) => (variant === "hero" || variant === "work" ? previewOf(data) : variant === "desktop" ? data.image : data.image_mobile);
   const [image, setImage] = useState(pick(banner));
   const [busy, setBusy] = useState(false);
 
@@ -454,13 +563,13 @@ function BannerImage({ banner, variant }: { banner: Banner; variant: "desktop" |
 
   return (
     <div>
-      <p className="text-sm font-semibold">{variant === "hero" ? b.heroImage : variant === "desktop" ? b.image : b.imageMobile}</p>
-      <p className="mb-2 text-xs text-muted-foreground">{variant === "hero" ? b.heroImageHint : variant === "desktop" ? b.imageHint : b.imageMobileHint}</p>
+      <p className="text-sm font-semibold">{variant === "work" ? b.worksImage : variant === "hero" ? b.heroImage : variant === "desktop" ? b.image : b.imageMobile}</p>
+      <p className="mb-2 text-xs text-muted-foreground">{variant === "work" ? b.worksImageHint : variant === "hero" ? b.heroImageHint : variant === "desktop" ? b.imageHint : b.imageMobileHint}</p>
       <button
         type="button"
         onClick={() => input.current?.click()}
         disabled={busy}
-        className={cn("relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted transition hover:border-primary", variant === "hero" ? "aspect-[5/4] max-w-sm" : variant === "desktop" ? "aspect-[16/5]" : "aspect-square max-w-40")}
+        className={cn("relative grid w-full place-items-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted transition hover:border-primary", variant === "work" ? "aspect-[3/2] max-w-sm" : variant === "hero" ? "aspect-[5/4] max-w-sm" : variant === "desktop" ? "aspect-[16/5]" : "aspect-square max-w-40")}
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element

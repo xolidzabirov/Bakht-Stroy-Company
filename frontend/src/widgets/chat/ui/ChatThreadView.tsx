@@ -10,6 +10,7 @@ import { ApiError } from "@/shared/api/http";
 import { useI18n } from "@/shared/i18n/client";
 import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui";
+import { ChatBubblesSkeleton } from "@/shared/ui/PageSkeletons";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/shared/ui/kit/dialog";
 import { dayLabel, sameDay } from "../lib/format";
 import { acceptFiles, Composer, type ComposerLimits } from "./Composer";
@@ -214,8 +215,8 @@ export function ChatThreadView({ thread, viewer, myId, myName, limits, orderHref
 
       <div ref={scroller} onScroll={onScroll} className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 sm:px-6" role="log" aria-live="polite">
         {thread.isLoading ? (
-          <div className="grid h-full place-items-center">
-            <LoaderCircle className="size-6 animate-spin text-muted-foreground" />
+          <div className="flex h-full flex-col justify-end">
+            <ChatBubblesSkeleton />
           </div>
         ) : thread.isError && messages.length === 0 ? (
           <p className="grid h-full place-items-center text-sm text-muted-foreground">{c.error}</p>

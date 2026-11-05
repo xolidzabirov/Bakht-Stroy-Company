@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
@@ -36,9 +38,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property bool $is_active
  * @property bool $is_featured
  * @property int $views_count
+ * @property float|null $rating
+ * @property int $reviews_count
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Category $category
+ * @property-read Collection<int, Review> $reviews
  *
  * @method static Builder<static> active()
  * @method static Builder<static> visible()
@@ -67,6 +72,7 @@ class Product extends Model implements HasMedia
         'is_active' => true,
         'is_featured' => false,
         'views_count' => 0,
+        'reviews_count' => 0,
     ];
 
     /**
@@ -75,6 +81,8 @@ class Product extends Model implements HasMedia
     protected function casts(): array
     {
         return [
+            'rating' => 'float',
+            'reviews_count' => 'integer',
             'category_id' => 'integer',
             'price' => 'integer',
             'old_price' => 'integer',
@@ -94,6 +102,14 @@ class Product extends Model implements HasMedia
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * @return HasMany<Review, $this>
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     /**

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Boxes, Pencil, Plus } from "lucide-react";
+import { Boxes, Pencil, Plus, Star } from "lucide-react";
 import { DeleteProduct, ProductFlag, StockEditor } from "@/features/admin-products/ui/ProductRowActions";
 import { MoreFilters, ResetFilters, SearchFilter, SelectFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
@@ -137,6 +137,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                   <div className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-3">
                     <b className="text-lg font-bold tabular-nums">{formatMoney(product.price, locale)}</b>
                     {product.old_price && <s className="text-xs text-muted-foreground">{formatMoney(product.old_price, locale)}</s>}
+                      {product.reviews_count > 0 && product.rating ? (
+                        <a href={`${routes.adminProduct(product.id)}#reviews`} className="ml-auto inline-flex items-center gap-1 text-xs font-semibold tabular-nums hover:underline">
+                          <Star className="size-3.5 fill-brand text-brand" />
+                          {product.rating.toFixed(1)}
+                          <span className="font-normal text-muted-foreground">({product.reviews_count})</span>
+                        </a>
+                      ) : null}
                   </div>
 
                   <div className="mt-1.5">

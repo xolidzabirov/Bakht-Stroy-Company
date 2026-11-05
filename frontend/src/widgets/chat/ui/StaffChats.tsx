@@ -17,6 +17,7 @@ import { fmt } from "@/shared/i18n/format";
 import { cn } from "@/shared/lib/cn";
 import { formatDate, formatMoney, formatPhone } from "@/shared/lib/format";
 import { playMessageSound } from "@/shared/lib/sound";
+import { InboxRowsSkeleton } from "@/shared/ui/PageSkeletons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/kit/sheet";
 import { chatTime, dayLabel, presence } from "../lib/format";
@@ -99,7 +100,7 @@ export function StaffChats({ me, conversationId }: { me: Me; conversationId: num
 
         <ul className="no-scrollbar min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain p-2">
           {isLoading ? (
-            <li className="p-6 text-center text-sm text-muted-foreground">…</li>
+            <InboxRowsSkeleton />
           ) : !inbox?.data.length ? (
             <li className="grid place-items-center px-6 py-14 text-center">
               <MessagesSquare className="size-9 text-muted-foreground" />

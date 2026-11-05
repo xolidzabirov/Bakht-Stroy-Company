@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { preconnect } from "react-dom";
 import type { Product } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -64,6 +65,13 @@ export async function ProductCard({ product, action, favorite, priority = false 
         </Link>
 
         <div className="mt-auto pt-4">
+          {product.reviews_count > 0 && product.rating ? (
+            <p className="mb-1.5 flex items-center gap-1 text-xs font-semibold tabular-nums">
+              <Star aria-hidden className="size-3.5 fill-brand text-brand" />
+              {product.rating.toFixed(1)}
+              <span className="font-normal text-muted-foreground">({product.reviews_count})</span>
+            </p>
+          ) : null}
           <div className="flex items-baseline gap-2">
             <span className="font-display text-xl font-bold tabular-nums text-success">{formatMoney(product.price, locale)}</span>
             {product.old_price ? <span className="text-sm text-danger line-through">{formatMoney(product.old_price, locale)}</span> : null}

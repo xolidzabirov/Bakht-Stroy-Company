@@ -453,6 +453,50 @@ export interface paths {
         patch: operations["cart.items.update"];
         trace?: never;
     };
+    "/products/{product}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Отзывы о товаре
+         * @description Новые сверху. В summary — средняя оценка, количество и сколько отзывов на каждую оценку.
+         */
+        get: operations["products.reviews.index"];
+        put?: never;
+        /**
+         * Оставить отзыв
+         * @description Оценка и текст обязательны. Один покупатель — один отзыв на товар: повторная отправка заменяет прежний.
+         */
+        post: operations["products.reviews.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/{product}/reviews/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Мой отзыв о товаре
+         * @description data = null, если покупатель ещё не писал.
+         */
+        get: operations["products.reviews.mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/favorites": {
         parameters: {
             query?: never;
@@ -1527,6 +1571,46 @@ export interface paths {
         patch: operations["admin.orders.payment"];
         trace?: never;
     };
+    "/admin/products/{product}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Отзывы о товаре
+         * @description Все отзывы с авторами, новые сверху. Фильтр filter: negative (1–2 звезды) или positive (3–5 звёзд).
+         */
+        get: operations["admin.products.reviews.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reviews/{review}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Удалить отзыв
+         * @description Оценка товара пересчитывается без него.
+         */
+        delete: operations["admin.reviews.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -2259,6 +2343,13 @@ export interface components {
                 label: "шт" | "мешок" | "кг" | "т" | "м" | "м²" | "м³" | "упак." | "рулон" | "лист";
             };
             stock: number;
+            /**
+             * @description Средняя оценка от 1 до 5; null — отзывов пока нет.
+             * @example 4.5
+             */
+            rating: number | null;
+            /** @example 12 */
+            reviews_count: number;
             min_order_qty: number;
             in_stock: boolean;
             is_featured: boolean;
@@ -2277,6 +2368,25 @@ export interface components {
             is_active: boolean;
             is_low_stock: boolean;
             views_count: number;
+            created_at: string;
+            updated_at: string;
+        };
+        /** AdminReviewResource */
+        AdminReviewResource: {
+            id: number;
+            /** @example 2 */
+            rating: number;
+            /** @example Мешок пришёл порванным. */
+            body: string;
+            author: {
+                id: number;
+                /** @example Халид Забиров */
+                name: string | null;
+                email: string | null;
+                phone: string | null;
+                /** @description Аккаунт удалён. */
+                deleted: boolean;
+            };
             created_at: string;
             updated_at: string;
         };
@@ -2345,6 +2455,8 @@ export interface components {
                 small: string;
                 large: string;
             } | null;
+            /** @description Только у фото работ: 900×600 WebP. */
+            image_work: string | null;
             sort_order: number;
             is_active: boolean;
             starts_at: string | null;
@@ -2947,6 +3059,13 @@ export interface components {
                 label: "шт" | "мешок" | "кг" | "т" | "м" | "м²" | "м³" | "упак." | "рулон" | "лист";
             };
             stock: number;
+            /**
+             * @description Средняя оценка от 1 до 5; null — отзывов пока нет.
+             * @example 4.5
+             */
+            rating: number | null;
+            /** @example 12 */
+            reviews_count: number;
             min_order_qty: number;
             in_stock: boolean;
             is_featured: boolean;
@@ -2993,6 +3112,13 @@ export interface components {
                 label: "шт" | "мешок" | "кг" | "т" | "м" | "м²" | "м³" | "упак." | "рулон" | "лист";
             };
             stock: number;
+            /**
+             * @description Средняя оценка от 1 до 5; null — отзывов пока нет.
+             * @example 4.5
+             */
+            rating: number | null;
+            /** @example 12 */
+            reviews_count: number;
             min_order_qty: number;
             in_stock: boolean;
             is_featured: boolean;
@@ -3078,6 +3204,20 @@ export interface components {
             /** @example newSecret123 */
             password_confirmation: string;
         };
+        /** ReviewResource */
+        ReviewResource: {
+            id: number;
+            /** @example 5 */
+            rating: number;
+            /** @example Цемент свежий, привезли вовремя. */
+            body: string;
+            /**
+             * @description Имя и первая буква фамилии; null — аккаунт удалён.
+             * @example Халид З.
+             */
+            author: string | null;
+            created_at: string;
+        };
         /**
          * Role
          * @description User roles (spatie/laravel-permission role names).
@@ -3119,7 +3259,7 @@ export interface components {
              * @example hero
              * @enum {string}
              */
-            placement?: "hero" | "promo";
+            placement?: "hero" | "promo" | "works";
             /** @example Сезонная скидка на кровлю до −15% */
             title: string;
             /** @example Профнастил и металлочерепица со склада в Душанбе */
@@ -3307,6 +3447,19 @@ export interface components {
             created_at: string | null;
             /** @description Когда устройство попросит войти снова: токен сам обновляется до этого времени. */
             expires_at: string | null;
+        };
+        /** StoreReviewRequest */
+        StoreReviewRequest: {
+            /**
+             * @description Оценка: от 1 до 5 звёзд.
+             * @example 5
+             */
+            rating: number;
+            /**
+             * @description Текст отзыва.
+             * @example Цемент свежий, привезли вовремя.
+             */
+            body: string;
         };
         /** UpdateCartItemRequest */
         UpdateCartItemRequest: {
@@ -5010,6 +5163,262 @@ export interface operations {
                         errors: {
                             [key: string]: string[];
                         };
+                    };
+                };
+            };
+        };
+    };
+    "products.reviews.index": {
+        parameters: {
+            query?: {
+                per_page?: number | null;
+            };
+            header?: never;
+            path: {
+                /** @description The product slug */
+                product: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `ReviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ReviewResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                        summary: {
+                            average: number | null;
+                            /** @constant */
+                            count: 0;
+                            stars: string;
+                        };
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "products.reviews.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product slug */
+                product: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreReviewRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+            /** @description Слишком много запросов. Попробуйте позже. (TOO_MANY_REQUESTS) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Слишком много запросов. Попробуйте позже. */
+                        message: string;
+                        /** @example TOO_MANY_REQUESTS */
+                        code: string;
+                    };
+                };
+            };
+        };
+    };
+    "products.reviews.mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The product slug */
+                product: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[] | null;
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Аккаунт заблокирован. Обратитесь в поддержку. (ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @example ACCOUNT_BLOCKED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
                     };
                 };
             };
@@ -10107,6 +10516,189 @@ export interface operations {
                         errors: {
                             [key: string]: string[];
                         };
+                    };
+                };
+            };
+        };
+    };
+    "admin.products.reviews.index": {
+        parameters: {
+            query?: {
+                /** @description negative — 1–2 звезды, positive — 3–5 звёзд. */
+                filter?: "negative" | "positive" | null;
+                per_page?: number | null;
+            };
+            header?: never;
+            path: {
+                /** @description The product ID */
+                product: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated set of `AdminReviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AdminReviewResource"][];
+                        links: {
+                            first: string | null;
+                            last: string | null;
+                            prev: string | null;
+                            next: string | null;
+                        };
+                        meta: {
+                            current_page: number;
+                            from: number | null;
+                            last_page: number;
+                            /** @description Generated paginator links. */
+                            links: {
+                                url: string | null;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            /** @description Base path for paginator generated URLs. */
+                            path: string | null;
+                            /** @description Number of items shown per page. */
+                            per_page: number;
+                            /** @description Number of the last item in the slice. */
+                            to: number | null;
+                            /** @description Total number of items being paginated. */
+                            total: number;
+                        };
+                        summary: {
+                            average: number | null;
+                            /** @constant */
+                            count: 0;
+                            stars: string;
+                        };
+                    };
+                };
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Переданные данные некорректны. (VALIDATION_ERROR) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Переданные данные некорректны. */
+                        message: string;
+                        /** @example VALIDATION_ERROR */
+                        code: string;
+                        /** @description Ошибки по полям: { "поле": ["сообщение", ...] } */
+                        errors: {
+                            [key: string]: string[];
+                        };
+                    };
+                };
+            };
+        };
+    };
+    "admin.reviews.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The review ID */
+                review: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Требуется авторизация. (UNAUTHENTICATED) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Требуется авторизация. */
+                        message: string;
+                        /** @example UNAUTHENTICATED */
+                        code: string;
+                    };
+                };
+            };
+            /** @description Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. (FORBIDDEN, ACCOUNT_BLOCKED) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Недостаточно прав. / Аккаунт заблокирован. Обратитесь в поддержку. */
+                        message: string;
+                        /** @enum {string} */
+                        code: "FORBIDDEN" | "ACCOUNT_BLOCKED";
+                    };
+                };
+            };
+            /** @description Ресурс не найден. (NOT_FOUND) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Ресурс не найден. */
+                        message: string;
+                        /** @example NOT_FOUND */
+                        code: string;
                     };
                 };
             };

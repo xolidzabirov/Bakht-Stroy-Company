@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GalleryHorizontalEnd, Images, RectangleHorizontal } from "lucide-react";
+import { Camera, GalleryHorizontalEnd, Images, RectangleHorizontal } from "lucide-react";
 import { BannerManager } from "@/features/admin-banners/ui/BannerManager";
 import { requireStaff } from "@/shared/api/requireUser";
 import { userFetch } from "@/shared/api/session";
@@ -14,31 +14,33 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getI18n()).t.admin.banners.title };
 }
 
-type Placement = "hero" | "promo";
+type Placement = "hero" | "promo" | "works";
 
 /**
- * The two home page carousels, hidden and scheduled slides too:
- * the main slider of the first screen (?placement=hero, opens first) and the banners strip under it.
+ * The home page carousels, hidden and scheduled slides too: the main slider of the first screen (opens first),
+ * the banners strip under it and the photos of the company's work.
  */
 export default async function AdminBannersPage({ searchParams }: { searchParams: Promise<{ placement?: string }> }) {
   await requireStaff(routes.adminBanners);
-  const placement: Placement = (await searchParams).placement === "promo" ? "promo" : "hero";
+  const asked = (await searchParams).placement;
+  const placement: Placement = asked === "promo" || asked === "works" ? asked : "hero";
   const [{ t }, { data: banners }] = await Promise.all([getI18n(), userFetch<{ data: Banner[] }>(`/admin/banners?placement=${placement}`)]);
   const b = t.admin.banners;
   const tabs = [
     { value: "hero" as const, label: b.tabs.hero, icon: Images },
     { value: "promo" as const, label: b.tabs.promo, icon: RectangleHorizontal },
+    { value: "works" as const, label: b.tabs.works, icon: Camera },
   ];
 
   return (
     <div>
-      <PageHeader icon={GalleryHorizontalEnd} title={b.title} description={placement === "hero" ? b.heroLead : b.lead} />
+      <PageHeader icon={GalleryHorizontalEnd} title={b.title} description={placement === "hero" ? b.heroLead : placement === "works" ? b.worksLead : b.lead} />
 
-      <nav aria-label={b.title} className="mb-5 inline-flex rounded-xl border border-border bg-surface p-1">
+      <nav aria-label={b.title} className="mb-5 inline-flex max-w-full flex-wrap rounded-xl border border-border bg-surface p-1">
         {tabs.map(({ value, label, icon: Icon }) => (
           <Link
             key={value}
-            href={value === "hero" ? routes.adminBanners : `${routes.adminBanners}?placement=promo`}
+            href={value === "hero" ? routes.adminBanners : `${routes.adminBanners}?placement=${value}`}
             aria-current={placement === value ? "page" : undefined}
             className={cn(
               "inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-sm font-semibold transition",

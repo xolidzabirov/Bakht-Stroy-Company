@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getProduct, getRelatedProducts } from "@/entities/product/api/getProduct";
+import { getProduct, getProductReviews, getRelatedProducts } from "@/entities/product/api/getProduct";
+import { ProductReviews } from "@/features/product-reviews/ui/ProductReviews";
 import { getSettings } from "@/entities/settings/api/getSettings";
 import { env } from "@/shared/config/env";
 import { routes } from "@/shared/config/site";
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params }: Props) {
   await setLocaleFrom(params);
   const { slug } = await params;
-  const [product, related, settings, { t }] = await Promise.all([getProduct(slug), getRelatedProducts(slug), getSettings(), getI18n()]);
+  const [product, related, reviews, settings, { t }] = await Promise.all([getProduct(slug), getRelatedProducts(slug), getProductReviews(slug), getSettings(), getI18n()]);
 
   if (!product) notFound();
 
@@ -49,6 +50,7 @@ export default async function ProductPage({ params }: Props) {
     sku: product.sku,
     image: product.images?.map((image) => image.full),
     description: product.description,
+    ...(product.reviews_count > 0 && product.rating ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews_count } } : {}),
     offers: {
       "@type": "Offer",
       price: (product.price / 100).toFixed(2),
@@ -72,6 +74,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="mt-6">
           <ProductDetailsView product={product} phone={settings.phones[0]} whatsapp={settings.socials?.whatsapp} delivery={settings.delivery} />
         </div>
+        <ProductReviews slug={product.slug} productName={product.name} initial={reviews} />
       </Container>
 
       <ProductGrid

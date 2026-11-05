@@ -265,21 +265,42 @@ h3 {
   }
 }
 
-/* Loading placeholders: a light band sweeps across the grey blocks; still for people who prefer less motion. */
+/* Loading placeholders: a light band sweeps across the blocks; still for people who prefer less motion. */
 @utility skeleton-shimmer {
-  background: linear-gradient(
-      100deg,
-      transparent 20%,
-      color-mix(in oklab, var(--surface), white 55%) 50%,
-      transparent 80%
-    )
-    var(--surface-muted);
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(100deg, transparent 20%, var(--skeleton-shine) 50%, transparent 80%);
+  background-repeat: no-repeat;
   background-size: 200% 100%;
-  animation: skeleton-sweep 1.4s ease-in-out infinite;
+  animation: skeleton-sweep 1.5s ease-in-out infinite;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
+}
+
+/* The blocks are see-through, so they sit well on white cards, on the page, on the wall of the chat. */
+:root {
+  --skeleton-base: color-mix(in oklab, var(--foreground) 8%, transparent);
+  --skeleton-shine: rgb(255 255 255 / 0.55);
+}
+:root[data-theme="dark"] {
+  --skeleton-base: rgb(255 255 255 / 0.08);
+  --skeleton-shine: rgb(255 255 255 / 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --skeleton-base: rgb(255 255 255 / 0.08);
+    --skeleton-shine: rgb(255 255 255 / 0.06);
+  }
+}
+/* The dark and the yellow panels keep their color while they load. */
+.skeleton-on-dark {
+  --skeleton-base: rgb(255 255 255 / 0.1);
+  --skeleton-shine: rgb(255 255 255 / 0.09);
+}
+.skeleton-on-brand {
+  --skeleton-base: rgb(0 0 0 / 0.1);
+  --skeleton-shine: rgb(255 255 255 / 0.25);
 }
 
 @keyframes skeleton-sweep {
@@ -355,6 +376,49 @@ h3 {
 }
 .admin-ui .admin-nav-scroll::-webkit-scrollbar-thumb {
   background-color: rgb(255 255 255 / 0.14);
+}
+
+/* A row that runs by itself without an end (shared/ui/Marquee): stops under the mouse or a finger. */
+.marquee {
+  overflow: hidden;
+  touch-action: pan-y;
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-run var(--marquee-seconds, 60s) linear infinite;
+}
+.marquee-group {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-around;
+  min-width: 100vw;
+  gap: var(--marquee-gap, 1.5rem);
+  padding-right: var(--marquee-gap, 1.5rem);
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track,
+.marquee:active .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee-run {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    touch-action: auto;
+    mask-image: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee-group[aria-hidden] {
+    display: none;
+  }
 }
 
 /* The wall behind the messages: a faint brick bond, the shop's own pattern. */

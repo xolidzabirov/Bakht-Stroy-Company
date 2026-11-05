@@ -45,6 +45,8 @@ final class BannerResource extends JsonResource
              * @var array{small: string, large: string}|null
              */
             'image_hero' => $this->isHero() && $image !== null ? ['small' => $url('hero_860'), 'large' => $url('hero_1280')] : null,
+            /** Только у фото работ: 900×600 WebP. */
+            'image_work' => $this->isWork() && $image !== null ? $url('work') : null,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
             'starts_at' => $this->starts_at?->toIso8601String(),

@@ -48,6 +48,14 @@ class ProductListResource extends JsonResource
                 'label' => $this->unit->label(),
             ],
             'stock' => $this->stock,
+            /**
+             * Средняя оценка от 1 до 5; null — отзывов пока нет.
+             *
+             * @example 4.5
+             */
+            'rating' => $this->rating,
+            /** @example 12 */
+            'reviews_count' => $this->reviews_count,
             'min_order_qty' => $this->min_order_qty,
             'in_stock' => $this->inStock(),
             'is_featured' => $this->is_featured,

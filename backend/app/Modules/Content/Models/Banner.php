@@ -47,7 +47,10 @@ class Banner extends Model implements HasMedia
 
     public const PLACEMENT_PROMO = 'promo';
 
-    public const PLACEMENTS = [self::PLACEMENT_HERO, self::PLACEMENT_PROMO];
+    /** Photos of the company's finished work: the endless strip on the home page. */
+    public const PLACEMENT_WORKS = 'works';
+
+    public const PLACEMENTS = [self::PLACEMENT_HERO, self::PLACEMENT_PROMO, self::PLACEMENT_WORKS];
 
     public const IMAGE_COLLECTION = 'image';
 
@@ -101,6 +104,11 @@ class Banner extends Model implements HasMedia
         $query->where('placement', $placement);
     }
 
+    public function isWork(): bool
+    {
+        return $this->placement === self::PLACEMENT_WORKS;
+    }
+
     public function isHero(): bool
     {
         return $this->placement === self::PLACEMENT_HERO;
@@ -118,6 +126,12 @@ class Banner extends Model implements HasMedia
         $this->addMediaConversion('hero_1280')->nonOptimized()
             ->performOnCollections(self::IMAGE_COLLECTION)
             ->fit(Fit::Crop, 1280, 1024)
+            ->format('webp');
+
+        // The photos of work: a 3:2 frame in the strip on the home page.
+        $this->addMediaConversion('work')->nonOptimized()
+            ->performOnCollections(self::IMAGE_COLLECTION)
+            ->fit(Fit::Crop, 900, 600)
             ->format('webp');
 
         $this->addMediaConversion('desktop')->nonOptimized()

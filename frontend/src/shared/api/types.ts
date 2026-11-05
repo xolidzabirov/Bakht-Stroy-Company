@@ -12,6 +12,12 @@ export type Image = Schemas["ImageResource"];
 export type NewsItem = Schemas["NewsListResource"];
 export type NewsDetails = Schemas["NewsResource"];
 export type Banner = Schemas["BannerResource"];
+export type Review = Schemas["ReviewResource"];
+export type AdminReview = Schemas["AdminReviewResource"];
+/** What the reviews of a product add up to (written by hand: it travels next to the list). */
+export type ReviewSummary = { average: number | null; count: number; stars: Record<string, number> };
+export type ReviewsPage = { data: Review[]; meta: { current_page: number; last_page: number; total: number }; summary: ReviewSummary };
+export type AdminReviewsPage = { data: AdminReview[]; meta: { current_page: number; last_page: number; total: number }; summary: ReviewSummary };
 export type AdminProduct = Schemas["AdminProductResource"];
 export type AdminOrder = Schemas["AdminOrderResource"] & { next_statuses: { value: string; label: string }[] };
 export type AdminUser = Schemas["AdminUserResource"];

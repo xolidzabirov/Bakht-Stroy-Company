@@ -9,12 +9,18 @@ use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Queries\CategoryTreeQuery;
 use App\Shared\Providers\ModuleServiceProvider;
 use App\Shared\Support\PublicCache;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 final class CatalogServiceProvider extends ModuleServiceProvider
 {
     protected function bootModule(): void
     {
+        // A customer can comment on many products, but not flood them.
+        RateLimiter::for('reviews', fn (Request $request) => Limit::perHour(20)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         // The cached category tree shows names, images and product counts: drop it on any change.
         foreach ([Category::class, Product::class] as $model) {
             $model::saved(function (): void {

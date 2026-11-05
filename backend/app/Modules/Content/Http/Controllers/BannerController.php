@@ -90,7 +90,7 @@ final class BannerController extends Controller
         return BannerResource::make($banner->load('media'));
     }
 
-    /** ?placement=hero|promo (promo when missing). */
+    /** ?placement=hero|promo|works (promo when missing). */
     private function placement(Request $request): string
     {
         $request->validate(['placement' => ['nullable', 'in:'.implode(',', Banner::PLACEMENTS)]]);

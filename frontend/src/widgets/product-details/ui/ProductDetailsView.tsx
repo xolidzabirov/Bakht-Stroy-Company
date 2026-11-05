@@ -5,10 +5,11 @@ import { QuickOrderButton } from "@/features/quick-order/ui/QuickOrderButton";
 import { FavoriteButton } from "@/features/toggle-favorite/ui/FavoriteButton";
 import type { ProductDetails } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
-import { fmt } from "@/shared/i18n/format";
+import { fmt, plural } from "@/shared/i18n/format";
 import { getI18n } from "@/shared/i18n/server";
 import { formatMoney, formatPhone } from "@/shared/lib/format";
 import { Badge } from "@/shared/ui";
+import { Stars } from "@/shared/ui/Stars";
 import { ProductGallery } from "./ProductGallery";
 
 type Props = {
@@ -50,6 +51,19 @@ export async function ProductDetailsView({ product, phone, whatsapp, delivery }:
           )}
           <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">{product.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{fmt(t.product.sku, { sku: product.sku ?? "" })}</p>
+          <a href="#reviews" className="mt-2 inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm transition-colors hover:text-muted-foreground">
+            <Stars value={product.rating ?? 0} label={fmt(t.product.reviews.outOfFive, { value: product.rating ?? 0 })} />
+            {product.reviews_count > 0 ? (
+              <>
+                <b className="tabular-nums">{product.rating?.toFixed(1)}</b>
+                <span className="text-muted-foreground underline-offset-2 hover:underline">
+                  {product.reviews_count} {plural(locale, product.reviews_count, t.product.reviews.count)}
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground underline-offset-2 hover:underline">{t.product.reviews.none}</span>
+            )}
+          </a>
 
           <div className="mt-6 rounded-[var(--radius-card)] border border-border bg-surface p-5 sm:p-6">
             <div className="flex flex-wrap items-baseline gap-3">

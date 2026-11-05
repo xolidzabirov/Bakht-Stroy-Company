@@ -52,7 +52,7 @@ export function CartView({ initialCart, delivery }: Props) {
   const total = cart.subtotal + (deliveryPrice ?? 0);
 
   return (
-    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px] [&>*]:min-w-0">
       <section>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">

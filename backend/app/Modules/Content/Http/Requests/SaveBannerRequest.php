@@ -22,7 +22,7 @@ final class SaveBannerRequest extends FormRequest
              *
              * @example hero
              */
-            'placement' => ['sometimes', 'in:hero,promo'],
+            'placement' => ['sometimes', 'in:hero,promo,works'],
             /** @example Сезонная скидка на кровлю до −15% */
             'title' => [$required, 'string', 'max:150'],
             /** @example Профнастил и металлочерепица со склада в Душанбе */

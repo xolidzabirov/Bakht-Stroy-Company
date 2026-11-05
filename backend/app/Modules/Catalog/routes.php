@@ -3,8 +3,10 @@
 use App\Modules\Catalog\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Modules\Catalog\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Modules\Catalog\Http\Controllers\Admin\ProductImageController;
+use App\Modules\Catalog\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Modules\Catalog\Http\Controllers\CategoryController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Catalog\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,6 +21,15 @@ Route::post('products/{product:slug}/view', [ProductController::class, 'view'])-
 Route::get('products/{product:slug}/related', [ProductController::class, 'related'])->middleware('cache.public')->name('products.related');
 
 /*
+| Reviews: anyone reads them, customers write them.
+*/
+Route::get('products/{product:slug}/reviews', [ReviewController::class, 'index'])->middleware('cache.public')->name('products.reviews.index');
+Route::middleware(['auth:sanctum', 'active', 'customer'])->group(function () {
+    Route::get('products/{product:slug}/reviews/mine', [ReviewController::class, 'mine'])->name('products.reviews.mine');
+    Route::post('products/{product:slug}/reviews', [ReviewController::class, 'store'])->middleware('throttle:reviews')->name('products.reviews.store');
+});
+
+/*
 | Admin panel — admins.
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'role:admin|manager'])->group(function () {
@@ -26,6 +37,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'active', 'r
     Route::post('categories/{category}/image', [AdminCategoryController::class, 'uploadImage'])->name('categories.image.store');
     Route::delete('categories/{category}/image', [AdminCategoryController::class, 'deleteImage'])->name('categories.image.destroy');
     Route::apiResource('categories', AdminCategoryController::class);
+
+    Route::get('products/{product}/reviews', [AdminReviewController::class, 'index'])->whereNumber('product')->name('products.reviews.index');
+    Route::delete('reviews/{review}', [AdminReviewController::class, 'destroy'])->whereNumber('review')->name('reviews.destroy');
 
     Route::get('products/low-stock', [AdminProductController::class, 'lowStock'])->name('products.low-stock');
     Route::patch('products/{product}/stock', [AdminProductController::class, 'updateStock'])->name('products.stock');

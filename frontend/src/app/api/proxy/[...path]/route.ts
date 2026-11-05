@@ -4,8 +4,8 @@ import { applyRenewal, callBackend, canRenew, clearSession, isRenewalDue, relay,
 import { SHOP_CACHE_TAG } from "@/shared/api/http";
 import { AUTH_COOKIE } from "@/shared/config/auth";
 
-/** Requests that change what the shop shows: products, prices, stock, banners, news, settings. */
-const CHANGES_THE_SHOP = /^\/(admin\/(products|categories|banners|news|settings|orders)|orders)\b/;
+/** Requests that change what the shop shows: products, prices, stock, reviews, banners, news, settings. */
+const CHANGES_THE_SHOP = /^\/(admin\/(products|reviews|categories|banners|news|settings|orders)|orders|products\/[^/]+\/reviews)\b/;
 
 type Context = { params: Promise<{ path: string[] }> };
 

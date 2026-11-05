@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
@@ -13,12 +14,24 @@ import { formatPhone } from "@/shared/lib/format";
 import { Logo } from "@/shared/ui";
 import { SkipLink } from "@/shared/ui/SkipLink";
 import { AccountNav } from "@/widgets/account-shell/ui/AccountNav";
+import { AccountShellSkeleton } from "@/widgets/page-skeletons/ui/AccountSkeletons";
 
 /**
  * Personal account: its own layout without the site header and footer — a side menu on desktop,
  * a bottom tab bar on phones.
  */
 export default async function AccountLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const path = (await headers()).get("x-pathname") ?? routes.account;
+
+  return (
+    <Suspense fallback={<AccountShellSkeleton path={path} />}>
+      <AccountShell>{children}</AccountShell>
+    </Suspense>
+  );
+}
+
+/** Waits for the session and the counters on a first visit: until then the skeleton of the account and of this section stands in its place. */
+async function AccountShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await requireUser(routes.account);
 
   // Managers and admins work in the admin panel, their own profile and settings included.

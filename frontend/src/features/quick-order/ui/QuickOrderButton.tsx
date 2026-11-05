@@ -38,7 +38,7 @@ export function QuickOrderButton({ product, variant = "card", className }: { pro
         aria-label={t.cart.quickOrder}
         title={t.cart.quickOrder}
         className={cn(
-          "group/quick relative shrink-0 overflow-hidden whitespace-nowrap bg-[#16181d] text-white ring-1 ring-white/10 hover:bg-black",
+          "group/quick relative shrink-0 overflow-hidden whitespace-nowrap bg-[#16181d] text-white ring-1 ring-white/10 hover:bg-black dark:bg-white/10 dark:hover:bg-white/15",
           "before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/2 before:w-1/3 before:-skew-x-12 before:bg-white/25 before:transition-transform before:duration-700 before:ease-out hover:before:translate-x-[450%]",
           className,
         )}

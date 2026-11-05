@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Search } from "lucide-react";
 import { LocaleSwitcher } from "@/features/preferences/ui/LocaleSwitcher";
 import { ThemeToggle } from "@/features/preferences/ui/ThemeToggle";
@@ -14,6 +15,7 @@ import { getI18n } from "@/shared/i18n/server";
 import { AdminBottomNav, AdminMobileNav, AdminSidebar } from "@/widgets/admin-shell/ui/AdminNav";
 import { AdminScope } from "@/widgets/admin-shell/ui/AdminScope";
 import { QuickCreate } from "@/widgets/admin-shell/ui/QuickCreate";
+import { AdminShellSkeleton } from "@/widgets/page-skeletons/ui/AdminSkeletons";
 import { NotificationBell } from "@/widgets/header/ui/NotificationBell";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,10 +31,20 @@ export async function generateMetadata(): Promise<Metadata> {
  * Customers who open /admin go to their account.
  */
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const path = (await headers()).get("x-pathname") ?? routes.admin;
+
+  return (
+    <Suspense fallback={<AdminShellSkeleton path={path} />}>
+      <AdminShell path={path}>{children}</AdminShell>
+    </Suspense>
+  );
+}
+
+/** Waits for the session on a first visit: until then the skeleton of the panel and of this very page stands in its place. */
+async function AdminShell({ path, children }: Readonly<{ path: string; children: React.ReactNode }>) {
   const [user, { t, locale }] = await Promise.all([requireStaff(routes.admin), getI18n()]);
   const admin = isAdmin(user);
   const shell = { name: user.name, isAdmin: admin };
-  const path = (await headers()).get("x-pathname") ?? routes.admin;
 
   // The wrong panel's address: a session from before /manager or a changed role. A new token brings the right cookie.
   if (admin === path.startsWith("/manager")) redirect(`/api/auth/refresh?next=${encodeURIComponent(admin ? adminPath(path) : managerPath(path))}`);
