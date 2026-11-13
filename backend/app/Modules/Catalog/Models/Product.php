@@ -38,6 +38,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property bool $is_active
  * @property bool $is_featured
  * @property int $views_count
+ * @property int|null $sold Units in orders that were not cancelled; only on admin queries.
  * @property float|null $rating
  * @property int $reviews_count
  * @property Carbon $created_at

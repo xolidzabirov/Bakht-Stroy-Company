@@ -2,6 +2,8 @@
 
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Order\Enums\OrderStatus;
+use App\Modules\Order\Models\Order;
 use App\Modules\User\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -205,4 +207,24 @@ it('does not reuse the slug of a deleted product', function () {
     $this->withToken($this->token)->postJson('/api/v1/admin/products', productPayload())
         ->assertCreated()
         ->assertJsonPath('data.slug', 'tsement-m500-d0-50-kg-2');
+});
+
+it('shows how many units were sold, without cancelled orders', function () {
+    $product = Product::factory()->for($this->category)->create(['stock' => 50]);
+    $sell = function (OrderStatus $status, int $quantity) use ($product): void {
+        Order::factory()->status($status)->create()->items()->create([
+            'product_id' => $product->id, 'product_name' => 'X', 'unit' => 'bag', 'price' => 1, 'quantity' => $quantity, 'total' => $quantity,
+        ]);
+    };
+    $sell(OrderStatus::New, 4);
+    $sell(OrderStatus::Completed, 6);
+    $sell(OrderStatus::Cancelled, 9);
+
+    $this->withToken($this->token)->getJson("/api/v1/admin/products/{$product->id}")
+        ->assertOk()
+        ->assertJsonPath('data.sold', 10);
+
+    $list = $this->withToken($this->token)->getJson('/api/v1/admin/products')->assertOk();
+
+    expect(collect($list->json('data'))->firstWhere('id', $product->id)['sold'])->toBe(10);
 });

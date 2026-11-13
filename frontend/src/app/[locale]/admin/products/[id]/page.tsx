@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Eye, ExternalLink, Star } from "lucide-react";
+import { Eye, ExternalLink, ShoppingBag, Star } from "lucide-react";
 import { flattenCategories } from "@/features/admin-products/lib/categories";
 import { ProductForm } from "@/features/admin-products/ui/ProductForm";
 import { ProductImages } from "@/features/admin-products/ui/ProductImages";
@@ -54,6 +54,10 @@ export default async function AdminProductPage({ params, searchParams }: Props) 
             <span className="inline-flex items-center gap-1.5">
               <Eye className="size-4" />
               {fmt(p.views, { count: String(product.views_count) })}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShoppingBag className="size-4" />
+              {fmt(t.admin.products.sold, { count: String(product.sold) })}
             </span>
             <a href="#reviews" className="inline-flex items-center gap-1.5 font-semibold hover:text-foreground">
               <Star className={cn("size-4", product.reviews_count > 0 && "fill-brand text-brand")} />

@@ -831,6 +831,7 @@ export const tg: Dictionary = {
       featured: "Хит",
       lowStock: "кам",
       stockSaved: "Бақия нигоҳ дошта шуд",
+      sold: "Фурӯхта шуд: {count}",
       deleteText: "Мол аз каталог нест мешавад. Фармоишҳо бо он дар таърих мемонанд.",
     },
     product: {

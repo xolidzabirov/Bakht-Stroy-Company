@@ -8,6 +8,7 @@ use App\Modules\Catalog\DTO\ProductFilterData;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Catalog filters, search and sorting — shared by the shop and the admin panel.
@@ -27,8 +28,27 @@ final class ProductQuery
      */
     public function admin(ProductFilterData $filters): Builder
     {
-        return $this->apply(Product::query(), $filters)
+        return $this->apply(self::withSold(Product::query()), $filters)
             ->when($filters->isActive !== null, fn (Builder $q) => $q->where('products.is_active', $filters->isActive));
+    }
+
+    /**
+     * Adds `sold`: how many units went out in orders that were not cancelled.
+     * The stock has already been lowered by them; a cancelled order gives its units back.
+     *
+     * @param  Builder<Product>  $query
+     * @return Builder<Product>
+     */
+    public static function withSold(Builder $query): Builder
+    {
+        return $query->select('products.*')->selectSub(
+            DB::table('order_items')
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->whereColumn('order_items.product_id', 'products.id')
+                ->where('orders.status', '!=', 'cancelled')
+                ->selectRaw('coalesce(sum(order_items.quantity), 0)'),
+            'sold',
+        );
     }
 
     /**

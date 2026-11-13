@@ -397,10 +397,52 @@ h3 {
   gap: var(--marquee-gap, 1.5rem);
   padding-right: var(--marquee-gap, 1.5rem);
 }
-.marquee:hover .marquee-track,
-.marquee:focus-within .marquee-track,
-.marquee:active .marquee-track {
+.marquee-shell:hover .marquee-track,
+.marquee-shell:focus-within .marquee-track,
+.marquee-shell:active .marquee-track {
   animation-play-state: paused;
+}
+.marquee-shell {
+  position: relative;
+}
+/* Arrows of the row (shared/ui/MarqueeArrows): the script sets data-side by where the mouse is. */
+.marquee-arrow {
+  position: absolute;
+  top: var(--marquee-arrow-top, 50%);
+  z-index: 1;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.85);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out,
+    background-color 0.15s,
+    color 0.15s;
+}
+.marquee-shell[data-side="left"] .marquee-arrow[data-dir="back"],
+.marquee-shell[data-side="right"] .marquee-arrow[data-dir="forward"],
+.marquee-shell[data-side="center"] .marquee-arrow,
+.marquee-arrow:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+.marquee-arrow:hover {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #111;
+}
+.marquee-arrow:active {
+  transform: translateY(-50%) scale(0.94);
 }
 @keyframes marquee-run {
   to {

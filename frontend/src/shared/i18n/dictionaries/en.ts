@@ -831,6 +831,7 @@ export const en: Dictionary = {
       featured: "Hit",
       lowStock: "low",
       stockSaved: "Stock saved",
+      sold: "Sold: {count}",
       deleteText: "The product disappears from the catalog. Orders with it stay in the history.",
     },
     product: {

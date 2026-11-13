@@ -6,13 +6,14 @@ import { Marquee } from "@/shared/ui/Marquee";
 
 /**
  * Round category icons in an endless slow row; the mouse over it stops the row, so a category is easy to press.
+ * Arrows appear on the side the mouse is at and move the row by a press.
  */
-export function CategoryStrip({ categories }: { categories: Category[] }) {
+export function CategoryStrip({ categories, arrows }: { categories: Category[]; arrows: { back: string; forward: string } }) {
   if (categories.length === 0) return null;
 
   return (
     <div className="mt-10">
-      <Marquee seconds={Math.max(50, categories.length * 9)} className="py-2 [--marquee-gap:1.25rem] sm:[--marquee-gap:1.75rem]">
+      <Marquee seconds={Math.max(50, categories.length * 9)} arrows={arrows} className="[--marquee-arrow-top:3rem] [--marquee-gap:1.25rem] sm:[--marquee-arrow-top:3.5rem] sm:[--marquee-gap:1.75rem] [&>.marquee]:py-2">
         {(copy) =>
           categories.map((category) => (
             <li key={category.id} className="shrink-0">

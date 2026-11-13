@@ -49,6 +49,8 @@ final class ProductController extends Controller
      */
     public function show(Product $product): AdminProductResource
     {
+        $product->sold = ProductQuery::withSold(Product::query())->whereKey($product->id)->value('sold');
+
         return AdminProductResource::make($product->load(['category.parent', 'media']));
     }
 

@@ -2367,6 +2367,7 @@ export interface components {
             category_id: number;
             is_active: boolean;
             is_low_stock: boolean;
+            sold: number;
             views_count: number;
             created_at: string;
             updated_at: string;

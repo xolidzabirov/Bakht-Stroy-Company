@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Boxes, Pencil, Plus, Star } from "lucide-react";
+import { Boxes, Pencil, Plus, ShoppingBag, Star } from "lucide-react";
 import { DeleteProduct, ProductFlag, StockEditor } from "@/features/admin-products/ui/ProductRowActions";
 import { MoreFilters, ResetFilters, SearchFilter, SelectFilter } from "@/features/admin-filters/ui/Filters";
 import { requireStaff } from "@/shared/api/requireUser";
@@ -148,6 +148,12 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
                   <div className="mt-1.5">
                     <StockEditor productId={product.id} stock={product.stock} unit={units[product.unit.value] ?? product.unit.label} low={product.is_low_stock} />
+                    {product.sold > 0 && (
+                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <ShoppingBag className="size-3.5" />
+                        {fmt(p.sold, { count: `${product.sold} ${units[product.unit.value] ?? product.unit.label}` })}
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-2 flex items-center gap-1.5 border-t border-border pt-3">

@@ -832,6 +832,7 @@ export const ru = {
       featured: "Хит",
       lowStock: "мало",
       stockSaved: "Остаток сохранён",
+      sold: "Продано: {count}",
       deleteText: "Товар исчезнет из каталога. Заказы с ним останутся в истории.",
     },
     product: {

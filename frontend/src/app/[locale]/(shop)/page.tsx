@@ -40,7 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <Hero banners={banners} heroSlides={heroSlides} phone={settings.phones[0]} />
-      <CategoryStrip categories={categories} />
+      <CategoryStrip categories={categories} arrows={{ back: t.common.back, forward: t.common.forward }} />
       <div className="reveal">
         <Advantages />
       </div>

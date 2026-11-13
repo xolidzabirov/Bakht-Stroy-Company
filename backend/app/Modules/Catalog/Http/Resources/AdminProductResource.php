@@ -25,6 +25,7 @@ final class AdminProductResource extends ProductResource
             'is_active' => $this->is_active,
             'is_low_stock' => $this->stock <= (int) config('shop.low_stock_threshold'),
             'views_count' => $this->views_count,
+            'sold' => (int) ($this->sold ?? 0),
             'created_at' => $this->created_at->toIso8601String(),
             'updated_at' => $this->updated_at->toIso8601String(),
         ];
