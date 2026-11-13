@@ -3,15 +3,13 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/** Part of the row's width one press moves it by. */
-const STEP = 0.6;
 const GLIDE_MS = 450;
 /** The mouse in the left or right third shows one arrow, in the middle both. */
 const SIDE = 1 / 3;
 
 /**
  * Arrows over a Marquee row, shown by where the mouse is: near the left edge the left one,
- * near the right edge the right one, in the middle both. A press glides the row by a part of its width.
+ * near the right edge the right one, in the middle both. A press glides the row by one item.
  * The row itself stays a CSS animation: a press only moves the time of that animation.
  */
 export function MarqueeArrows({ back, forward }: { back: string; forward: string }) {
@@ -47,7 +45,10 @@ export function MarqueeArrows({ back, forward }: { back: string; forward: string
     const track = shell?.querySelector<HTMLElement>(".marquee-track");
     if (!shell || !row || !track) return;
 
-    const distance = row.clientWidth * STEP;
+    // One item and the gap after it.
+    const item = track.querySelector<HTMLElement>(".marquee-group > li");
+    if (!item?.parentElement) return;
+    const distance = item.offsetWidth + (parseFloat(getComputedStyle(item.parentElement).columnGap) || 0);
     const run = track.getAnimations()[0];
     const length = Number(run?.effect?.getComputedTiming().duration);
 
