@@ -14,7 +14,7 @@ function Action({ href, label, count, icon, className }: { href: string; label: 
   return (
     <Link prefetch={false}
       href={href}
-      className={cn("flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-muted md:min-w-16", className)}
+      className={cn("icon-hover flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground transition hover:bg-muted md:min-w-16", className)}
     >
       <span className="relative">
         {icon}

@@ -22,8 +22,8 @@ export function NavLinks({ items, label }: { items: { href: string; label: strin
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex h-full items-center text-sm font-medium transition hover:text-foreground",
-              active ? "text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand" : "text-muted-foreground",
+              "relative flex h-full items-center text-sm font-medium transition hover:text-foreground after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-out",
+              active ? "text-foreground after:scale-x-100" : "text-muted-foreground after:scale-x-0 hover:after:scale-x-100",
             )}
           >
             {item.label}

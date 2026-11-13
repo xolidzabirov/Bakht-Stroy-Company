@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const GLIDE_MS = 450;
+const GLIDE_MS = 700;
 /** The mouse in the left or right third shows one arrow, in the middle both. */
 const SIDE = 1 / 3;
 
@@ -67,7 +67,8 @@ export function MarqueeArrows({ back, forward }: { back: string; forward: string
     const started = performance.now();
     const step = (now: number) => {
       const part = Math.min(1, (now - started) / GLIDE_MS);
-      const eased = 1 - (1 - part) ** 3;
+      // Soft start and soft stop: the row is pushed and settles, it does not jump.
+      const eased = part < 0.5 ? 4 * part ** 3 : 1 - (-2 * part + 2) ** 3 / 2;
       const time = from + (goal - from) * eased;
       run.currentTime = ((time % length) + length) % length;
       glide.current = part < 1 ? { frame: requestAnimationFrame(step), goal } : null;

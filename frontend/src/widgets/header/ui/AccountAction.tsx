@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 
-const triggerClass = "flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 md:min-w-16";
+const triggerClass = "icon-hover flex min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-foreground outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 md:min-w-16";
 
 /**
  * Guests: "Войти". Signed-in users: the first name with a green dot; a click opens a menu.

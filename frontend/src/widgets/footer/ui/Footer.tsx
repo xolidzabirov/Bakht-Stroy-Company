@@ -63,7 +63,7 @@ export async function Footer() {
               <li key={category.id}>
                 <Link prefetch={false}
                   href={routes.category(category.slug)}
-                  className="hover:text-white"
+                  className="link-slide hover:text-white"
                 >
                   {category.name}
                 </Link>
@@ -85,7 +85,7 @@ export async function Footer() {
               [routes.account, t.nav.account],
             ].map(([href, label]) => (
               <li key={href}>
-                <Link prefetch={false} href={href} className="hover:text-white">
+                <Link prefetch={false} href={href} className="link-slide hover:text-white">
                   {label}
                 </Link>
               </li>
