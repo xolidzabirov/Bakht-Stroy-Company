@@ -606,3 +606,9 @@ html[data-theme="dark"] .maplibregl-ctrl.maplibregl-ctrl-scale {
   background-color: var(--surface);
   color: var(--foreground);
 }
+
+/* A click leaves no frame on buttons and links; with the keyboard (html[data-keyboard], set in providers.tsx) it shows. Text fields keep theirs. */
+html:not([data-keyboard]) :is(a, button, summary, [role="button"], [role="tab"], [role="menuitem"], [role="option"], [role="switch"], [role="checkbox"], [role="radio"], [tabindex]):focus {
+  outline: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
