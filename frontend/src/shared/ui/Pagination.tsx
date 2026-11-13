@@ -30,13 +30,14 @@ export async function Pagination({ page, lastPage, href }: Props) {
 
   const { t } = await getI18n();
 
-  const item = "grid h-10 min-w-10 place-items-center rounded-xl px-3 text-sm font-semibold transition";
+  const item = "group grid h-10 min-w-10 place-items-center rounded-xl px-3 text-sm font-semibold transition duration-200 ease-out active:scale-95 motion-reduce:transform-none";
+  const idle = "border border-border bg-surface hover:-translate-y-0.5 hover:border-brand hover:shadow-md hover:shadow-brand/15";
 
   return (
     <nav aria-label={t.common.pages} className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 && (
-        <Link prefetch={false} href={href(page - 1)} aria-label={t.common.prevPage} className={cn(item, "border border-border hover:border-foreground/40")}>
-          <ChevronLeft className="size-4" />
+        <Link prefetch={false} href={href(page - 1)} aria-label={t.common.prevPage} className={cn(item, idle)}>
+          <ChevronLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
         </Link>
       )}
       {pages(page, lastPage).map((value, index) =>
@@ -49,15 +50,15 @@ export async function Pagination({ page, lastPage, href }: Props) {
             key={value}
             href={href(value)}
             aria-current={value === page ? "page" : undefined}
-            className={cn(item, value === page ? "bg-ink text-white dark:bg-white dark:text-ink" : "border border-border hover:border-foreground/40")}
+            className={cn(item, value === page ? "bg-ink text-white dark:bg-white dark:text-ink" : idle)}
           >
             {value}
           </Link>
         ),
       )}
       {page < lastPage && (
-        <Link prefetch={false} href={href(page + 1)} aria-label={t.common.nextPage} className={cn(item, "border border-border hover:border-foreground/40")}>
-          <ChevronRight className="size-4" />
+        <Link prefetch={false} href={href(page + 1)} aria-label={t.common.nextPage} className={cn(item, idle)}>
+          <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       )}
     </nav>

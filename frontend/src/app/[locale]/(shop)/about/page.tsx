@@ -59,7 +59,7 @@ export default async function AboutPage({ params }: Props) {
         </section>
 
         {facts.length > 0 && (
-          <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <ul className="reveal-items mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {facts.map((fact) => (
               <li key={fact.label} className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
                 <p className="font-display text-3xl font-extrabold sm:text-4xl">{fact.value}</p>
@@ -74,7 +74,7 @@ export default async function AboutPage({ params }: Props) {
 
       <Container className="mt-16">
         <SectionHeading title={t.about.servicesTitle} subtitle={t.about.servicesSubtitle} />
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="reveal-items grid gap-4 md:grid-cols-3">
           {t.about.services.map((service, index) => {
             const Icon = serviceIcons[index] ?? Truck;
 

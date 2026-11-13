@@ -16,7 +16,7 @@ export function ProductGrid({ title, subtitle, href, products }: Props) {
   return (
     <Container className="mt-20 sm:mt-28">
       <SectionHeading title={title} subtitle={subtitle} href={href} />
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="reveal-items grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         {products.map((product) => (
           <ShopProductCard key={product.id} product={product} />
         ))}

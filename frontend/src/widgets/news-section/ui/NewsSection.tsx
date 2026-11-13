@@ -14,7 +14,7 @@ export async function NewsSection({ news, title, subtitle }: { news: NewsItem[];
   return (
     <Container className="mt-20 sm:mt-28">
       <SectionHeading title={title ?? t.home.newsTitle} subtitle={title ? subtitle : (subtitle ?? t.home.newsSubtitle)} href={routes.news} />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="reveal-items grid gap-4 md:grid-cols-3">
         {news.map((item) => (
           <NewsCard key={item.id} news={item} />
         ))}

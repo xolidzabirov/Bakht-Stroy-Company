@@ -13,7 +13,7 @@ export async function CategoryGrid({ categories }: { categories: Category[] }) {
   return (
     <Container className="mt-20 sm:mt-28">
       <SectionHeading title={t.home.catalogTitle} subtitle={t.home.catalogSubtitle} href={routes.catalog} linkText={t.common.allCatalog} />
-      <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
+      <div className="reveal-items grid gap-3 sm:gap-4 lg:grid-cols-3">
         {categories.map((category) => (
           <CategoryCard key={category.id} category={category} />
         ))}
