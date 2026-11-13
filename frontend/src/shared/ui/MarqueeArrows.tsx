@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const GLIDE_MS = 700;
+const GLIDE_MS = 500;
 /** The mouse in the left or right third shows one arrow, in the middle both. */
 const SIDE = 1 / 3;
 
