@@ -60,7 +60,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           title={t.home.saleTitle}
           subtitle={t.home.saleSubtitle}
           href={routes.catalog}
-          products={sale.slice(0, 4)}
+          products={sale.slice(0, 16)}
         />
       )}
       <WorksGallery photos={works} />

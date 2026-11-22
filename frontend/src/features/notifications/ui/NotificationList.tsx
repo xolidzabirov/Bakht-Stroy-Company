@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import { Bell, CheckCheck, LoaderCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { bff } from "@/shared/api/client";
 import type { AppNotification } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
@@ -15,17 +16,38 @@ import { Button } from "@/shared/ui";
 
 /**
  * Order news. Unread ones are highlighted; opening the order marks the notice as read.
+ *
+ * When the page opens and there are unread notifications, they are all marked as read automatically
+ * so the sidebar badge and header bell counter go away. The yellow highlight stays on the page
+ * until the user refreshes, so they can still see which ones were new.
  */
 export function NotificationList({ items, unread }: { items: AppNotification[]; unread: number }) {
   const { t, locale } = useI18n();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const n = t.acc.notifications;
+  const autoMarked = useRef(false);
+
+  // Auto-mark all as read when the page opens (runs once).
+  useEffect(() => {
+    if (unread > 0 && !autoMarked.current) {
+      autoMarked.current = true;
+      bff("/api/proxy/me/notifications/read-all")
+        .then(() => {
+          // Refresh the header bell counter and the sidebar badge.
+          queryClient.invalidateQueries({ queryKey: ["header-notices"] });
+          router.refresh();
+        })
+        .catch(() => null);
+    }
+  }, [unread, queryClient, router]);
 
   const readAll = () =>
     startTransition(async () => {
       try {
         await bff("/api/proxy/me/notifications/read-all");
+        queryClient.invalidateQueries({ queryKey: ["header-notices"] });
         router.refresh();
       } catch {
         toast.error(t.errors.generic);
@@ -33,7 +55,9 @@ export function NotificationList({ items, unread }: { items: AppNotification[]; 
     });
 
   const markRead = (id: string) => {
-    void bff(`/api/proxy/me/notifications/${id}/read`).catch(() => null);
+    void bff(`/api/proxy/me/notifications/${id}/read`)
+      .then(() => queryClient.invalidateQueries({ queryKey: ["header-notices"] }))
+      .catch(() => null);
   };
 
   return (

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useCart } from "@/entities/cart/api/useCart";
 import { useFavoriteIds } from "@/entities/favorite/api/useFavorites";
@@ -41,13 +43,41 @@ export function FavoritesAction() {
   return <Action href={routes.favorites} label={t.header.favorites} count={ids?.length ?? 0} icon={<Heart className="size-[22px]" />} className="hidden sm:flex" />;
 }
 
-/** Cart with the number of lines in it (not for the shop team — they do not place orders). */
+const CART_SEEN_KEY = "bakht_cart_seen_count";
+
+/** Cart with the number of new unseen items (clears when the user visits the cart page). */
 export function CartAction() {
   const { t } = useI18n();
+  const pathname = usePathname();
   const { isStaff, isCustomer } = useMe();
   const { data: cart } = useCart({ enabled: isCustomer });
 
+  const totalCount = cart?.items_count ?? 0;
+  const isCartPage = pathname === routes.cart || pathname.endsWith("/cart");
+
+  const [seenCount, setSeenCount] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    try {
+      return Number(localStorage.getItem(CART_SEEN_KEY)) || 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  // When visiting the cart page, mark all current cart items as seen.
+  useEffect(() => {
+    if (isCartPage) {
+      setSeenCount(totalCount);
+      try {
+        localStorage.setItem(CART_SEEN_KEY, String(totalCount));
+      } catch {}
+    }
+  }, [isCartPage, totalCount]);
+
   if (isStaff) return null;
 
-  return <Action href={routes.cart} label={t.header.cart} count={cart?.items_count ?? 0} icon={<ShoppingCart className="size-[22px]" />} />;
+  // Show only new items added since last visit to /cart; 0 on the cart page itself.
+  const unseenCount = isCartPage ? 0 : Math.max(0, totalCount - seenCount);
+
+  return <Action href={routes.cart} label={t.header.cart} count={unseenCount} icon={<ShoppingCart className="size-[22px]" />} />;
 }

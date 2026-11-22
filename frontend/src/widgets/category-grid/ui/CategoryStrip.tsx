@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CategoryIcon } from "@/entities/category/ui/CategoryIcon";
 import type { Category } from "@/shared/api/types";
 import { routes } from "@/shared/config/site";
+import { Container } from "@/shared/ui";
 import { Marquee } from "@/shared/ui/Marquee";
 
 /**
@@ -12,7 +13,7 @@ export function CategoryStrip({ categories, arrows }: { categories: Category[]; 
   if (categories.length === 0) return null;
 
   return (
-    <div className="mt-10">
+    <Container className="mt-10">
       <Marquee seconds={Math.max(50, categories.length * 9)} arrows={arrows} className="[--marquee-arrow-top:3rem] [--marquee-gap:1.25rem] sm:[--marquee-arrow-top:3.5rem] sm:[--marquee-gap:1.75rem] [&>.marquee]:py-2">
         {(copy) =>
           categories.map((category) => (
@@ -25,6 +26,6 @@ export function CategoryStrip({ categories, arrows }: { categories: Category[]; 
           ))
         }
       </Marquee>
-    </div>
+    </Container>
   );
 }
