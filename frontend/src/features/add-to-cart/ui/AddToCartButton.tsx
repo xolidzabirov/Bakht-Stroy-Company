@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, LoaderCircle, Pencil, ShoppingCart } from "lucide-react";
-import { useAddToCart, useCart } from "@/entities/cart/api/useCart";
+import { useAddToCart, useCart, useSetCartQuantity, useRemoveFromCart } from "@/entities/cart/api/useCart";
 import { ApiError } from "@/shared/api/http";
 import { useMe } from "@/shared/api/useMe";
 import { routes } from "@/shared/config/site";
@@ -24,9 +24,13 @@ type Props = {
 
 /**
  * "В корзину". Guests go to the login page and come back here; signed-in users get a toast
- * with a link to the cart. On a card the button always stays the same: every press adds the product once more.
- * The shop team does not buy: on a card they see what customers see, but the button only explains that and offers
- * to edit the product; on the product page they get a link to the admin panel instead.
+ * with a link to the cart.
+ *
+ * Card variant: first click adds the product; then a QuantityStepper appears (− [qty] +).
+ * Pressing "−" below min_order_qty removes the item from the cart and shows the button again.
+ *
+ * The shop team does not buy: on a card they see what customers see, but the button only explains
+ * that and offers to edit the product; on the product page they get a link to the admin panel instead.
  */
 export function AddToCartButton({ product, variant = "card", className }: Props) {
   const { t } = useI18n();
@@ -36,10 +40,52 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
   const { isStaff, isCustomer } = useMe();
   const { data: cart } = useCart({ enabled: isCustomer });
   const add = useAddToCart();
+  const setCartQty = useSetCartQuantity();
+  const removeFromCart = useRemoveFromCart();
   const [quantity, setQuantity] = useState(Math.max(1, product.min_order_qty));
 
   const inCart = cart?.items.find((item) => item.product?.id === product.id);
   const labels = { quantity: t.cart.quantity, decrease: t.cart.decrease, increase: t.cart.increase };
+
+  // Keep local quantity in sync with server cart.
+  const [cardQty, setCardQty] = useState(inCart?.quantity ?? 0);
+  useEffect(() => {
+    setCardQty(inCart?.quantity ?? 0);
+  }, [inCart?.quantity]);
+
+  // Debounced server sync for the card stepper (400 ms after the last change).
+  useEffect(() => {
+    if (!inCart || cardQty === inCart.quantity || cardQty <= 0) return;
+
+    const timer = setTimeout(() => {
+      setCartQty.mutate(
+        { itemId: inCart.id, quantity: cardQty },
+        {
+          onError: (error) => {
+            toast.error(error instanceof ApiError ? error.message : t.errors.generic);
+            setCardQty(inCart.quantity);
+          },
+        },
+      );
+    }, 400);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only when cardQty changes
+  }, [cardQty]);
+
+  /** Handle stepper change in card variant: 0 or below min → remove from cart. */
+  const handleCardStepperChange = (newQty: number) => {
+    if (newQty < Math.max(1, product.min_order_qty) && inCart) {
+      // Going below minimum → remove item.
+      setCardQty(0);
+      removeFromCart.mutate(inCart.id, {
+        onSuccess: () => toast.success(t.cart.removed, { id: "cart-removed" }),
+        onError: () => toast.error(t.errors.generic),
+      });
+      return;
+    }
+    setCardQty(newQty);
+  };
 
   const submit = () => {
     if (!signedIn) {
@@ -55,7 +101,6 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
     add.mutate(
       { productId: product.id, quantity: variant === "page" ? quantity : Math.max(1, product.min_order_qty) },
       {
-        // One toast that stays up while the button is being pressed, not a pile of them.
         onSuccess: () => toast.success(t.cart.added, { id: "cart-added", action: { label: t.cart.goToCart, onClick: () => router.push(routes.cart) } }),
         onError: (error) => toast.error(error instanceof ApiError ? error.message : t.errors.generic),
       },
@@ -80,9 +125,30 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
   }
 
   if (variant === "card") {
+    // If the product is already in cart → show the quantity stepper (− [qty] +).
+    if (inCart && cardQty > 0) {
+      return (
+        <QuantityStepper
+          size="sm"
+          value={cardQty}
+          min={Math.max(1, product.min_order_qty) - 1}
+          max={product.stock}
+          onChange={handleCardStepperChange}
+          labels={labels}
+          className={cn("w-full justify-center", className)}
+        />
+      );
+    }
+
+    // Not in cart → show "В корзину" button.
     return (
-      <Button size="sm" variant="outline" onClick={submit} className={cn("w-full group-hover:border-brand group-hover:bg-brand group-hover:text-on-brand hover:border-brand hover:bg-brand-hover hover:text-on-brand", className)}>
-        <ShoppingCart className="size-4" />
+      <Button
+        size="sm"
+        onClick={submit}
+        disabled={add.isPending}
+        className={cn("w-full bg-brand text-on-brand hover:bg-brand-hover", className)}
+      >
+        {add.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <ShoppingCart className="size-4" />}
         {t.cart.add}
       </Button>
     );

@@ -44,7 +44,7 @@ function useKeyboardFocusMark() {
   useEffect(() => {
     const root = document.documentElement;
     const keyboard = (event: KeyboardEvent) => {
-      if (event.key === "Tab" || event.key.startsWith("Arrow")) root.dataset.keyboard = "";
+      if (event.key === "Tab" || event.key?.startsWith("Arrow")) root.dataset.keyboard = "";
     };
     const pointer = () => {
       delete root.dataset.keyboard;
