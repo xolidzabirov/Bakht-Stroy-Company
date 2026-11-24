@@ -43,6 +43,11 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
   const setCartQty = useSetCartQuantity();
   const removeFromCart = useRemoveFromCart();
   const [quantity, setQuantity] = useState(Math.max(1, product.min_order_qty));
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const inCart = cart?.items.find((item) => item.product?.id === product.id);
   const labels = { quantity: t.cart.quantity, decrease: t.cart.decrease, increase: t.cart.increase };
@@ -126,7 +131,8 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
 
   if (variant === "card") {
     // If the product is already in cart → show the quantity stepper (− [qty] +).
-    if (inCart && cardQty > 0) {
+    // Render only after mount to prevent SSR hydration mismatch with client-side cart cache.
+    if (mounted && inCart && cardQty > 0) {
       return (
         <QuantityStepper
           size="sm"
@@ -140,7 +146,7 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
       );
     }
 
-    // Not in cart → show "В корзину" button.
+    // Not in cart (or initial SSR) → show "В корзину" button.
     return (
       <Button
         size="sm"
@@ -161,7 +167,7 @@ export function AddToCartButton({ product, variant = "card", className }: Props)
         {add.isPending ? <LoaderCircle className="size-5 animate-spin" /> : <ShoppingCart className="size-5" />}
         {t.cart.add}
       </Button>
-      {inCart && (
+      {mounted && inCart && (
         <Link href={routes.cart} className="inline-flex items-center gap-1.5 text-sm font-semibold text-success hover:underline">
           <Check className="size-4" />
           {t.cart.inCart}: {inCart.quantity}

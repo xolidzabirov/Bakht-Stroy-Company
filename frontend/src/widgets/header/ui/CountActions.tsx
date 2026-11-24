@@ -54,30 +54,31 @@ export function CartAction() {
 
   const totalCount = cart?.items_count ?? 0;
   const isCartPage = pathname === routes.cart || pathname.endsWith("/cart");
+  const [mounted, setMounted] = useState(false);
 
-  const [seenCount, setSeenCount] = useState<number>(() => {
-    if (typeof window === "undefined") return 0;
+  const [seenCount, setSeenCount] = useState<number>(0);
+
+  useEffect(() => {
+    setMounted(true);
     try {
-      return Number(localStorage.getItem(CART_SEEN_KEY)) || 0;
-    } catch {
-      return 0;
-    }
-  });
+      setSeenCount(Number(localStorage.getItem(CART_SEEN_KEY)) || 0);
+    } catch {}
+  }, []);
 
   // When visiting the cart page, mark all current cart items as seen.
   useEffect(() => {
-    if (isCartPage) {
+    if (isCartPage && mounted) {
       setSeenCount(totalCount);
       try {
         localStorage.setItem(CART_SEEN_KEY, String(totalCount));
       } catch {}
     }
-  }, [isCartPage, totalCount]);
+  }, [isCartPage, totalCount, mounted]);
 
   if (isStaff) return null;
 
-  // Show only new items added since last visit to /cart; 0 on the cart page itself.
-  const unseenCount = isCartPage ? 0 : Math.max(0, totalCount - seenCount);
+  // Show only new items added since last visit to /cart; 0 on the cart page itself or before mount.
+  const unseenCount = isCartPage || !mounted ? 0 : Math.max(0, totalCount - seenCount);
 
   return <Action href={routes.cart} label={t.header.cart} count={unseenCount} icon={<ShoppingCart className="size-[22px]" />} />;
 }

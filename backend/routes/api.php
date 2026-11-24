@@ -8,4 +8,12 @@ use Illuminate\Support\Facades\Route;
 | Feature routes live in app/Modules/<Module>/routes.php.
 */
 
+Route::get('/', fn () => response()->json([
+    'name' => config('app.name') . ' API',
+    'version' => 'v1',
+    'status' => 'operational',
+    'docs' => url('/api/documentation'),
+    'health' => url('/api/v1/health'),
+]));
+
 Route::get('/health', HealthController::class)->name('health');
